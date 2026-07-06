@@ -1,9 +1,9 @@
 // src/stores/settingsStore.js
 
-import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
+import { defineStore } from 'pinia'
+import { ref, watch } from 'vue'
 
-const STORAGE_KEY = 'settings';
+const STORAGE_KEY = 'settings'
 
 export const useSettingsStore = defineStore('settings', () => {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
@@ -13,8 +13,10 @@ export const useSettingsStore = defineStore('settings', () => {
     const temperature = ref(stored.temperature ?? 0.7)
     const numCtx = ref(stored.numCtx ?? 4096)
 
-    const conStatus = ref('unkown') // 'unkown' | 'checking' | 'connected' | 'disconnected' | 'error'
+    const connectionStatus = ref('unknown')
     const ollamaVersion = ref(null)
+
+    let pollTimer = null
 
     watch([apiUrl, systemPrompt, temperature, numCtx], () => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -29,29 +31,68 @@ export const useSettingsStore = defineStore('settings', () => {
         return url.trim().replace(/\/+$/, '')
     }
 
-    async function testConnection() {
-        conStatus.value = 'checking'
-        ollamaVersion.value = null
+    async function checkConnection({ silent = false } = {}) {
+        if (!silent)
+            connectionStatus.value = 'checking'
+
         const base = normalizeUrl(apiUrl.value)
 
         try {
-            const res = await fetch('${base}/api/version')
+            const res = await fetch(`${base}/api/version`)
 
             if (!res.ok)
-                throw new Error('Status ${res.status}')
+                throw new Error(`Status ${res.status}`)
 
             const data = await res.json()
-
             ollamaVersion.value = data.version ?? null
-            conStatus.value = 'connected'
+            connectionStatus.value = 'connected'
         } catch (err) {
-            conStatus.value = 'error'
+            ollamaVersion.value = null
+            connectionStatus.value = 'error'
+        }
+    }
+
+    // manual test-button
+    async function testConnection() {
+        await checkConnection({ silent: false })
+    }
+
+    // background polling
+    function startPolling(intervalMs = 5000) {
+        stopPolling()
+        checkConnection({ silent: true })
+
+        pollTimer = setInterval(() => {
+            checkConnection({ silent: true })
+        }, intervalMs)
+    }
+
+    function stopPolling() {
+        if (pollTimer) {
+            clearInterval(pollTimer)
+            pollTimer = null
+        }
+    }
+
+    async function fetchVersion() {
+        const base = normalizeUrl(apiUrl.value)
+        try {
+            const res = await fetch(`${base}/api/version`)
+
+            if (!res.ok)
+                throw new Error(`Status ${res.status}`)
+
+            const data = await res.json()
+            ollamaVersion.value = data.version ?? null
+        } catch (err) {
+            ollamaVersion.value = null
         }
     }
 
     return {
         apiUrl, systemPrompt, temperature, numCtx,
-        conStatus, ollamaVersion,
-        testConnection, normalizeUrl,
+        connectionStatus, ollamaVersion,
+        testConnection, normalizeUrl, fetchVersion,
+        startPolling, stopPolling,
     }
 })

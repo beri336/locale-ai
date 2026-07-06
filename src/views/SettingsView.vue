@@ -7,7 +7,7 @@
     </header>
 
     <div class="settings-content">
-      <!-- Verbindung -->
+      <!-- Connection -->
       <section class="card">
         <h2>Connection</h2>
 
@@ -37,7 +37,7 @@
         </div>
       </section>
 
-      <!-- Darstellung -->
+      <!-- Appearance -->
       <section class="card">
         <h2>Appearance</h2>
         <div class="toggle-row">
@@ -53,18 +53,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useThemeStore } from "@/stores/themeStore";
 
 const settingsStore = useSettingsStore();
 const themeStore = useThemeStore();
 
-const isChecking = computed(
-  () => settingsStore.connectionStatus === "checking",
+const isChecking = computed( () =>
+  settingsStore.connectionStatus === "checking",
 );
 
-const statusClass = computed(() => ({
+const statusClass = computed( () => ({
   connected: settingsStore.connectionStatus === "connected",
   error: settingsStore.connectionStatus === "error",
   unknown: settingsStore.connectionStatus === "unknown" || isChecking.value,
@@ -86,6 +86,14 @@ const statusLabel = computed(() => {
 async function handleTest() {
   await settingsStore.testConnection();
 }
+
+onMounted(() => {
+  settingsStore.startPolling();
+});
+
+onUnmounted(() => {
+  settingsStore.stopPolling();
+});
 </script>
 
 <style scoped>
