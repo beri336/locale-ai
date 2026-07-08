@@ -278,6 +278,7 @@ async function generateStreamingAnswer(modelName, prompt, options = {}, onToken)
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let fullText = ''
+    let stats = { evalCount: 0, promptEvalCount: 0, totalDuration: 0 }
 
     while (true) {
         const { done, value } = await reader.read()
@@ -287,10 +288,17 @@ async function generateStreamingAnswer(modelName, prompt, options = {}, onToken)
             const parsed = JSON.parse(line)
             fullText += parsed.response || ''
             if (onToken) onToken(parsed)
+            if (parsed.done) {
+                stats = {
+                    evalCount: parsed.eval_count || 0,
+                    promptEvalCount: parsed.prompt_eval_count || 0,
+                    totalDuration: parsed.total_duration || 0,
+                }
+            }
         })
     }
 
-    return fullText
+    return { text: fullText, stats }
 }
 
 export function useOllamaStore() {
