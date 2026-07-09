@@ -122,15 +122,25 @@ async function pullModel(modelName, onProgress) {
 
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
+    let buffer = ''
 
     while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        const chunk = decoder.decode(value)
-        chunk.split('\n').filter(Boolean).forEach((line) => {
-            const status = JSON.parse(line)
-            if (onProgress) onProgress(status)
-        })
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop()
+
+        for (const line of lines) {
+            if (!line.trim()) continue
+            try {
+                const status = JSON.parse(line)
+                if (onProgress) onProgress(status)
+            } catch (err) {
+                console.error('Skipping malformed JSON line:', line, err)
+            }
+        }
     }
 
     await refreshDetailedListOfModels()
@@ -262,7 +272,7 @@ async function generateOneTimeAnswer(modelName, prompt, options = {}) {
 }
 
 // Generates a streaming answer, invoking onToken for each incoming chunk
-async function generateStreamingAnswer(modelName, prompt, options = {}, onToken) {
+async function generateStreamingAnswer(modelName, prompt, options = {}, onToken) { // remove
     if (!isValidModelName(modelName)) {
         throw new Error(`Invalid model name: ${modelName}`)
     }
@@ -278,16 +288,35 @@ async function generateStreamingAnswer(modelName, prompt, options = {}, onToken)
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let fullText = ''
+    let buffer = ''
     let stats = { evalCount: 0, promptEvalCount: 0, totalDuration: 0 }
 
     while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        const chunk = decoder.decode(value)
-        chunk.split('\n').filter(Boolean).forEach((line) => {
-            const parsed = JSON.parse(line)
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop()
+
+        for (const line of lines) {
+            if (!line.trim()) continue
+
+            let parsed
+            try {
+                parsed = JSON.parse(line)
+            } catch (err) {
+                console.error('Skipping malformed JSON line:', line, err)
+                continue
+            }
+
+            if (parsed.error) {
+                throw new Error(parsed.error)
+            }
+
             fullText += parsed.response || ''
             if (onToken) onToken(parsed)
+
             if (parsed.done) {
                 stats = {
                     evalCount: parsed.eval_count || 0,
@@ -295,7 +324,90 @@ async function generateStreamingAnswer(modelName, prompt, options = {}, onToken)
                     totalDuration: parsed.total_duration || 0,
                 }
             }
-        })
+        }
+    }
+
+    if (buffer.trim()) {
+        try {
+            const parsed = JSON.parse(buffer)
+            fullText += parsed.response || ''
+            if (onToken) onToken(parsed)
+        } catch (err) {
+            console.error('Trailing buffer not valid JSON:', buffer, err)
+        }
+    }
+
+    return { text: fullText, stats }
+}
+
+async function generateStreamingChatAnswer(modelName, messages, options = {}, onToken) {
+    if (!isValidModelName(modelName)) {
+        throw new Error(`Invalid model name: ${modelName}`)
+    }
+
+    const response = await fetch(`${baseUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            model: modelName,
+            messages,
+            stream: true,
+            options,
+        }),
+    })
+
+    if (!response.ok) throw new Error('Failed to generate chat answer')
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let fullText = ''
+    let buffer = ''
+    let stats = { evalCount: 0, promptEvalCount: 0, totalDuration: 0 }
+
+    while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop()
+
+        for (const line of lines) {
+            if (!line.trim()) continue
+
+            let parsed
+            try {
+                parsed = JSON.parse(line)
+            } catch (err) {
+                console.error('Skipping malformed JSON line:', line, err)
+                continue
+            }
+
+            if (parsed.error) {
+                throw new Error(parsed.error)
+            }
+
+            const token = parsed.message?.content || ''
+            fullText += token
+            if (onToken) onToken({ response: token, done: parsed.done })
+
+            if (parsed.done) {
+                stats = {
+                    evalCount: parsed.eval_count || 0,
+                    promptEvalCount: parsed.prompt_eval_count || 0,
+                    totalDuration: parsed.total_duration || 0,
+                }
+            }
+        }
+    }
+
+    if (buffer.trim()) {
+        try {
+            const parsed = JSON.parse(buffer)
+            fullText += parsed.message?.content || ''
+        } catch (err) {
+            console.error('Trailing buffer not valid JSON:', buffer, err)
+        }
     }
 
     return { text: fullText, stats }
@@ -322,7 +434,8 @@ export function useOllamaStore() {
         unloadOllamaModel,
         loadOllamaModel,
         generateOneTimeAnswer,
-        generateStreamingAnswer,
+        generateStreamingAnswer, // remove
+        generateStreamingChatAnswer,
         setSelectedModel,
         getSelectedModel,
     }

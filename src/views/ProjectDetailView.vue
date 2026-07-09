@@ -95,9 +95,6 @@ const ollama = useOllamaStore();
 
 const modelNames = ref([]);
 const activeChatId = ref(null);
-const prompt = ref("");
-const isGenerating = ref(false);
-const streamingText = ref("");
 const chatWindow = ref(null);
 
 const project = computed(() => projectsStore.getProjectById(route.params.id));
@@ -167,52 +164,6 @@ function updateChatTitle(chat, firstMessage) {
   }
 }
 
-async function handleSend() {
-  if (!prompt.value || !activeChat.value?.model || isGenerating.value) return;
-
-  const chat = activeChat.value;
-  const userMessage = prompt.value;
-  chat.messages.push({ role: "user", content: userMessage });
-  updateChatTitle(chat, userMessage);
-  prompt.value = "";
-  projectsStore.saveProjects();
-  scrollToBottom();
-
-  isGenerating.value = true;
-  streamingText.value = "";
-
-  try {
-    const result = await ollama.generateStreamingAnswer(
-      chat.model,
-      userMessage,
-      {},
-      (chunk) => {
-        streamingText.value += chunk.response || "";
-        scrollToBottom();
-      },
-    );
-
-    chat.messages.push({
-      role: "assistant",
-      content: result.text,
-      model: chat.model,
-      tokenCount: result.stats.evalCount,
-    });
-    projectsStore.saveProjects();
-  } catch (error) {
-    console.error("Chat generation failed:", error);
-    chat.messages.push({
-      role: "assistant",
-      content: "Error: failed to generate a response.",
-    });
-    projectsStore.saveProjects();
-  } finally {
-    isGenerating.value = false;
-    streamingText.value = "";
-    scrollToBottom();
-  }
-}
-
 onMounted(async () => {
   modelNames.value = await ollama.getListOfModelsName();
   if (project.value?.chats.length > 0) {
@@ -225,6 +176,7 @@ onMounted(async () => {
 <style scoped>
 .project-detail {
   height: 100%;
+  min-height: 0;
   display: flex;
 }
 
@@ -339,6 +291,7 @@ onMounted(async () => {
 
 .chat-main {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   padding: var(--space-6);
