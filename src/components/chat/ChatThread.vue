@@ -11,6 +11,14 @@
         >
           {{ copiedAll ? "✓ Copied" : "⧉ Copy chat" }}
         </button>
+
+        <button
+          class="copy-btn toolbar-copy-btn"
+          @click="handleExportChat"
+          title="Export chat as Markdown"
+        >
+          ⬇ Export .md
+        </button>
       </div>
 
       <div
@@ -82,6 +90,11 @@ import { ref, nextTick, watch } from "vue";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import { renderMarkdown } from "@/utils/markdown";
 import { copyToClipboard } from "@/utils/clipboard";
+import {
+  buildChatMarkdown,
+  downloadMarkdownFile,
+  sanitizeFilename,
+} from "@/utils/export";
 
 const props = defineProps({
   chat: { type: Object, default: null },
@@ -99,6 +112,14 @@ const chatWindow = ref(null);
 
 const copiedIndex = ref(null);
 const copiedAll = ref(false);
+
+function handleExportChat() {
+  if (!props.chat?.messages?.length) return;
+
+  const markdown = buildChatMarkdown(props.chat);
+  const filename = `${sanitizeFilename(props.chat.title)}.md`;
+  downloadMarkdownFile(markdown, filename);
+}
 
 function isNearBottom() {
   if (!chatWindow.value) return true;
@@ -446,6 +467,7 @@ async function handleCopyFullChat() {
 .chat-toolbar {
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-2);
   padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--color-border);
   margin-bottom: var(--space-2);
