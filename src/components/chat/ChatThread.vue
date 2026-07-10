@@ -109,12 +109,17 @@
         :disabled="!chat.model || isGenerating"
         @keydown.enter.exact.prevent="handleSend"
       ></textarea>
+
+      <button v-if="isGenerating" class="btn-stop" @click="handleStop">
+        ■ Stop
+      </button>
       <button
+        v-else
         class="btn-primary"
-        :disabled="!prompt || !chat.model || isGenerating"
+        :disabled="!prompt || !chat.model"
         @click="handleSend"
       >
-        {{ isGenerating ? "Generating…" : "Send" }}
+        Send
       </button>
     </div>
   </div>
@@ -151,6 +156,8 @@ const copiedAll = ref(false);
 const editingIndex = ref(null);
 const editText = ref("");
 const editTextarea = ref(null);
+
+const abortController = ref(null);
 
 function handleExportChat() {
   if (!props.chat?.messages?.length) return;
@@ -197,6 +204,7 @@ async function handleSend() {
 
   isGenerating.value = true;
   streamingText.value = "";
+  abortController.value = new AbortController();
 
   try {
     const messagesPayload = chat.messages.map((m) => ({
@@ -212,6 +220,7 @@ async function handleSend() {
         streamingText.value += chunk.response || "";
         scrollToBottom();
       },
+      abortController.value.signal,
     );
 
     userMessageObj.tokenCount = result.stats.promptEvalCount;
@@ -225,15 +234,32 @@ async function handleSend() {
     emit("message-sent");
     scrollToBottom(true);
   } catch (error) {
-    console.error("Chat generation failed:", error);
-    chat.messages.push({
-      role: "assistant",
-      content: "Error: failed to generate a response.",
-    });
-    emit("message-sent");
+    if (error.name === "AbortError") {
+      chat.messages.push({
+        role: "assistant",
+        content: streamingText.value || "*Generation stopped.*",
+        model: chat.model,
+        stopped: true,
+      });
+      emit("message-sent");
+    } else {
+      console.error("Chat generation failed:", error);
+      chat.messages.push({
+        role: "assistant",
+        content: "Error: failed to generate a response.",
+      });
+      emit("message-sent");
+    }
   } finally {
     isGenerating.value = false;
     streamingText.value = "";
+    abortController.value = null;
+  }
+}
+
+function handleStop() {
+  if (abortController.value) {
+    abortController.value.abort();
   }
 }
 
@@ -681,5 +707,22 @@ async function handleSaveEdit(index) {
 
 .btn-secondary:hover {
   background: var(--color-surface);
+}
+
+/* Button to stop generation */
+.btn-stop {
+  padding: 0 var(--space-4);
+  background: var(--color-error, #ef4444);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-stop:hover {
+  opacity: 0.9;
 }
 </style>

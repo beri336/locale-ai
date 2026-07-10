@@ -7,45 +7,45 @@ import { isValidModelName } from '@/utils/validation'
 let baseUrl = 'http://localhost:11434'
 
 const RECOMMENDED_MODELS = [
-  {
-    name: "llama3.2:3b",
-    label: "Llama 3.2 3B",
-    description: "Fast, good for chatting",
-    size: "~2.0 GB",
-    link: "https://ollama.com/library/llama3.2",
-  },
-  {
-    name: "gemma3:2b",
-    label: "Gemma 3 2B",
-    description: "Very fast, compact",
-    size: "~1.7 GB",
-    link: "https://ollama.com/library/gemma3",
-  },
-  {
-    name: "phi4-mini",
-    label: "Phi-4 Mini",
-    description: "Strong reasoning",
-    size: "~2.5 GB",
-    link: "https://ollama.com/library/phi4-mini",
-  },
-  {
-    name: "mistral",
-    label: "Mistral 7B",
-    description: "Versatile, higher resource requirement",
-    size: "~4.1 GB",
-    link: "https://ollama.com/library/mistral",
-  },
-  {
-    name: "qwen2.5-coder:7b",
-    label: "Qwen 2.5 Coder 7B",
-    description: "Specialized for coding tasks",
-    size: "~4.7 GB",
-    link: "https://ollama.com/library/qwen2.5-coder",
-  },
+    {
+        name: "llama3.2:3b",
+        label: "Llama 3.2 3B",
+        description: "Fast, good for chatting",
+        size: "~2.0 GB",
+        link: "https://ollama.com/library/llama3.2",
+    },
+    {
+        name: "gemma3:2b",
+        label: "Gemma 3 2B",
+        description: "Very fast, compact",
+        size: "~1.7 GB",
+        link: "https://ollama.com/library/gemma3",
+    },
+    {
+        name: "phi4-mini",
+        label: "Phi-4 Mini",
+        description: "Strong reasoning",
+        size: "~2.5 GB",
+        link: "https://ollama.com/library/phi4-mini",
+    },
+    {
+        name: "mistral",
+        label: "Mistral 7B",
+        description: "Versatile, higher resource requirement",
+        size: "~4.1 GB",
+        link: "https://ollama.com/library/mistral",
+    },
+    {
+        name: "qwen2.5-coder:7b",
+        label: "Qwen 2.5 Coder 7B",
+        description: "Specialized for coding tasks",
+        size: "~4.7 GB",
+        link: "https://ollama.com/library/qwen2.5-coder",
+    },
 ];
 
 function getRecommendedModels() {
-  return RECOMMENDED_MODELS;
+    return RECOMMENDED_MODELS;
 }
 
 function stripTag(modelName) {
@@ -392,7 +392,7 @@ async function generateStreamingAnswer(modelName, prompt, options = {}, onToken)
     return { text: fullText, stats }
 }
 
-async function generateStreamingChatAnswer(modelName, messages, options = {}, onToken) {
+async function generateStreamingChatAnswer(modelName, messages, options = {}, onToken, signal) {
     if (!isValidModelName(modelName)) {
         throw new Error(`Invalid model name: ${modelName}`)
     }
@@ -406,6 +406,7 @@ async function generateStreamingChatAnswer(modelName, messages, options = {}, on
             stream: true,
             options,
         }),
+        signal,
     })
 
     if (!response.ok) throw new Error('Failed to generate chat answer')
@@ -416,53 +417,48 @@ async function generateStreamingChatAnswer(modelName, messages, options = {}, on
     let buffer = ''
     let stats = { evalCount: 0, promptEvalCount: 0, totalDuration: 0 }
 
-    while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
+    try {
+        while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
 
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop()
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop()
 
-        for (const line of lines) {
-            if (!line.trim()) continue
+            for (const line of lines) {
+                if (!line.trim()) continue
 
-            let parsed
-            try {
-                parsed = JSON.parse(line)
-            } catch (err) {
-                console.error('Skipping malformed JSON line:', line, err)
-                continue
-            }
+                let parsed
+                try {
+                    parsed = JSON.parse(line)
+                } catch (err) {
+                    console.error('Skipping malformed JSON line:', line, err)
+                    continue
+                }
 
-            if (parsed.error) {
-                throw new Error(parsed.error)
-            }
+                if (parsed.error) {
+                    throw new Error(parsed.error)
+                }
 
-            const token = parsed.message?.content || ''
-            fullText += token
-            if (onToken) onToken({ response: token, done: parsed.done })
+                const token = parsed.message?.content || ''
+                fullText += token
+                if (onToken) onToken({ response: token, done: parsed.done })
 
-            if (parsed.done) {
-                stats = {
-                    evalCount: parsed.eval_count || 0,
-                    promptEvalCount: parsed.prompt_eval_count || 0,
-                    totalDuration: parsed.total_duration || 0,
+                if (parsed.done) {
+                    stats = {
+                        evalCount: parsed.eval_count || 0,
+                        promptEvalCount: parsed.prompt_eval_count || 0,
+                        totalDuration: parsed.total_duration || 0,
+                    }
                 }
             }
         }
+    } finally {
+        reader.cancel().catch(() => { })
     }
 
-    if (buffer.trim()) {
-        try {
-            const parsed = JSON.parse(buffer)
-            fullText += parsed.message?.content || ''
-        } catch (err) {
-            console.error('Trailing buffer not valid JSON:', buffer, err)
-        }
-    }
-
-    return { text: fullText, stats }
+    return { text: fullText, stats, aborted: false }
 }
 
 export function useOllamaStore() {
