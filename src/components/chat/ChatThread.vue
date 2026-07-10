@@ -79,6 +79,19 @@
             </button>
 
             <button
+              v-if="
+                message.role === 'assistant' &&
+                isLastAssistantMessage(index) &&
+                !isGenerating
+              "
+              class="copy-btn"
+              @click="handleRegenerate(index)"
+              title="Regenerate response"
+            >
+              ↻
+            </button>
+
+            <button
               class="copy-btn"
               @click="handleCopyMessage(message.content, index)"
               :title="copiedIndex === index ? 'Copied!' : 'Copy message'"
@@ -359,6 +372,78 @@ async function handleSaveEdit(index) {
   } finally {
     isGenerating.value = false;
     streamingText.value = "";
+  }
+}
+
+// Regenerate the last assistant message by removing it and re-generating a new response
+function isLastAssistantMessage(index) {
+  const chat = props.chat;
+  if (!chat) return false;
+  const lastAssistantIndex = chat.messages.reduce(
+    (acc, m, i) => (m.role === "assistant" ? i : acc),
+    -1,
+  );
+  return index === lastAssistantIndex;
+}
+
+async function handleRegenerate(index) {
+  if (isGenerating.value) return;
+
+  const chat = props.chat;
+  chat.messages.splice(index);
+  emit("message-sent");
+  scrollToBottom(true);
+
+  isGenerating.value = true;
+  streamingText.value = "";
+  abortController.value = new AbortController();
+
+  try {
+    const messagesPayload = chat.messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    const result = await ollama.generateStreamingChatAnswer(
+      chat.model,
+      messagesPayload,
+      {},
+      (chunk) => {
+        streamingText.value += chunk.response || "";
+        scrollToBottom();
+      },
+      abortController.value.signal,
+    );
+
+    chat.messages.push({
+      role: "assistant",
+      content: result.text,
+      model: chat.model,
+      tokenCount: result.stats.evalCount,
+    });
+    emit("message-sent");
+    scrollToBottom(true);
+  } catch (error) {
+    if (error.name === "AbortError") {
+      chat.messages.push({
+        role: "assistant",
+        content: streamingText.value || "*Generation stopped.*",
+        model: chat.model,
+        stopped: true,
+      });
+      emit("message-sent");
+    } else {
+      console.error("Regenerate failed:", error);
+      chat.messages.push({
+        role: "assistant",
+        content: "Error: failed to generate a response.",
+      });
+      emit("message-sent");
+    }
+  } finally {
+    isGenerating.value = false;
+    streamingText.value = "";
+    abortController.value = null;
   }
 }
 </script>
