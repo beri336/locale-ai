@@ -3,7 +3,11 @@
 <template>
   <div class="dashboard-view">
     <header class="page-header">
-      <h1>Dashboard</h1>
+      <header class="page-header">
+        <h1>
+          <span class="nav-icon"><IconHome /></span> Dashboard
+        </h1>
+      </header>
     </header>
 
     <div class="quick-actions">
@@ -159,6 +163,7 @@ import { useOllamaStore } from "@/stores/useOllamaStore";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 import { useSearchModal } from "@/composables/useSearchModal";
 import { searchAllChats } from "@/composables/useChatSearch";
+import IconHome from "@/components/icons/IconHome.vue";
 
 const router = useRouter();
 const ollama = useOllamaStore();
@@ -237,11 +242,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-}
-
-.page-header h1 {
-  font-size: var(--text-xl);
-  font-weight: 700;
 }
 
 .quick-actions {
@@ -480,5 +480,19 @@ onUnmounted(() => {
   font-size: var(--text-sm);
   font-weight: 500;
   white-space: nowrap;
+}
+
+/* Page header styling */
+.page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Nav icon SVG styling */
+.nav-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 </style>

@@ -3,7 +3,9 @@
 <template>
   <div class="settings-view">
     <header class="page-header">
-      <h1>Settings</h1>
+      <h1>
+        <span class="nav-icon"><IconSettings /></span> Settings
+      </h1>
     </header>
 
     <div class="settings-content">
@@ -56,15 +58,16 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useThemeStore } from "@/stores/themeStore";
+import IconSettings from "@/components/icons/IconSettings.vue";
 
 const settingsStore = useSettingsStore();
 const themeStore = useThemeStore();
 
-const isChecking = computed( () =>
-  settingsStore.connectionStatus === "checking",
+const isChecking = computed(
+  () => settingsStore.connectionStatus === "checking",
 );
 
-const statusClass = computed( () => ({
+const statusClass = computed(() => ({
   connected: settingsStore.connectionStatus === "connected",
   error: settingsStore.connectionStatus === "error",
   unknown: settingsStore.connectionStatus === "unknown" || isChecking.value,
@@ -105,11 +108,6 @@ onUnmounted(() => {
 
 .page-header {
   margin-bottom: var(--space-6);
-}
-
-.page-header h1 {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
 }
 
 .settings-content {
@@ -239,5 +237,19 @@ onUnmounted(() => {
   background-color: var(--color-surface);
   color: var(--color-text);
   font-weight: 600;
+}
+
+/* Page header styling */
+.page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Nav icon SVG styling */
+.nav-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 </style>

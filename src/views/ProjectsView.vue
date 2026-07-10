@@ -3,7 +3,9 @@
 <template>
   <div class="projects-view">
     <header class="page-header">
-      <h1>Projects</h1>
+      <h1>
+          <span class="nav-icon"><IconFolder /></span> Projects
+        </h1>
       <button class="btn-primary" @click="openCreateModal">
         + New Project
       </button>
@@ -65,13 +67,14 @@
       @click.self="closeCreateModal"
     >
       <div class="modal">
-        <h2>New Project</h2>
+        <h2>Create a new Project</h2>
 
-        <label class="modal-label">Name</label>
+        <label class="modal-label">Name *</label>
         <input
           v-model="newProject.name"
           class="input"
           placeholder="e.g. Research, Coding Notes"
+          required
         />
 
         <label class="modal-label">Description</label>
@@ -107,6 +110,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectsStore } from "@/stores/useProjectsStore";
+import IconFolder from "@/components/icons/IconFolder.vue";
 
 const router = useRouter();
 const projectsStore = useProjectsStore();
@@ -181,11 +185,6 @@ function formatDate(isoString) {
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-5);
-}
-
-.page-header h1 {
-  font-size: var(--text-xl);
-  font-weight: 700;
 }
 
 .filter-row {
@@ -405,5 +404,19 @@ function formatDate(isoString) {
 .btn-ghost:hover {
   background: var(--color-surface-2);
   color: var(--color-text);
+}
+
+/* Page header styling */
+.page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Nav icon SVG styling */
+.nav-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 </style>

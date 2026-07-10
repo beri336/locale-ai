@@ -6,6 +6,58 @@ import { isValidModelName } from '@/utils/validation'
 
 let baseUrl = 'http://localhost:11434'
 
+const RECOMMENDED_MODELS = [
+  {
+    name: "llama3.2:3b",
+    label: "Llama 3.2 3B",
+    description: "Fast, good for chatting",
+    size: "~2.0 GB",
+    link: "https://ollama.com/library/llama3.2",
+  },
+  {
+    name: "gemma3:2b",
+    label: "Gemma 3 2B",
+    description: "Very fast, compact",
+    size: "~1.7 GB",
+    link: "https://ollama.com/library/gemma3",
+  },
+  {
+    name: "phi4-mini",
+    label: "Phi-4 Mini",
+    description: "Strong reasoning",
+    size: "~2.5 GB",
+    link: "https://ollama.com/library/phi4-mini",
+  },
+  {
+    name: "mistral",
+    label: "Mistral 7B",
+    description: "Versatile, higher resource requirement",
+    size: "~4.1 GB",
+    link: "https://ollama.com/library/mistral",
+  },
+  {
+    name: "qwen2.5-coder:7b",
+    label: "Qwen 2.5 Coder 7B",
+    description: "Specialized for coding tasks",
+    size: "~4.7 GB",
+    link: "https://ollama.com/library/qwen2.5-coder",
+  },
+];
+
+function getRecommendedModels() {
+  return RECOMMENDED_MODELS;
+}
+
+function stripTag(modelName) {
+    return modelName.split(":")[0]
+}
+
+function isModelInstalled(modelName, installedList) {
+    const normalize = (name) => (name.includes(":") ? name : `${name}:latest`)
+    const target = normalize(modelName)
+    return installedList.map(normalize).includes(target)
+}
+
 // Caches to avoid redundant network calls
 let detailedModelsCache = null
 let modelNamesCache = null
@@ -438,5 +490,7 @@ export function useOllamaStore() {
         generateStreamingChatAnswer,
         setSelectedModel,
         getSelectedModel,
+        getRecommendedModels,
+        isModelInstalled,
     }
 }

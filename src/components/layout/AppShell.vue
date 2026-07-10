@@ -23,7 +23,7 @@
           class="nav-item"
           :title="isCollapsed ? 'Dashboard' : ''"
         >
-          <span class="nav-icon">🏠</span>
+          <span class="nav-icon"><IconHome /></span>
           <span v-if="!isCollapsed" class="nav-label">Dashboard</span>
         </RouterLink>
 
@@ -32,7 +32,7 @@
           class="nav-item"
           :title="isCollapsed ? 'Chat' : ''"
         >
-          <span class="nav-icon">💬</span>
+          <span class="nav-icon"><IconChat /></span>
           <span v-if="!isCollapsed" class="nav-label">Chat</span>
         </RouterLink>
 
@@ -41,7 +41,7 @@
           class="nav-item"
           :title="isCollapsed ? 'Projects' : ''"
         >
-          <span class="nav-icon">📁</span>
+          <span class="nav-icon"><IconFolder /></span>
           <span v-if="!isCollapsed" class="nav-label">Projects</span>
         </RouterLink>
 
@@ -50,7 +50,7 @@
           class="nav-item"
           :title="isCollapsed ? 'Models' : ''"
         >
-          <span class="nav-icon">📦</span>
+          <span class="nav-icon"><IconPackage /></span>
           <span v-if="!isCollapsed" class="nav-label">Models</span>
         </RouterLink>
 
@@ -59,13 +59,14 @@
           class="nav-item"
           :title="isCollapsed ? 'Settings' : ''"
         >
-          <span class="nav-icon">⚙️</span>
+          <span class="nav-icon"><IconSettings /></span>
           <span v-if="!isCollapsed" class="nav-label">Settings</span>
         </RouterLink>
       </nav>
 
       <button class="theme-toggle" @click="themeStore.toggle()">
-        {{ themeStore.theme === "light" ? "🌙" : "☀️" }}
+        <IconMoon v-if="themeStore.theme === 'light'" />
+        <IconSun v-else />
       </button>
     </aside>
 
@@ -82,6 +83,15 @@ import { ref } from "vue";
 import { useThemeStore } from "@/stores/themeStore";
 import { useSearchModal } from "@/composables/useSearchModal";
 import SearchModal from "@/components/search/SearchModal.vue";
+
+// Embedded Icons
+import IconHome from "@/components/icons/IconHome.vue";
+import IconChat from "@/components/icons/IconChat.vue";
+import IconFolder from "@/components/icons/IconFolder.vue";
+import IconPackage from "@/components/icons/IconPackage.vue";
+import IconSettings from "@/components/icons/IconSettings.vue";
+import IconMoon from "@/components/icons/IconMoon.vue";
+import IconSun from "@/components/icons/IconSun.vue";
 
 const themeStore = useThemeStore();
 const { openSearchModal } = useSearchModal();
@@ -257,5 +267,19 @@ nav {
 .content {
   flex: 1;
   overflow-y: auto;
+}
+
+/* Nav icon SVG styling */
+.nav-icon svg,
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

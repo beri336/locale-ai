@@ -3,7 +3,9 @@
 <template>
   <div class="models-view">
     <header class="page-header">
-      <h1>Models</h1>
+      <h1>
+        <span class="nav-icon"><IconPackage /></span> Models
+      </h1>
     </header>
 
     <div class="models-content">
@@ -42,6 +44,49 @@
             {{ activeProgress.status }}
             {{ progressPercent > 0 ? progressPercent + "%" : "" }}
           </span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Recommended Models</h2>
+        <div class="recommended-models">
+          <div
+            v-for="model in recommendedModels"
+            :key="model.name"
+            class="model-recommend-item"
+          >
+            <div class="model-recommend-info">
+              <p class="model-recommend-name">{{ model.label }}</p>
+              <p class="model-recommend-desc">
+                {{ model.description }} · {{ model.size }} ·
+                <a :href="model.link" target="_blank">Details</a>
+              </p>
+            </div>
+
+            <button
+              v-if="ollama.isModelInstalled(model.name, installedNames)"
+              class="btn-installed"
+              disabled
+            >
+              ✓ Installed
+            </button>
+
+            <button
+              v-else-if="pullingModel === model.name"
+              class="btn-pulling"
+              disabled
+            >
+              {{ pullProgress }}%
+            </button>
+
+            <button
+              v-else
+              class="btn-primary"
+              @click="handleInstallModel(model.name)"
+            >
+              Install '{{ model.label }}'
+            </button>
+          </div>
         </div>
       </section>
 
@@ -118,12 +163,12 @@
 
           <div class="info-row">
             <span class="info-label">Total Size</span>
-            <span class="info-value">{{ totalSize }}</span>
+            <span class="info-value mono">{{ totalSize }}</span>
           </div>
 
           <div class="info-row">
             <span class="info-label">Models Available</span>
-            <span class="info-value">{{ modelNamesLength }}</span>
+            <span class="info-value mono">{{ modelNamesLength }}</span>
           </div>
 
           <div class="info-row">
@@ -136,6 +181,18 @@
           </div>
         </div>
 
+        <div class="select-row">
+          <label class="info-label" for="model-select"
+            >Select a model as the default</label
+          >
+          <select id="model-select" v-model="selectedModel" class="select">
+            <option value="" disabled>Please select a model</option>
+            <option v-for="name in modelNames" :key="name" :value="name">
+              {{ name }}
+            </option>
+          </select>
+        </div>
+
         <div class="refresh-row">
           <button class="btn-ghost small" @click="refreshModelNames">
             Refresh Models
@@ -146,16 +203,6 @@
           <button class="btn-ghost small" @click="refreshRunningModels">
             Refresh Running
           </button>
-        </div>
-
-        <div class="select-row">
-          <label class="info-label" for="model-select">Select a Model</label>
-          <select id="model-select" v-model="selectedModel" class="select">
-            <option value="" disabled>Please select a model</option>
-            <option v-for="name in modelNames" :key="name" :value="name">
-              {{ name }}
-            </option>
-          </select>
         </div>
       </section>
 
@@ -324,8 +371,14 @@
 import { ref, computed, onMounted } from "vue";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import { isValidModelName } from "@/utils/validation";
+import IconPackage from "@/components/icons/IconPackage.vue";
 
 const ollama = useOllamaStore();
+
+const recommendedModels = ref(ollama.getRecommendedModels());
+const installedNames = ref([]);
+const pullingModel = ref(null);
+const pullProgress = ref(0);
 
 const pullNameError = ref("");
 const loading = ref(false);
@@ -344,9 +397,40 @@ const removeName = ref("");
 const removeNameError = ref("");
 const isRemoving = ref(false);
 
-const pullProgress = ref(null);
+//const pullProgress = ref(null);
 
 const isConnectedBool = computed(() => isConnected.value === "Connected");
+
+async function refreshInstalledModels() {
+  installedNames.value = await ollama.refreshListOfModelsName();
+}
+
+async function handleInstallModel(modelName) {
+  if (pullingModel.value) return;
+
+  pullingModel.value = modelName;
+  pullProgress.value = 0;
+
+  try {
+    await ollama.pullModel(modelName, (status) => {
+      if (status.total && status.completed) {
+        pullProgress.value = Math.round(
+          (status.completed / status.total) * 100,
+        );
+      }
+      if (status.status === "success") {
+        pullProgress.value = 100;
+      }
+    });
+    await refreshInstalledModels();
+  } catch (error) {
+    console.error("Model install failed:", error);
+    alert(`Installation von ${modelName} fehlgeschlagen.`);
+  } finally {
+    pullingModel.value = null;
+    pullProgress.value = 0;
+  }
+}
 
 const selectedModel = computed({
   get: () => ollama.getSelectedModel(),
@@ -551,6 +635,7 @@ function validateRemoveName() {
 
 onMounted(() => {
   loadAllData();
+  refreshInstalledModels();
 });
 </script>
 
@@ -565,15 +650,10 @@ onMounted(() => {
   margin-bottom: var(--space-6);
 }
 
-.page-header h1 {
-  font-size: var(--text-xl);
-  font-weight: 700;
-}
-
 .models-content {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-2);
   max-width: 720px;
 }
 
@@ -976,5 +1056,73 @@ onMounted(() => {
   color: var(--color-error);
   font-size: var(--text-xs);
   margin-top: var(--space-1);
+}
+
+/* Recommended Models */
+.recommended-models {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.model-recommend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.model-recommend-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.model-recommend-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.model-recommend-desc {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.btn-installed {
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-success, #22c55e);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  opacity: 0.85;
+  cursor: default;
+}
+
+.btn-pulling {
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  min-width: 60px;
+  opacity: 0.9;
+}
+
+/* Page header styling */
+.page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Nav icon SVG styling */
+.nav-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 </style>
