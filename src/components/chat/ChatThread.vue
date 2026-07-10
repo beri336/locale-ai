@@ -27,31 +27,66 @@
         class="message"
         :class="message.role"
       >
-        <div
-          v-if="message.role === 'assistant'"
-          class="message-bubble markdown-body"
-          v-html="renderMarkdown(message.content)"
-        ></div>
-        <div v-else class="message-bubble">{{ message.content }}</div>
-
-        <div class="message-footer">
-          <span class="message-meta">
-            <template v-if="message.role === 'assistant' && message.model">
-              {{ message.model }} · {{ message.tokenCount }} tokens
-            </template>
-            <template v-else-if="message.role === 'user' && message.tokenCount">
-              {{ message.tokenCount }} tokens
-            </template>
-          </span>
-
-          <button
-            class="copy-btn"
-            @click="handleCopyMessage(message.content, index)"
-            :title="copiedIndex === index ? 'Copied!' : 'Copy message'"
-          >
-            {{ copiedIndex === index ? "✓" : "⧉" }}
-          </button>
+        <div v-if="editingIndex === index" class="message-edit">
+          <textarea
+            v-model="editText"
+            class="edit-textarea"
+            ref="editTextarea"
+            @keydown.enter.exact.prevent="handleSaveEdit(index)"
+            @keydown.esc.prevent="handleCancelEdit"
+          ></textarea>
+          <div class="edit-actions">
+            <button class="btn-secondary" @click="handleCancelEdit">
+              Cancel
+            </button>
+            <button
+              class="btn-primary"
+              :disabled="!editText.trim() || editText === message.content"
+              @click="handleSaveEdit(index)"
+            >
+              Save & Submit
+            </button>
+          </div>
         </div>
+
+        <template v-else>
+          <div
+            v-if="message.role === 'assistant'"
+            class="message-bubble markdown-body"
+            v-html="renderMarkdown(message.content)"
+          ></div>
+          <div v-else class="message-bubble">{{ message.content }}</div>
+
+          <div class="message-footer">
+            <span class="message-meta">
+              <template v-if="message.role === 'assistant' && message.model">
+                {{ message.model }} · {{ message.tokenCount }} tokens
+              </template>
+              <template
+                v-else-if="message.role === 'user' && message.tokenCount"
+              >
+                {{ message.tokenCount }} tokens
+              </template>
+            </span>
+
+            <button
+              v-if="message.role === 'user' && !isGenerating"
+              class="copy-btn"
+              @click="handleStartEdit(index, message.content)"
+              title="Edit message"
+            >
+              ✎
+            </button>
+
+            <button
+              class="copy-btn"
+              @click="handleCopyMessage(message.content, index)"
+              :title="copiedIndex === index ? 'Copied!' : 'Copy message'"
+            >
+              {{ copiedIndex === index ? "✓" : "⧉" }}
+            </button>
+          </div>
+        </template>
       </div>
 
       <div v-if="isGenerating" class="message assistant">
@@ -112,6 +147,10 @@ const chatWindow = ref(null);
 
 const copiedIndex = ref(null);
 const copiedAll = ref(false);
+
+const editingIndex = ref(null);
+const editText = ref("");
+const editTextarea = ref(null);
 
 function handleExportChat() {
   if (!props.chat?.messages?.length) return;
@@ -223,6 +262,77 @@ async function handleCopyFullChat() {
     setTimeout(() => {
       copiedAll.value = false;
     }, 1500);
+  }
+}
+
+async function handleStartEdit(index, content) {
+  editingIndex.value = index;
+  editText.value = content;
+  await nextTick();
+  editTextarea.value?.[0]?.focus();
+}
+
+function handleCancelEdit() {
+  editingIndex.value = null;
+  editText.value = "";
+}
+
+async function handleSaveEdit(index) {
+  const chat = props.chat;
+  const originalMessage = chat.messages[index];
+
+  if (!editText.value.trim() || editText.value === originalMessage.content) {
+    handleCancelEdit();
+    return;
+  }
+
+  chat.messages[index].content = editText.value.trim();
+  chat.messages.splice(index + 1);
+
+  editingIndex.value = null;
+  editText.value = "";
+  emit("message-sent");
+  scrollToBottom(true);
+
+  isGenerating.value = true;
+  streamingText.value = "";
+
+  try {
+    const messagesPayload = chat.messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    const result = await ollama.generateStreamingChatAnswer(
+      chat.model,
+      messagesPayload,
+      {},
+      (chunk) => {
+        streamingText.value += chunk.response || "";
+        scrollToBottom();
+      },
+    );
+
+    chat.messages[index].tokenCount = result.stats.promptEvalCount;
+
+    chat.messages.push({
+      role: "assistant",
+      content: result.text,
+      model: chat.model,
+      tokenCount: result.stats.evalCount,
+    });
+    emit("message-sent");
+    scrollToBottom(true);
+  } catch (error) {
+    console.error("Chat generation failed:", error);
+    chat.messages.push({
+      role: "assistant",
+      content: "Error: failed to generate a response.",
+    });
+    emit("message-sent");
+  } finally {
+    isGenerating.value = false;
+    streamingText.value = "";
   }
 }
 </script>
@@ -521,5 +631,55 @@ async function handleCopyFullChat() {
 
 .toolbar-copy-btn:hover {
   background: var(--color-surface-2);
+}
+
+/* Edit message styles */
+.message-edit {
+  width: 100%;
+  max-width: 85%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.message.user .message-edit {
+  align-self: flex-end;
+}
+
+.edit-textarea {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+  padding: var(--space-3);
+  background: var(--color-bg);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  color: var(--color-text);
+}
+
+.edit-textarea:focus {
+  outline: none;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.btn-secondary {
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--color-surface);
 }
 </style>
