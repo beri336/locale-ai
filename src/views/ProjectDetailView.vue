@@ -87,11 +87,13 @@ import { useProjectsStore } from "@/stores/useProjectsStore";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import ChatThread from "@/components/chat/ChatThread.vue";
 import ChatListItem from "@/components/chat/ChatListItem.vue";
+import { useSettingsStore } from "@/stores/settingsStore";
 
 const route = useRoute();
 const router = useRouter();
 const projectsStore = useProjectsStore();
 const ollama = useOllamaStore();
+const settingsStore = useSettingsStore();
 
 const modelNames = ref([]);
 const activeChatId = ref(null);
@@ -132,7 +134,7 @@ function goBack() {
 function handleNewChat() {
   const chat = projectsStore.createChatInProject(
     project.value.id,
-    modelNames.value[0] || "",
+    settingsStore.defaultModel || ollama.getSelectedModel() || modelNames.value[0] || "",
   );
   activeChatId.value = chat.id;
 }

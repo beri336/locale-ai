@@ -143,6 +143,7 @@ import { ref, nextTick, watch } from "vue";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import { renderMarkdown } from "@/utils/markdown";
 import { copyToClipboard } from "@/utils/clipboard";
+import { useSettingsStore } from "@/stores/settingsStore";
 import {
   buildChatMarkdown,
   downloadMarkdownFile,
@@ -157,6 +158,7 @@ const props = defineProps({
 const emit = defineEmits(["message-sent"]);
 
 const ollama = useOllamaStore();
+const settingsStore = useSettingsStore();
 
 const prompt = ref("");
 const isGenerating = ref(false);
@@ -220,15 +222,27 @@ async function handleSend() {
   abortController.value = new AbortController();
 
   try {
-    const messagesPayload = chat.messages.map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
+    const messagesPayload = [];
+    if (
+      settingsStore.defaultSystemPrompt &&
+      !chat.messages.some((m) => m.role === "system")
+    ) {
+      messagesPayload.push({
+        role: "system",
+        content: settingsStore.defaultSystemPrompt,
+      });
+    }
+    messagesPayload.push(
+      ...chat.messages.map((m) => ({ role: m.role, content: m.content })),
+    );
 
     const result = await ollama.generateStreamingChatAnswer(
       chat.model,
       messagesPayload,
-      {},
+      {
+        temperature: settingsStore.temperature,
+        num_ctx: settingsStore.numCtx,
+      },
       (chunk) => {
         streamingText.value += chunk.response || "";
         scrollToBottom();
@@ -399,15 +413,27 @@ async function handleRegenerate(index) {
   abortController.value = new AbortController();
 
   try {
-    const messagesPayload = chat.messages.map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
+    const messagesPayload = [];
+    if (
+      settingsStore.defaultSystemPrompt &&
+      !chat.messages.some((m) => m.role === "system")
+    ) {
+      messagesPayload.push({
+        role: "system",
+        content: settingsStore.defaultSystemPrompt,
+      });
+    }
+    messagesPayload.push(
+      ...chat.messages.map((m) => ({ role: m.role, content: m.content })),
+    );
 
     const result = await ollama.generateStreamingChatAnswer(
       chat.model,
       messagesPayload,
-      {},
+      {
+        temperature: settingsStore.temperature,
+        num_ctx: settingsStore.numCtx,
+      },
       (chunk) => {
         streamingText.value += chunk.response || "";
         scrollToBottom();

@@ -181,18 +181,6 @@
           </div>
         </div>
 
-        <div class="select-row">
-          <label class="info-label" for="model-select"
-            >Select a model as the default</label
-          >
-          <select id="model-select" v-model="selectedModel" class="select">
-            <option value="" disabled>Please select a model</option>
-            <option v-for="name in modelNames" :key="name" :value="name">
-              {{ name }}
-            </option>
-          </select>
-        </div>
-
         <div class="refresh-row">
           <button class="btn-ghost small" @click="refreshModelNames">
             Refresh Models

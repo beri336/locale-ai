@@ -50,6 +50,129 @@
           </button>
         </div>
       </section>
+
+      <!-- Model Defaults -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Model Defaults</h2>
+          <button class="btn-reset" @click="settingsStore.resetModelDefaults()">
+            Reset to Default
+          </button>
+        </div>
+
+        <label class="field-label" for="default-model">Default Model</label>
+        <select
+          id="default-model"
+          v-model="settingsStore.defaultModel"
+          class="input"
+        >
+          <option value="">None</option>
+          <option v-for="name in modelNames" :key="name" :value="name">
+            {{ name }}
+          </option>
+        </select>
+
+        <label class="field-label" for="default-temp"
+          >Temperature ({{ settingsStore.temperature }})</label
+        >
+        <input
+          id="default-temp"
+          type="range"
+          min="0"
+          max="2"
+          step="0.1"
+          v-model.number="settingsStore.temperature"
+          class="slider"
+        />
+
+        <label class="field-label" for="context-length"
+          >Context Window (num_ctx)</label
+        >
+        <select
+          id="context-length"
+          v-model.number="settingsStore.numCtx"
+          class="input"
+        >
+          <option :value="2048">2048</option>
+          <option :value="4096">4096</option>
+          <option :value="8192">8192</option>
+          <option :value="16384">16384</option>
+        </select>
+      </section>
+
+      <!-- Data Management -->
+      <section class="card">
+        <h2>Data Management</h2>
+
+        <div class="toggle-row">
+          <span class="field-label">Export all chats & projects</span>
+          <button class="btn-secondary" @click="handleExportAllData">
+            Export JSON
+          </button>
+        </div>
+
+        <div class="toggle-row">
+          <span class="field-label">Storage used</span>
+          <span class="status-text">{{ storageUsedLabel }}</span>
+        </div>
+
+        <div class="toggle-row">
+          <span class="field-label">Clear all chats</span>
+          <button class="btn-danger" @click="handleClearAllData">
+            Delete Everything
+          </button>
+        </div>
+      </section>
+
+      <!-- Model Behavior -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Model Behavior</h2>
+          <button class="btn-reset" @click="settingsStore.resetModelBehavior()">
+            Reset to Default
+          </button>
+        </div>
+
+        <label class="field-label" for="keep-alive"
+          >Keep model loaded after use</label
+        >
+        <select id="keep-alive" v-model="settingsStore.keepAlive" class="input">
+          <option value="0">Unload immediately</option>
+          <option value="5m">5 minutes</option>
+          <option value="30m">30 minutes</option>
+          <option value="-1">Keep loaded forever</option>
+        </select>
+      </section>
+
+      <!-- Default System Prompt -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Default System Prompt</h2>
+          <button class="btn-reset" @click="settingsStore.resetSystemPrompt()">
+            Reset to Default
+          </button>
+        </div>
+
+        <textarea
+          v-model="settingsStore.defaultSystemPrompt"
+          class="input textarea"
+          placeholder="e.g. You are a senior developer. Always answer in German."
+          rows="3"
+        ></textarea>
+      </section>
+
+      <!-- About -->
+      <section class="card about-card">
+        <h2>About</h2>
+
+        <p class="status-text">App Version 1.0.0</p>
+        <p class="status-text">Built with Vue 3</p>
+        <p class="status-link">
+          <a href="https://github.com/beri336/locale-ai" target="_blank"
+            >Link Source Code on GitHub</a
+          >
+        </p>
+      </section>
     </div>
   </div>
 </template>
@@ -58,10 +181,14 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useThemeStore } from "@/stores/themeStore";
+import { useOllamaStore } from "@/stores/useOllamaStore";
 import IconSettings from "@/components/icons/IconSettings.vue";
 
 const settingsStore = useSettingsStore();
 const themeStore = useThemeStore();
+const ollama = useOllamaStore();
+
+const modelNames = ref([]);
 
 const isChecking = computed(
   () => settingsStore.connectionStatus === "checking",
@@ -90,13 +217,56 @@ async function handleTest() {
   await settingsStore.testConnection();
 }
 
-onMounted(() => {
+onMounted(async () => {
   settingsStore.startPolling();
+  modelNames.value = await ollama.getListOfModelsName();
 });
 
 onUnmounted(() => {
   settingsStore.stopPolling();
 });
+
+// Data Management
+function calculateStorageUsage() {
+  let total = 0;
+  for (const key in localStorage) {
+    if (localStorage.hasOwnProperty(key)) {
+      total += localStorage[key].length;
+    }
+  }
+  return (total / 1024).toFixed(1);
+}
+
+const storageUsedLabel = computed(() => `${calculateStorageUsage()} KB`);
+
+function handleExportAllData() {
+  const data = {
+    chats: JSON.parse(localStorage.getItem("ollama-chats") || "[]"),
+    projects: JSON.parse(localStorage.getItem("ollama-projects") || "[]"),
+    exportedAt: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `ollama-backup-${Date.now()}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function handleClearAllData() {
+  if (
+    !confirm(
+      "Delete ALL chats and projects permanently? This cannot be undone.",
+    )
+  )
+    return;
+  localStorage.removeItem("ollama-chats");
+  localStorage.removeItem("ollama-projects");
+  location.reload();
+}
 </script>
 
 <style scoped>
@@ -206,6 +376,35 @@ onUnmounted(() => {
 
 .status-text {
   color: var(--color-text-muted);
+  padding: var(--space-1);
+}
+
+.status-link {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.status-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.status-link a::after {
+  content: "↗";
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.status-link a:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
 }
 
 .version-text {
@@ -251,5 +450,96 @@ onUnmounted(() => {
   width: 20px;
   height: 20px;
   display: block;
+}
+
+.slider {
+  width: 100%;
+  margin: var(--space-2) 0 var(--space-4) 0;
+  accent-color: var(--color-primary);
+}
+
+select.input {
+  cursor: pointer;
+}
+
+textarea.input.textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 80px;
+  max-width: 100%;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.card > .field-label:not(:first-of-type) {
+  margin-top: var(--space-4);
+}
+
+.btn-secondary {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--color-bg);
+}
+
+.btn-danger {
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+.about-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.about-card .status-text {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* Reset to Default button styling */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.card-header h2 {
+  margin-bottom: 0;
+}
+
+.btn-reset {
+  background: none;
+  border: none;
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.btn-reset:hover {
+  color: var(--color-text-muted);
 }
 </style>

@@ -66,7 +66,7 @@
 
       <button class="theme-toggle" @click="themeStore.toggle()">
         <IconMoon v-if="themeStore.theme === 'light'" />
-        <IconSun v-else />
+        <IconSun class="sun-icon" v-else />
       </button>
     </aside>
 
@@ -281,5 +281,10 @@ nav {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.sun-icon {
+  stroke: white;
+  fill: none;
 }
 </style>

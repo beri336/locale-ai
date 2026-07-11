@@ -86,8 +86,10 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import ChatListItem from "@/components/chat/ChatListItem.vue";
 import ChatThread from "@/components/chat/ChatThread.vue";
+import { useSettingsStore } from "@/stores/settingsStore";
 
 const ollama = useOllamaStore();
+const settingsStore = useSettingsStore();
 
 const STORAGE_KEY = "ollama-chats";
 
@@ -131,7 +133,7 @@ function createChat() {
   const newChat = {
     id: `chat_${Date.now()}`,
     title: "New Chat",
-    model: ollama.getSelectedModel() || modelNames.value[0] || "",
+    model: settingsStore.defaultModel || ollama.getSelectedModel() || modelNames.value[0] || "",
     messages: [],
     createdAt: new Date().toISOString(),
   };
