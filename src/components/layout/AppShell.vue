@@ -303,7 +303,6 @@ watch(isMobileMenuOpen, (isOpen) => {
 }
 
 /* Desktop sidebar */
-
 .sidebar {
   display: flex;
   width: 228px;
@@ -520,16 +519,14 @@ watch(isMobileMenuOpen, (isOpen) => {
 }
 
 /* Main content */
-
 .content {
   flex: 1;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
 }
 
 /* Shared icon sizing */
-
 .nav-icon :deep(svg),
 .theme-toggle :deep(svg),
 .sheet-item-icon :deep(svg),
@@ -545,7 +542,6 @@ watch(isMobileMenuOpen, (isOpen) => {
 }
 
 /* Mobile UI hidden on desktop */
-
 .bottom-nav,
 .mobile-menu-backdrop,
 .mobile-more-sheet {
@@ -553,7 +549,6 @@ watch(isMobileMenuOpen, (isOpen) => {
 }
 
 /* Mobile navigation */
-
 @media (max-width: 767px) {
   .shell {
     display: block;
@@ -567,8 +562,10 @@ watch(isMobileMenuOpen, (isOpen) => {
 
   .content {
     height: 100%;
+    min-height: 0;
     padding-bottom: calc(66px + env(safe-area-inset-bottom));
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .bottom-nav {

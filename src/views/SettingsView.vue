@@ -336,18 +336,71 @@
 
         <div class="data-divider"></div>
 
-        <div class="danger-row">
+        <div class="data-danger-heading">
           <div>
-            <h3>Delete all local data</h3>
+            <p class="section-kicker danger-kicker">Danger zone</p>
+            <h3>Delete local data</h3>
             <p>
-              Permanently remove all chats, projects and LocalAI settings from
-              this browser.
+              These actions affect only data saved in this browser. They cannot
+              be undone.
             </p>
           </div>
+        </div>
 
-          <button class="btn-danger" type="button" @click="handleDeleteAllData">
-            Delete data
-          </button>
+        <div class="delete-actions">
+          <div class="delete-action">
+            <div class="delete-action-copy">
+              <h4>Delete quick chats</h4>
+              <p>
+                Remove all standalone chats. Projects and project chats are
+                kept.
+              </p>
+            </div>
+
+            <button
+              class="btn-danger-outline"
+              type="button"
+              @click="handleDeleteQuickChats"
+            >
+              Delete chats
+            </button>
+          </div>
+
+          <div class="delete-action">
+            <div class="delete-action-copy">
+              <h4>Delete projects</h4>
+              <p>
+                Remove every project, including all chats stored inside
+                projects.
+              </p>
+            </div>
+
+            <button
+              class="btn-danger-outline"
+              type="button"
+              @click="handleDeleteProjects"
+            >
+              Delete projects
+            </button>
+          </div>
+
+          <div class="delete-action delete-action-critical">
+            <div class="delete-action-copy">
+              <h4>Delete all LocalAI data</h4>
+              <p>
+                Remove quick chats, projects, settings, theme preferences and
+                local UI preferences.
+              </p>
+            </div>
+
+            <button
+              class="btn-danger"
+              type="button"
+              @click="handleDeleteAllData"
+            >
+              Delete everything
+            </button>
+          </div>
         </div>
       </section>
 
@@ -396,12 +449,10 @@ import {
   importAppBackup,
   LOCALAI_STORAGE_KEYS,
 } from "@/utils/appBackup";
-import { useRouter } from "vue-router";
 
 const settingsStore = useSettingsStore();
 const themeStore = useThemeStore();
 const ollama = useOllamaStore();
-const router = useRouter();
 
 const modelNames = ref([]);
 
@@ -415,6 +466,9 @@ const hostPort = ref(
 const backupFileInput = ref(null);
 const backupStatus = ref("");
 const backupError = ref("");
+
+const QUICK_CHATS_KEY = "ollama-chats";
+const PROJECTS_KEY = "ollama-projects";
 
 const isChecking = computed(
   () => settingsStore.connectionStatus === "checking",
@@ -585,19 +639,50 @@ function handleDeleteAllData() {
 
   if (!confirmed) return;
 
-  for (const key of LOCALAI_STORAGE_KEYS) {
+  removeLocalData(LOCALAI_STORAGE_KEYS);
+  reloadAfterDataChange();
+}
+
+function removeLocalData(keys) {
+  for (const key of keys) {
     localStorage.removeItem(key);
   }
+}
 
+function reloadAfterDataChange() {
   window.location.reload();
+}
+
+function handleDeleteQuickChats() {
+  const confirmed = confirm(
+    "Delete all quick chats? Project chats and settings will be kept.",
+  );
+
+  if (!confirmed) return;
+
+  removeLocalData([QUICK_CHATS_KEY]);
+  reloadAfterDataChange();
+}
+
+function handleDeleteProjects() {
+  const confirmed = confirm(
+    "Delete all projects and their chats? Quick chats and settings will be kept.",
+  );
+
+  if (!confirmed) return;
+
+  removeLocalData([PROJECTS_KEY]);
+  reloadAfterDataChange();
 }
 </script>
 
 <style scoped>
 .settings-view {
-  height: 100%;
+  box-sizing: border-box;
+  min-height: 100%;
   overflow-y: auto;
   padding: clamp(1.5rem, 4vw, 3rem);
+  transform: translateZ(0); /* prevents twice scrolling */
 }
 
 .page-header {
@@ -613,23 +698,6 @@ function handleDeleteAllData() {
   display: flex;
   align-items: flex-start;
   gap: 0.65rem;
-}
-
-.header-icon {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 auto;
-  place-items: center;
-  color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
-  border-radius: 13px;
-}
-
-.header-icon :deep(svg) {
-  width: 21px;
-  height: 21px;
 }
 
 .eyebrow {
@@ -682,21 +750,6 @@ function handleDeleteAllData() {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.page-header h1 {
-  margin: 0;
-  color: var(--color-text);
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
-  letter-spacing: -0.04em;
-  line-height: 1.1;
-}
-
-.header-description {
-  margin: 0.5rem 0 0;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  line-height: 1.55;
 }
 
 .settings-content {
@@ -1281,17 +1334,112 @@ textarea.input.textarea {
   );
 }
 
+.data-danger-heading {
+  margin-bottom: 0.75rem;
+}
+
+.danger-kicker {
+  color: var(--color-error, #ef4444);
+}
+
+.data-danger-heading h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.data-danger-heading p {
+  margin: 0.25rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.delete-actions {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.delete-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0.9rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.delete-action-critical {
+  background: color-mix(
+    in srgb,
+    var(--color-error, #ef4444) 5%,
+    var(--color-surface)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--color-error, #ef4444) 26%,
+    var(--color-border)
+  );
+}
+
+.delete-action-copy {
+  min-width: 0;
+}
+
+.delete-action h4 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.delete-action p {
+  margin: 0.25rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.btn-danger-outline,
 .btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 36px;
+  flex: 0 0 auto;
   padding: 0.5rem 0.75rem;
-  color: #fff;
+  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: var(--text-xs);
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.btn-danger-outline {
+  color: var(--color-error, #ef4444);
+  background: transparent;
+  border: 1px solid
+    color-mix(in srgb, var(--color-error, #ef4444) 42%, var(--color-border));
+}
+
+.btn-danger-outline:hover {
+  color: #fff;
+  background: var(--color-error, #ef4444);
+  border-color: var(--color-error, #ef4444);
+}
+
+.btn-danger {
+  color: #fff;
   background: var(--color-error, #ef4444);
   border: 1px solid var(--color-error, #ef4444);
-  border-radius: var(--radius-md);
 }
 
 .btn-danger:hover {
@@ -1381,6 +1529,16 @@ textarea.input.textarea {
 
   .backup-action .btn-secondary,
   .danger-row .btn-danger {
+    width: 100%;
+  }
+
+  .delete-action {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .btn-danger-outline,
+  .btn-danger {
     width: 100%;
   }
 }

@@ -31,11 +31,13 @@ export const useSettingsStore = defineStore('settings', () => {
     const ollamaVersion = ref(null)
 
     let pollTimer = null
+    let connectionRequest = null;
+    let isCheckingConnection = false;
 
-    // WICHTIG: baseUrl im ollama-store beim Store-Init sofort setzen
+    // IMPORTANT: set `baseUrl` in `ollama-store` immediately during store initialization
     ollama.setBaseUrl(normalizeUrl(apiUrl.value))
 
-    // WICHTIG: bei jeder Änderung von apiUrl den ollama-store synchronisieren
+    // IMPORTANT: synchronize the ollama-store with any changes to apiUrl
     watch(apiUrl, (newUrl) => {
         ollama.setBaseUrl(normalizeUrl(newUrl))
     })
@@ -57,19 +59,54 @@ export const useSettingsStore = defineStore('settings', () => {
     }
 
     async function checkConnection({ silent = false } = {}) {
-        if (!silent) connectionStatus.value = 'checking'
+        if (isCheckingConnection) return;
 
-        const base = normalizeUrl(apiUrl.value)
+        isCheckingConnection = true;
+
+        if (!silent) {
+            connectionStatus.value = "checking";
+        }
+
+        const base = normalizeUrl(apiUrl.value);
+
+        if (!base) {
+            connectionStatus.value = "error";
+            ollamaVersion.value = null;
+            isCheckingConnection = false;
+            return;
+        }
+
+        connectionRequest?.abort();
+        connectionRequest = new AbortController();
+
+        const timeoutId = window.setTimeout(() => {
+            connectionRequest?.abort();
+        }, 5000);
 
         try {
-            const res = await fetch(`${base}/api/version`)
-            if (!res.ok) throw new Error(`Status ${res.status}`)
-            const data = await res.json()
-            ollamaVersion.value = data.version ?? null
-            connectionStatus.value = 'connected'
-        } catch (err) {
-            ollamaVersion.value = null
-            connectionStatus.value = 'error'
+            const response = await fetch(`${base}/api/version`, {
+                signal: connectionRequest.signal,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Status ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            ollamaVersion.value = data.version ?? null;
+            connectionStatus.value = "connected";
+        } catch (error) {
+            if (error.name !== "AbortError") {
+                console.warn("Ollama connection check failed:", error);
+            }
+
+            ollamaVersion.value = null;
+            connectionStatus.value = "error";
+        } finally {
+            window.clearTimeout(timeoutId);
+            connectionRequest = null;
+            isCheckingConnection = false;
         }
     }
 
@@ -78,16 +115,23 @@ export const useSettingsStore = defineStore('settings', () => {
     }
 
     function startPolling(intervalMs = 5000) {
-        stopPolling()
-        checkConnection({ silent: true })
-        pollTimer = setInterval(() => checkConnection({ silent: true }), intervalMs)
+        stopPolling();
+
+        checkConnection({ silent: true });
+
+        pollTimer = window.setInterval(() => {
+            checkConnection({ silent: true });
+        }, intervalMs);
     }
 
     function stopPolling() {
-        if (pollTimer) {
-            clearInterval(pollTimer)
-            pollTimer = null
+        if (pollTimer !== null) {
+            window.clearInterval(pollTimer);
+            pollTimer = null;
         }
+
+        connectionRequest?.abort();
+        connectionRequest = null;
     }
 
     function resetModelDefaults() {
