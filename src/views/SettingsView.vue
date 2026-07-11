@@ -280,56 +280,74 @@
             <p class="section-kicker">Storage</p>
             <h2>Data management</h2>
             <p class="section-description">
-              Export or permanently remove locally stored data.
+              Create a local backup or restore your chats, projects and
+              settings.
             </p>
           </div>
         </div>
 
-        <div class="action-list">
-          <div class="action-row">
-            <div class="setting-copy">
-              <span class="setting-label">Export data</span>
-              <span class="setting-hint">
-                Download all chats and projects as a JSON backup.
-              </span>
+        <div class="backup-actions">
+          <div class="backup-action">
+            <div class="backup-action-copy">
+              <h3>Export backup</h3>
+              <p>Save chats, projects and settings as one JSON file.</p>
             </div>
 
             <button
               class="btn-secondary"
               type="button"
-              @click="handleExportAllData"
+              @click="handleExportBackup"
             >
               Export JSON
             </button>
           </div>
 
-          <div class="action-row">
-            <div class="setting-copy">
-              <span class="setting-label">Local storage</span>
-              <span class="setting-hint"
-                >Used by chats, projects and preferences.</span
-              >
-            </div>
-
-            <span class="storage-badge">{{ storageUsedLabel }}</span>
-          </div>
-
-          <div class="action-row danger-row">
-            <div class="setting-copy">
-              <span class="setting-label">Delete all data</span>
-              <span class="setting-hint">
-                Permanently remove all chats and projects from this browser.
-              </span>
+          <div class="backup-action">
+            <div class="backup-action-copy">
+              <h3>Import backup</h3>
+              <p>Restore a LocalAI JSON backup on this browser.</p>
             </div>
 
             <button
-              class="btn-danger"
+              class="btn-secondary"
               type="button"
-              @click="handleClearAllData"
+              @click="triggerImportBackup"
             >
-              Delete
+              Import JSON
             </button>
+
+            <input
+              ref="backupFileInput"
+              class="visually-hidden"
+              type="file"
+              accept="application/json,.json"
+              @change="handleImportBackup"
+            />
           </div>
+        </div>
+
+        <p v-if="backupStatus" class="backup-feedback success">
+          {{ backupStatus }}
+        </p>
+
+        <p v-if="backupError" class="backup-feedback error">
+          {{ backupError }}
+        </p>
+
+        <div class="data-divider"></div>
+
+        <div class="danger-row">
+          <div>
+            <h3>Delete all local data</h3>
+            <p>
+              Permanently remove all chats, projects and LocalAI settings from
+              this browser.
+            </p>
+          </div>
+
+          <button class="btn-danger" type="button" @click="handleDeleteAllData">
+            Delete data
+          </button>
         </div>
       </section>
 
@@ -373,10 +391,17 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { useThemeStore } from "@/stores/themeStore";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import IconSettings from "@/components/icons/IconSettings.vue";
+import {
+  exportAppBackup,
+  importAppBackup,
+  LOCALAI_STORAGE_KEYS,
+} from "@/utils/appBackup";
+import { useRouter } from "vue-router";
 
 const settingsStore = useSettingsStore();
 const themeStore = useThemeStore();
 const ollama = useOllamaStore();
+const router = useRouter();
 
 const modelNames = ref([]);
 
@@ -386,6 +411,10 @@ const hostPort = ref(
   window.location.port ||
     (window.location.protocol === "https:" ? "443" : "80"),
 );
+
+const backupFileInput = ref(null);
+const backupStatus = ref("");
+const backupError = ref("");
 
 const isChecking = computed(
   () => settingsStore.connectionStatus === "checking",
@@ -494,6 +523,74 @@ const hostIpLabel = computed(() => {
   if (hostIp.value !== "localhost") return hostIp.value;
   return localIp.value ? `localhost (${localIp.value})` : "localhost";
 });
+
+// Export & Import
+function handleExportBackup() {
+  backupStatus.value = "";
+  backupError.value = "";
+
+  try {
+    exportAppBackup();
+    backupStatus.value = "Backup downloaded successfully.";
+  } catch (error) {
+    console.error("Backup export failed:", error);
+    backupError.value = "Could not create the backup.";
+  }
+}
+
+function triggerImportBackup() {
+  backupStatus.value = "";
+  backupError.value = "";
+  backupFileInput.value?.click();
+}
+
+async function handleImportBackup(event) {
+  const [file] = event.target.files;
+
+  if (!file) return;
+
+  backupStatus.value = "";
+  backupError.value = "";
+
+  const confirmed = confirm(
+    "Importing replaces your current chats, projects and settings. Continue?",
+  );
+
+  if (!confirmed) {
+    event.target.value = "";
+    return;
+  }
+
+  try {
+    const backup = await importAppBackup(file);
+
+    backupStatus.value = `Backup from ${new Date(backup.exportedAt).toLocaleString()} imported. Reloading…`;
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
+  } catch (error) {
+    console.error("Backup import failed:", error);
+    backupError.value = error.message || "Could not import the backup.";
+  } finally {
+    event.target.value = "";
+  }
+}
+
+// Delete
+function handleDeleteAllData() {
+  const confirmed = confirm(
+    "Delete all LocalAI chats, projects and settings? This cannot be undone.",
+  );
+
+  if (!confirmed) return;
+
+  for (const key of LOCALAI_STORAGE_KEYS) {
+    localStorage.removeItem(key);
+  }
+
+  window.location.reload();
+}
 </script>
 
 <style scoped>
@@ -1095,6 +1192,124 @@ textarea.input.textarea {
   text-underline-offset: 3px;
 }
 
+.backup-actions {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.backup-action,
+.danger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.backup-action-copy,
+.danger-row > div {
+  min-width: 0;
+}
+
+.backup-action h3,
+.danger-row h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.backup-action p,
+.danger-row p {
+  margin: 0.25rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.backup-action .btn-secondary,
+.danger-row .btn-danger {
+  flex: 0 0 auto;
+}
+
+.backup-feedback {
+  padding: 0.7rem 0.8rem;
+  margin: 0.75rem 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  border-radius: var(--radius-md);
+}
+
+.backup-feedback.success {
+  color: var(--color-success, #22c55e);
+  background: color-mix(
+    in srgb,
+    var(--color-success, #22c55e) 10%,
+    transparent
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--color-success, #22c55e) 25%, transparent);
+}
+
+.backup-feedback.error {
+  color: var(--color-error, #ef4444);
+  background: color-mix(in srgb, var(--color-error, #ef4444) 10%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--color-error, #ef4444) 25%, transparent);
+}
+
+.data-divider {
+  height: 1px;
+  margin: 1rem 0;
+  background: var(--color-border);
+}
+
+.danger-row {
+  background: color-mix(
+    in srgb,
+    var(--color-error, #ef4444) 5%,
+    var(--color-surface)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--color-error, #ef4444) 22%,
+    var(--color-border)
+  );
+}
+
+.btn-danger {
+  min-height: 36px;
+  padding: 0.5rem 0.75rem;
+  color: #fff;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--color-error, #ef4444);
+  border: 1px solid var(--color-error, #ef4444);
+  border-radius: var(--radius-md);
+}
+
+.btn-danger:hover {
+  filter: brightness(0.94);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* iOS Safari: at least 16px prevents input auto-zoom */
 @media (pointer: coarse) {
   .input {
@@ -1156,6 +1371,17 @@ textarea.input.textarea {
 
   .storage-badge {
     align-self: flex-start;
+  }
+
+  .backup-action,
+  .danger-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .backup-action .btn-secondary,
+  .danger-row .btn-danger {
+    width: 100%;
   }
 }
 </style>
