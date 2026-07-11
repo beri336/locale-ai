@@ -1,4 +1,5 @@
 <!-- src/components/layout/AppShell.vue -->
+
 <template>
   <div class="shell">
     <aside class="sidebar" :class="{ collapsed: isCollapsed }">
@@ -55,6 +56,15 @@
         </RouterLink>
 
         <RouterLink
+          to="/faq"
+          class="nav-item"
+          :title="isCollapsed ? 'FAQ' : ''"
+        >
+          <span class="nav-icon"><IconFaq /></span>
+          <span v-if="!isCollapsed" class="nav-label">FAQ</span>
+        </RouterLink>
+
+        <RouterLink
           to="/settings"
           class="nav-item"
           :title="isCollapsed ? 'Settings' : ''"
@@ -92,6 +102,7 @@ import IconPackage from "@/components/icons/IconPackage.vue";
 import IconSettings from "@/components/icons/IconSettings.vue";
 import IconMoon from "@/components/icons/IconMoon.vue";
 import IconSun from "@/components/icons/IconSun.vue";
+import IconFaq from "@/components/icons/IconFaq.vue";
 
 const themeStore = useThemeStore();
 const { openSearchModal } = useSearchModal();

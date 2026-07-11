@@ -4,21 +4,63 @@
   <div class="chat-thread">
     <div v-if="chat" class="chat-window" ref="chatWindow">
       <div class="chat-toolbar" v-if="chat.messages.length">
-        <button
-          class="copy-btn"
-          @click="handleCopyFullChat"
-          :title="copiedAll ? 'Copied!' : 'Copy entire chat'"
-        >
-          {{ copiedAll ? "✓ Copied" : "⧉ Copy chat" }}
-        </button>
+        <div class="toolbar-context">
+          <div class="context-header">
+            <div class="context-label">
+              <span class="context-dot" :class="contextStatus"></span>
+              <span>Context</span>
+            </div>
 
-        <button
-          class="copy-btn toolbar-copy-btn"
-          @click="handleExportChat"
-          title="Export chat as Markdown"
-        >
-          ⬇ Export .md
-        </button>
+            <span class="context-value">
+              {{ formatTokenCount(contextTokens) }} /
+              {{ formatTokenCount(contextLimit) }}
+            </span>
+          </div>
+
+          <div
+            class="context-progress"
+            :title="`${contextPercent}% of the configured context window used`"
+          >
+            <span
+              class="context-progress-fill"
+              :class="contextStatus"
+              :style="{ width: `${contextPercent}%` }"
+            ></span>
+          </div>
+
+          <div class="context-footer">
+            <p class="context-meta">
+              {{ contextPercent }}% used · {{ chat.messages.length }} messages
+            </p>
+
+            <span
+              v-if="settingsStore.defaultSystemPrompt?.trim()"
+              class="system-prompt-badge"
+              title="A default system prompt is included in this chat"
+            >
+              <span class="system-prompt-badge-icon" aria-hidden="true">✦</span>
+              System prompt active
+            </span>
+          </div>
+        </div>
+
+        <div class="toolbar-actions">
+          <button
+            class="copy-btn toolbar-copy-btn"
+            @click="handleCopyFullChat"
+            :title="copiedAll ? 'Copied!' : 'Copy entire chat'"
+          >
+            {{ copiedAll ? "✓ Copied" : "⧉ Copy chat" }}
+          </button>
+
+          <button
+            class="copy-btn toolbar-copy-btn"
+            @click="handleExportChat"
+            title="Export chat as Markdown"
+          >
+            ⬇ Export .md
+          </button>
+        </div>
       </div>
 
       <div
@@ -139,7 +181,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, watch } from "vue";
+import { ref, computed, nextTick, watch } from "vue";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import { renderMarkdown } from "@/utils/markdown";
 import { copyToClipboard } from "@/utils/clipboard";
@@ -250,7 +292,7 @@ async function handleSend() {
       abortController.value.signal,
     );
 
-    userMessageObj.tokenCount = result.stats.promptEvalCount;
+    userMessageObj.tokenCount = estimateTokenCount(userMessage);
 
     chat.messages.push({
       role: "assistant",
@@ -366,7 +408,9 @@ async function handleSaveEdit(index) {
       },
     );
 
-    chat.messages[index].tokenCount = result.stats.promptEvalCount;
+    chat.messages[index].tokenCount = estimateTokenCount(
+      chat.messages[index].content,
+    );
 
     chat.messages.push({
       role: "assistant",
@@ -471,6 +515,55 @@ async function handleRegenerate(index) {
     streamingText.value = "";
     abortController.value = null;
   }
+}
+
+const contextLimit = computed(() => {
+  const configuredLimit = Number(settingsStore.numCtx);
+
+  return Number.isFinite(configuredLimit) && configuredLimit > 0
+    ? configuredLimit
+    : 4096;
+});
+
+const contextTokens = computed(() => {
+  if (!props.chat?.messages?.length) return 0;
+
+  return props.chat.messages.reduce((total, message) => {
+    if (Number.isFinite(message.tokenCount) && message.tokenCount > 0) {
+      return total + message.tokenCount;
+    }
+
+    return total + estimateTokenCount(message.content);
+  }, 0);
+});
+
+const contextPercent = computed(() => {
+  if (!contextLimit.value) return 0;
+
+  return Math.min(
+    100,
+    Math.round((contextTokens.value / contextLimit.value) * 100),
+  );
+});
+
+const contextStatus = computed(() => {
+  if (contextPercent.value >= 90) return "critical";
+  if (contextPercent.value >= 75) return "warning";
+  return "healthy";
+});
+
+function estimateTokenCount(text = "") {
+  // Pragmatic fallback for messages without Ollama token statistics.
+  // For German/English mixed text, ~4 characters per token is sufficient
+  // for a visible context estimate.
+  return Math.max(1, Math.ceil(text.trim().length / 4));
+}
+
+function formatTokenCount(value) {
+  if (value < 1000) return String(value);
+
+  const formatted = value / 1000;
+  return `${formatted.toFixed(formatted >= 10 ? 0 : 1)}k`;
 }
 </script>
 
@@ -711,14 +804,14 @@ async function handleRegenerate(index) {
   justify-content: flex-start;
 }
 
-.chat-toolbar {
+/* .chat-toolbar {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
   padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--color-border);
   margin-bottom: var(--space-2);
-}
+} */
 
 .message-footer {
   display: flex;
@@ -835,5 +928,191 @@ async function handleRegenerate(index) {
 
 .btn-stop:hover {
   opacity: 0.9;
+}
+
+.chat-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 0 var(--space-3);
+  margin-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.toolbar-context {
+  display: grid;
+  flex: 1;
+  min-width: 150px;
+  max-width: 260px;
+  gap: 4px;
+}
+
+.context-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.context-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.context-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-success, #22c55e);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-success, #22c55e) 14%, transparent);
+}
+
+.context-dot.warning {
+  background: #f59e0b;
+  box-shadow: 0 0 0 3px rgb(245 158 11 / 14%);
+}
+
+.context-dot.critical {
+  background: var(--color-error, #ef4444);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-error, #ef4444) 14%, transparent);
+}
+
+.context-value {
+  color: var(--color-text);
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.context-progress {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  background: var(--color-surface-2);
+  border-radius: 999px;
+}
+
+.context-progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--color-success, #22c55e);
+  border-radius: inherit;
+  transition:
+    width 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.context-progress-fill.warning {
+  background: #f59e0b;
+}
+
+.context-progress-fill.critical {
+  background: var(--color-error, #ef4444);
+}
+
+.context-meta {
+  margin: 0;
+  color: var(--color-text-faint);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.toolbar-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.toolbar-copy-btn {
+  padding: 5px 8px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.toolbar-copy-btn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
+}
+
+.context-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.context-footer .context-meta {
+  margin: 0;
+}
+
+.system-prompt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  color: var(--color-primary);
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    var(--color-surface-2)
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.system-prompt-badge-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 11px;
+  height: 11px;
+  font-size: 9px;
+  line-height: 1;
+}
+
+@media (max-width: 620px) {
+  .chat-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .toolbar-context {
+    max-width: none;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+  }
+
+  .toolbar-copy-btn {
+    flex: 1;
+    min-height: 32px;
+  }
+
+  .context-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
 }
 </style>

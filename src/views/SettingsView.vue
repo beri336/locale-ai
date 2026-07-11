@@ -37,6 +37,25 @@
             v{{ settingsStore.ollamaVersion }}
           </span>
         </div>
+
+        <div class="network-info">
+          <div class="info-row">
+            <span class="info-label">App Host-IP</span>
+            <span class="info-value mono">{{ hostIpLabel }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">App Host-Port</span>
+            <span class="info-value mono">{{ hostPort }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Ollama Host</span>
+            <span class="info-value mono">{{ settingsStore.ollamaHost }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Ollama Serve Port</span>
+            <span class="info-value mono">{{ settingsStore.ollamaPort }}</span>
+          </div>
+        </div>
       </section>
 
       <!-- Appearance -->
@@ -190,6 +209,13 @@ const ollama = useOllamaStore();
 
 const modelNames = ref([]);
 
+const localIp = ref(null);
+const hostIp = ref(window.location.hostname);
+const hostPort = ref(
+  window.location.port ||
+    (window.location.protocol === "https:" ? "443" : "80"),
+);
+
 const isChecking = computed(
   () => settingsStore.connectionStatus === "checking",
 );
@@ -220,6 +246,7 @@ async function handleTest() {
 onMounted(async () => {
   settingsStore.startPolling();
   modelNames.value = await ollama.getListOfModelsName();
+  if (hostIp.value === "localhost") detectLocalIp();
 });
 
 onUnmounted(() => {
@@ -267,6 +294,35 @@ function handleClearAllData() {
   localStorage.removeItem("ollama-projects");
   location.reload();
 }
+
+function detectLocalIp() {
+  try {
+    const pc = new RTCPeerConnection({ iceServers: [] });
+    pc.createDataChannel("");
+    pc.createOffer().then((offer) => pc.setLocalDescription(offer));
+
+    pc.onicecandidate = (event) => {
+      if (!event.candidate) return;
+      const match = /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/.exec(
+        event.candidate.candidate,
+      );
+      if (match && !match[1].startsWith("0.")) {
+        localIp.value = match[1];
+        pc.close();
+      }
+    };
+
+    setTimeout(() => pc.close(), 1500);
+  } catch (error) {
+    console.warn("Local IP detection failed:", error);
+    localIp.value = null;
+  }
+}
+
+const hostIpLabel = computed(() => {
+  if (hostIp.value !== "localhost") return hostIp.value;
+  return localIp.value ? `localhost (${localIp.value})` : "localhost";
+});
 </script>
 
 <style scoped>
@@ -541,5 +597,50 @@ textarea.input.textarea {
 
 .btn-reset:hover {
   color: var(--color-text-muted);
+}
+
+.network-info {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.network-info .info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-divider, var(--color-border));
+  gap: var(--space-3);
+}
+
+.network-info .info-row:last-child {
+  border-bottom: none;
+}
+
+.network-info .info-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.network-info .info-value {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: right;
+}
+
+.network-info .info-value.mono {
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
 }
 </style>
