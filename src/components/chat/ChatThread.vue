@@ -569,22 +569,23 @@ function formatTokenCount(value) {
 
 <style scoped>
 .chat-thread {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: 0.85rem;
   min-width: 0;
   min-height: 0;
 }
 
 .chat-window {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4);
+  gap: 1rem;
+  min-height: 0;
+  padding: clamp(0.85rem, 2vw, 1.25rem);
+  overflow-y: auto;
+  scroll-behavior: smooth;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -595,6 +596,11 @@ function formatTokenCount(value) {
   justify-content: center;
   color: var(--color-text-faint);
   font-size: var(--text-sm);
+  text-align: center;
+}
+
+.chat-window.empty-selection p {
+  margin: 0;
 }
 
 .empty-state {
@@ -607,7 +613,8 @@ function formatTokenCount(value) {
 .message {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.3rem;
+  width: 100%;
 }
 
 .message.user {
@@ -619,45 +626,49 @@ function formatTokenCount(value) {
 }
 
 .message-bubble {
-  max-width: 70%;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-lg);
+  max-width: min(85%, 820px);
+  padding: 0.75rem 0.9rem;
+  color: var(--color-text);
   font-size: var(--text-sm);
+  line-height: 1.6;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: anywhere;
+  border-radius: 14px;
 }
 
 .message.user .message-bubble {
+  color: #fff;
   background: var(--color-primary);
-  color: white;
+  border-bottom-right-radius: 5px;
 }
 
 .message.assistant .message-bubble {
   background: var(--color-surface-2);
-  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: 5px;
 }
 
 .message-bubble.streaming {
-  opacity: 0.85;
+  opacity: 0.88;
 }
 
 .chat-input-row {
   display: flex;
-  gap: var(--space-2);
+  align-items: stretch;
+  gap: 0.6rem;
 }
 
 .chat-input {
   flex: 1;
+  min-height: 48px;
+  max-height: 150px;
+  padding: 0.7rem 0.8rem;
   resize: none;
-  min-height: 44px;
-  max-height: 140px;
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   font-size: var(--text-sm);
-  color: var(--color-text);
-  font-family: inherit;
+}
+
+.chat-input::placeholder {
+  color: var(--color-text-faint);
 }
 
 .chat-input:focus {
@@ -665,19 +676,67 @@ function formatTokenCount(value) {
   border-color: var(--color-primary);
 }
 
-.btn-primary {
-  padding: 0 var(--space-4);
-  background: var(--color-primary);
-  color: white;
+.btn-primary,
+.btn-secondary,
+.btn-stop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  padding: 0.55rem 0.85rem;
   border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  white-space: nowrap;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.btn-primary:active,
+.btn-secondary:active,
+.btn-stop:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 
 .btn-primary:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-secondary {
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.btn-stop {
+  color: #fff;
+  background: var(--color-error, #ef4444);
+  border: 1px solid var(--color-error, #ef4444);
+}
+
+.btn-stop:hover {
+  filter: brightness(0.94);
 }
 
 /* Markdown styles for assistant messages */
@@ -686,7 +745,7 @@ function formatTokenCount(value) {
 }
 
 .markdown-body :deep(p) {
-  margin: 0 0 var(--space-2) 0;
+  margin: 0 0 0.75rem;
 }
 
 .markdown-body :deep(p:last-child) {
@@ -696,8 +755,9 @@ function formatTokenCount(value) {
 .markdown-body :deep(h1),
 .markdown-body :deep(h2),
 .markdown-body :deep(h3) {
+  margin: 1rem 0 0.55rem;
   font-weight: 700;
-  margin: var(--space-3) 0 var(--space-2) 0;
+  line-height: 1.3;
 }
 
 .markdown-body :deep(h1) {
@@ -708,79 +768,82 @@ function formatTokenCount(value) {
   font-size: var(--text-md);
 }
 
+.markdown-body :deep(h3) {
+  font-size: var(--text-sm);
+}
+
 .markdown-body :deep(ul),
 .markdown-body :deep(ol) {
-  margin: var(--space-2) 0;
-  padding-left: var(--space-5);
+  padding-left: 1.25rem;
+  margin: 0.7rem 0;
 }
 
 .markdown-body :deep(li) {
-  margin-bottom: 4px;
-}
-
-.markdown-body :deep(strong) {
-  font-weight: 700;
-}
-
-.markdown-body :deep(em) {
-  font-style: italic;
+  margin-bottom: 0.25rem;
 }
 
 .markdown-body :deep(a) {
   color: var(--color-primary);
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .markdown-body :deep(blockquote) {
-  border-left: 3px solid var(--color-border);
-  padding-left: var(--space-3);
+  padding-left: 0.75rem;
+  margin: 0.75rem 0;
   color: var(--color-text-muted);
-  margin: var(--space-2) 0;
+  border-left: 3px solid var(--color-border);
 }
 
 .markdown-body :deep(code) {
-  background: var(--color-surface-2);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
+  padding: 0.12rem 0.3rem;
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
   font-size: 0.85em;
-  font-family: "Fira Code", monospace;
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+  border-radius: var(--radius-sm);
 }
 
 .markdown-body :deep(.code-block) {
-  background: #0d1117;
-  border-radius: var(--radius-md);
+  max-width: 100%;
+  margin: 0.75rem 0;
   overflow-x: auto;
-  margin: var(--space-2) 0;
+  color: #c9d1d9;
   font-size: var(--text-xs);
+  background: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: var(--radius-md);
 }
 
 .markdown-body :deep(.code-header) {
-  padding: var(--space-1) var(--space-3);
-  font-size: 11px;
+  padding: 0.35rem 0.65rem;
   color: #8b949e;
-  border-bottom: 1px solid #21262d;
+  font-size: 10px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  border-bottom: 1px solid #21262d;
 }
 
 .markdown-body :deep(.code-block code) {
-  background: transparent;
-  padding: var(--space-3);
   display: block;
-  font-family: "Fira Code", monospace;
+  padding: 0.75rem;
+  white-space: pre;
+  background: transparent;
+  border-radius: 0;
 }
 
 .markdown-body :deep(table) {
-  border-collapse: collapse;
-  margin: var(--space-2) 0;
+  display: block;
   width: 100%;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  border-collapse: collapse;
 }
 
 .markdown-body :deep(th),
 .markdown-body :deep(td) {
-  border: 1px solid var(--color-border);
-  padding: var(--space-2) var(--space-3);
+  padding: 0.45rem 0.6rem;
   text-align: left;
+  border: 1px solid var(--color-border);
 }
 
 .message.assistant .message-bubble {
@@ -816,8 +879,9 @@ function formatTokenCount(value) {
 .message-footer {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: 0 var(--space-1);
+  gap: 0.3rem;
+  min-height: 20px;
+  padding: 0 0.2rem;
 }
 
 .message.user .message-footer {
@@ -825,78 +889,110 @@ function formatTokenCount(value) {
 }
 
 .message-meta {
-  font-size: 11px;
   color: var(--color-text-faint);
+  font-size: 10px;
 }
 
 .copy-btn {
-  background: none;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0.2rem 0.35rem;
   color: var(--color-text-faint);
+  font-family: inherit;
   font-size: 12px;
-  padding: 2px 4px;
+  line-height: 1;
   cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
   transition:
-    opacity 0.15s ease,
-    color 0.15s ease;
+    color 0.16s ease,
+    background 0.16s ease,
+    opacity 0.16s ease;
 }
 
 .message-footer .copy-btn {
   opacity: 0;
 }
 
-.message:hover .message-footer .copy-btn {
+.message:hover .message-footer .copy-btn,
+.message:focus-within .message-footer .copy-btn {
   opacity: 1;
 }
 
 .copy-btn:hover {
   color: var(--color-text);
+  background: var(--color-surface-2);
 }
 
 .toolbar-copy-btn {
+  min-height: 30px;
+  padding: 0.35rem 0.55rem;
+  color: var(--color-text-muted);
+  font-size: 11px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 2px 8px;
 }
 
 .toolbar-copy-btn:hover {
+  color: var(--color-text);
   background: var(--color-surface-2);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
 }
 
 /* Edit message styles */
 .message-edit {
-  width: 100%;
-  max-width: 85%;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 0.55rem;
+  width: min(85%, 820px);
 }
 
 .message.user .message-edit {
   align-self: flex-end;
 }
 
-.edit-textarea {
+.edit-textarea,
+.chat-input {
+  box-sizing: border-box;
   width: 100%;
-  min-height: 60px;
-  resize: vertical;
-  padding: var(--space-3);
-  background: var(--color-bg);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-family: inherit;
   color: var(--color-text);
+  font-family: inherit;
+  line-height: 1.5;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
-.edit-textarea:focus {
-  outline: none;
+.edit-textarea {
+  min-height: 76px;
+  padding: 0.7rem 0.75rem;
+  resize: vertical;
+  font-size: var(--text-sm);
+}
+
+.edit-textarea:focus,
+.chat-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 .edit-actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-2);
+  gap: 0.45rem;
 }
 
 .btn-secondary {
@@ -934,9 +1030,8 @@ function formatTokenCount(value) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
-  padding: 0 0 var(--space-3);
-  margin-bottom: var(--space-1);
+  gap: 1rem;
+  padding: 0 0 0.85rem;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -944,21 +1039,22 @@ function formatTokenCount(value) {
   display: grid;
   flex: 1;
   min-width: 150px;
-  max-width: 260px;
-  gap: 4px;
+  max-width: 270px;
+  gap: 0.3rem;
 }
 
-.context-header {
+.context-header,
+.context-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: 0.5rem;
 }
 
 .context-label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.4rem;
   color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 600;
@@ -967,8 +1063,8 @@ function formatTokenCount(value) {
 .context-dot {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
   background: var(--color-success, #22c55e);
+  border-radius: 50%;
   box-shadow: 0 0 0 3px
     color-mix(in srgb, var(--color-success, #22c55e) 14%, transparent);
 }
@@ -996,7 +1092,7 @@ function formatTokenCount(value) {
   height: 5px;
   overflow: hidden;
   background: var(--color-surface-2);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
 }
 
 .context-progress-fill {
@@ -1021,14 +1117,14 @@ function formatTokenCount(value) {
   margin: 0;
   color: var(--color-text-faint);
   font-size: 10px;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
 .toolbar-actions {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: var(--space-2);
+  gap: 0.4rem;
 }
 
 .toolbar-copy-btn {
@@ -1063,10 +1159,14 @@ function formatTokenCount(value) {
 .system-prompt-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 0.25rem;
   flex-shrink: 0;
-  padding: 2px 6px;
+  padding: 0.18rem 0.4rem;
   color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
   background: color-mix(
     in srgb,
     var(--color-primary) 10%,
@@ -1075,25 +1175,36 @@ function formatTokenCount(value) {
   border: 1px solid
     color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   border-radius: var(--radius-full);
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.3;
-  white-space: nowrap;
 }
 
 .system-prompt-badge-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 11px;
-  height: 11px;
   font-size: 9px;
   line-height: 1;
 }
 
+/* iOS Safari: at least 16px prevents input auto-zoom */
+@media (pointer: coarse) {
+  .chat-input,
+  .edit-textarea {
+    font-size: 16px;
+  }
+}
+
 @media (max-width: 620px) {
+  .chat-thread {
+    gap: 0.7rem;
+  }
+
+  .chat-window {
+    gap: 0.85rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+  }
+
   .chat-toolbar {
     align-items: stretch;
     flex-direction: column;
+    gap: 0.75rem;
   }
 
   .toolbar-context {
@@ -1106,13 +1217,43 @@ function formatTokenCount(value) {
 
   .toolbar-copy-btn {
     flex: 1;
-    min-height: 32px;
+    min-height: 34px;
   }
 
   .context-footer {
     align-items: flex-start;
     flex-direction: column;
-    gap: 5px;
+    gap: 0.35rem;
+  }
+
+  .message-bubble,
+  .message-edit {
+    width: min(92%, 820px);
+    max-width: min(92%, 820px);
+    padding: 0.7rem 0.75rem;
+  }
+
+  .message-footer .copy-btn {
+    opacity: 1;
+  }
+
+  .chat-input-row {
+    gap: 0.45rem;
+  }
+
+  .chat-input {
+    min-height: 50px;
+  }
+
+  .btn-primary,
+  .btn-stop {
+    min-width: 66px;
+    padding: 0.55rem 0.65rem;
+  }
+
+  .markdown-body :deep(.code-block) {
+    margin-right: -0.15rem;
+    margin-left: -0.15rem;
   }
 }
 </style>

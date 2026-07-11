@@ -1,31 +1,68 @@
 <!-- src/views/ProjectDetailView.vue -->
 
 <template>
-  <div class="project-detail" v-if="project">
-    <aside class="chat-sidebar" :class="{ collapsed: isSidebarCollapsed }">
+  <main v-if="project" class="project-detail">
+    <aside class="project-sidebar" :class="{ collapsed: isSidebarCollapsed }">
       <div class="sidebar-top">
-        <button v-if="!isSidebarCollapsed" class="back-btn" @click="goBack">
-          ← Projects
-        </button>
         <button
-          class="toggle-btn"
-          @click="toggleSidebar"
-          :title="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          v-if="!isSidebarCollapsed"
+          class="back-btn"
+          type="button"
+          @click="goBack"
         >
-          {{ isSidebarCollapsed ? "»" : "«" }}
+          <span aria-hidden="true">←</span>
+          All projects
+        </button>
+
+        <button
+          class="sidebar-toggle-btn"
+          type="button"
+          :title="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          :aria-label="
+            isSidebarCollapsed
+              ? 'Expand project sidebar'
+              : 'Collapse project sidebar'
+          "
+          @click="toggleSidebar"
+        >
+          <span aria-hidden="true">{{ isSidebarCollapsed ? "»" : "«" }}</span>
         </button>
       </div>
 
       <template v-if="!isSidebarCollapsed">
-        <h2 class="project-name">{{ project.name }}</h2>
-        <div class="project-tags" v-if="project.tags.length">
-          <span v-for="tag in project.tags" :key="tag" class="tag-chip">{{
-            tag
-          }}</span>
+        <div class="project-summary">
+          <div class="project-summary-icon" aria-hidden="true">□</div>
+
+          <div class="project-summary-copy">
+            <p class="sidebar-eyebrow">Project</p>
+            <h1 class="project-name">{{ project.name }}</h1>
+          </div>
         </div>
 
-        <button class="btn-primary new-chat-btn" @click="handleNewChat">
-          + New Chat
+        <div v-if="project.description" class="project-description">
+          {{ project.description }}
+        </div>
+
+        <div v-if="project.tags.length" class="project-tags">
+          <span v-for="tag in project.tags" :key="tag" class="tag-chip">
+            {{ tag }}
+          </span>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="chats-heading">
+          <span>Chats</span>
+          <span class="chat-count">{{ project.chats.length }}</span>
+        </div>
+
+        <button
+          class="btn-primary new-chat-btn"
+          type="button"
+          @click="handleNewChat"
+        >
+          <span aria-hidden="true">+</span>
+          New chat
         </button>
 
         <div class="chat-list">
@@ -40,8 +77,9 @@
             @rename="(newTitle) => renameChat(chat, newTitle)"
           />
 
-          <div v-if="project.chats.length === 0" class="empty-state small">
-            <p>No chats yet. Start one above.</p>
+          <div v-if="project.chats.length === 0" class="sidebar-empty-state">
+            <span class="sidebar-empty-icon" aria-hidden="true">◌</span>
+            <p>No chats in this project yet.</p>
           </div>
         </div>
       </template>
@@ -49,17 +87,28 @@
       <button
         v-else
         class="collapsed-new-chat-btn"
+        type="button"
+        title="New chat"
+        aria-label="Create new chat"
         @click="handleNewChat"
-        title="New Chat"
       >
         +
       </button>
     </aside>
 
-    <div class="chat-main">
-      <header class="page-header">
-        <h1>{{ activeChat?.title || "Select a chat" }}</h1>
-        <select v-if="activeChat" v-model="activeChat.model" class="select">
+    <section class="chat-main">
+      <header class="chat-header">
+        <div class="chat-header-copy">
+          <p class="chat-header-eyebrow">{{ project.name }}</p>
+          <h2>{{ activeChat?.title || "Select a chat" }}</h2>
+        </div>
+
+        <select
+          v-if="activeChat"
+          v-model="activeChat.model"
+          class="model-select"
+          aria-label="Select chat model"
+        >
           <option value="" disabled>Select a model</option>
           <option v-for="name in modelNames" :key="name" :value="name">
             {{ name }}
@@ -72,12 +121,21 @@
         empty-hint="Start a conversation in this project."
         @message-sent="projectsStore.saveProjects()"
       />
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <div v-else class="empty-state">
-    <p>Project not found.</p>
-  </div>
+  <section v-else class="not-found-state">
+    <div class="not-found-icon" aria-hidden="true">□</div>
+    <h1>Project not found</h1>
+    <p>
+      This project may have been deleted or is no longer available in local
+      storage.
+    </p>
+    <button class="btn-secondary" type="button" @click="goBack">
+      <span aria-hidden="true">←</span>
+      Back to projects
+    </button>
+  </section>
 </template>
 
 <script setup>
@@ -134,7 +192,10 @@ function goBack() {
 function handleNewChat() {
   const chat = projectsStore.createChatInProject(
     project.value.id,
-    settingsStore.defaultModel || ollama.getSelectedModel() || modelNames.value[0] || "",
+    settingsStore.defaultModel ||
+      ollama.getSelectedModel() ||
+      modelNames.value[0] ||
+      "",
   );
   activeChatId.value = chat.id;
 }
@@ -177,276 +238,31 @@ onMounted(async () => {
 
 <style scoped>
 .project-detail {
+  display: flex;
   height: 100%;
   min-height: 0;
-  display: flex;
+  background: var(--color-bg);
 }
 
-.chat-sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--color-border);
-  padding: var(--space-4);
+.project-sidebar {
   display: flex;
+  width: 272px;
+  flex: 0 0 auto;
   flex-direction: column;
-  gap: var(--space-3);
-  overflow-y: auto;
-}
-
-.back-btn {
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-}
-
-.back-btn:hover {
-  color: var(--color-text);
-}
-
-.project-name {
-  font-size: var(--text-lg);
-  font-weight: 700;
-}
-
-.project-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.tag-chip {
-  padding: 2px 8px;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
-.new-chat-btn {
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
-}
-
-.chat-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  overflow-y: auto;
-}
-
-.chat-list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.chat-list-item:hover {
-  background: var(--color-surface-2);
-}
-
-.chat-list-item.active {
-  background: var(--color-surface-2);
-}
-
-.chat-list-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  overflow: hidden;
-}
-
-.chat-title {
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.chat-model-tag {
-  font-size: 11px;
-  color: var(--color-text-faint);
-}
-
-.chat-delete-btn {
-  background: none;
-  border: none;
-  color: var(--color-text-faint);
-  cursor: pointer;
-  font-size: var(--text-xs);
-  flex-shrink: 0;
-}
-
-.chat-delete-btn:hover {
-  color: var(--color-error);
-}
-
-.chat-main {
-  flex: 1;
+  gap: 0.9rem;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-6);
-  gap: var(--space-4);
-  min-width: 0;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.page-header h1 {
-  font-size: var(--text-xl);
-  font-weight: 700;
+  padding: 1rem;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.select {
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  min-width: 200px;
-}
-
-.chat-window {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-}
-
-.chat-window.empty-selection {
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-faint);
-  font-size: var(--text-sm);
-}
-
-.empty-state {
-  margin: auto;
-  text-align: center;
-  color: var(--color-text-faint);
-  font-size: var(--text-sm);
-}
-
-.empty-state.small {
-  padding: var(--space-3) 0;
-  font-size: var(--text-xs);
-}
-
-.message {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.message.user {
-  align-items: flex-end;
-}
-
-.message.assistant {
-  align-items: flex-start;
-}
-
-.message-bubble {
-  max-width: 70%;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-sm);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.message.user .message-bubble {
-  background: var(--color-primary);
-  color: white;
-}
-
-.message.assistant .message-bubble {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-}
-
-.message-meta {
-  font-size: 11px;
-  color: var(--color-text-faint);
-  padding: 0 var(--space-1);
-}
-
-.message-bubble.streaming {
-  opacity: 0.85;
-}
-
-.chat-input-row {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.chat-input {
-  flex: 1;
-  resize: none;
-  min-height: 44px;
-  max-height: 140px;
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  font-family: inherit;
-}
-
-.chat-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.btn-primary {
-  padding: var(--space-1);
-  background: var(--color-primary);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.chat-sidebar {
+  border-right: 1px solid var(--color-border);
   transition:
     width 0.2s ease,
     padding 0.2s ease;
-  overflow: hidden;
 }
 
-.chat-sidebar.collapsed {
+.project-sidebar.collapsed {
   width: 56px;
-  padding: var(--space-4) var(--space-2);
+  padding: 1rem 0.55rem;
   align-items: center;
 }
 
@@ -454,40 +270,447 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: 0.5rem;
 }
 
-.chat-sidebar.collapsed .sidebar-top {
+.project-sidebar.collapsed .sidebar-top {
   flex-direction: column;
 }
 
-.toggle-btn {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.3rem 0;
   color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: var(--text-sm);
-  padding: var(--space-1) var(--space-2);
-  flex-shrink: 0;
+  background: transparent;
+  border: 0;
 }
 
-.toggle-btn:hover {
+.back-btn:hover {
+  color: var(--color-primary);
+}
+
+.sidebar-toggle-btn {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: var(--color-text-faint);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
   background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.sidebar-toggle-btn:hover {
   color: var(--color-text);
+  background: var(--color-bg);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
+}
+
+.project-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-width: 0;
+  padding-top: 0.35rem;
+}
+
+.project-summary-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 1.25rem;
+  background: color-mix(in srgb, var(--color-primary) 11%, transparent);
+  border-radius: 10px;
+}
+
+.project-summary-copy {
+  min-width: 0;
+}
+
+.sidebar-eyebrow,
+.chat-header-eyebrow {
+  margin: 0 0 0.15rem;
+  overflow: hidden;
+  color: var(--color-text-faint);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.project-name {
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-description {
+  display: -webkit-box;
+  margin: -0.1rem 0 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tag-chip {
+  max-width: 100%;
+  padding: 0.2rem 0.45rem;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.sidebar-divider {
+  height: 1px;
+  margin: 0.1rem 0;
+  background: var(--color-border);
+}
+
+.chats-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-text-faint);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.chat-count {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0 0.3rem;
+  color: var(--color-text-muted);
+  font-family: "Fira Code", ui-monospace, monospace;
+  font-size: 10px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.btn-secondary {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  background: var(--color-surface-2);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
+}
+
+.new-chat-btn {
+  width: 100%;
+}
+
+.chat-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  padding-right: 0.1rem;
+  overflow-y: auto;
+}
+
+.sidebar-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  padding: 1.4rem 0.75rem;
+  margin: auto 0;
+  color: var(--color-text-faint);
+  text-align: center;
+}
+
+.sidebar-empty-state p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.sidebar-empty-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 1rem;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-radius: 9px;
 }
 
 .collapsed-new-chat-btn {
+  display: grid;
   width: 32px;
   height: 32px;
+  place-items: center;
+  padding: 0;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  background: var(--color-primary);
+  border: 0;
+  border-radius: 9px;
+}
+
+.collapsed-new-chat-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.chat-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.chat-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--color-primary);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: var(--text-lg);
-  border: none;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.chat-header-copy {
+  min-width: 0;
+}
+
+.chat-header h2 {
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.model-select {
+  min-width: 180px;
+  max-width: min(38vw, 280px);
+  padding: 0.55rem 2.25rem 0.55rem 0.75rem;
+  overflow: hidden;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
   cursor: pointer;
+  appearance: none;
+  background-color: var(--color-surface);
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size:
+    5px 5px,
+    5px 5px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+}
+
+.model-select:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
+}
+
+.model-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+
+.not-found-state {
+  display: grid;
+  justify-items: center;
+  max-width: 500px;
+  padding: 2rem;
+  margin: auto;
+  text-align: center;
+}
+
+.not-found-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 0.8rem;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 1.8rem;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-radius: 14px;
+}
+
+.not-found-state h1 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-lg);
+}
+
+.not-found-state p {
+  max-width: 360px;
+  margin: 0.55rem 0 1rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .project-sidebar {
+    width: 224px;
+  }
+
+  .chat-main {
+    padding: 1rem;
+  }
+
+  .model-select {
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 620px) {
+  .project-detail {
+    position: relative;
+  }
+
+  .project-sidebar {
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(82vw, 290px);
+    box-shadow: 12px 0 28px rgb(0 0 0 / 0.12);
+  }
+
+  .project-sidebar.collapsed {
+    width: 48px;
+    padding: 0.75rem 0.45rem;
+    box-shadow: 4px 0 14px rgb(0 0 0 / 0.07);
+  }
+
+  .chat-main {
+    padding: 1rem 1rem 1rem 3.9rem;
+  }
+
+  .chat-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .model-select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .project-sidebar:not(.collapsed) + .chat-main {
+    filter: brightness(0.82);
+    pointer-events: none;
+  }
 }
 </style>

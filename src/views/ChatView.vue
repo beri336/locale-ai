@@ -1,58 +1,85 @@
 <!-- src/views/ChatView.vue -->
-
 <template>
-  <div class="chat-view">
+  <main class="chat-view">
     <aside class="chat-sidebar" :class="{ collapsed: isSidebarCollapsed }">
-      <div class="sidebar-header">
+      <div class="sidebar-top">
+        <div v-if="!isSidebarCollapsed" class="sidebar-title">
+          <p class="sidebar-eyebrow">Workspace</p>
+          <h2>Quick chats</h2>
+        </div>
+
         <button
-          v-if="!isSidebarCollapsed"
+          class="sidebar-toggle-btn"
+          type="button"
+          :title="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          :aria-label="
+            isSidebarCollapsed ? 'Expand chat sidebar' : 'Collapse chat sidebar'
+          "
+          @click="toggleSidebar"
+        >
+          <span aria-hidden="true">{{ isSidebarCollapsed ? "»" : "«" }}</span>
+        </button>
+      </div>
+
+      <template v-if="!isSidebarCollapsed">
+        <button
           class="btn-primary new-chat-btn"
+          type="button"
           @click="handleNewChat"
         >
-          + New Chat
+          <span aria-hidden="true">+</span>
+          New chat
         </button>
-        <button
-          class="toggle-btn"
-          @click="toggleSidebar"
-          :title="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-        >
-          {{ isSidebarCollapsed ? "»" : "«" }}
-        </button>
-      </div>
 
-      <div v-if="!isSidebarCollapsed" class="chat-list">
-        <ChatListItem
-          v-for="chat in chats"
-          :key="chat.id"
-          :chat="chat"
-          :is-active="chat.id === activeChatId"
-          @select="selectChat(chat.id)"
-          @delete="handleDeleteChat(chat.id)"
-          @rename="(newTitle) => renameChat(chat, newTitle)"
-        />
+        <div class="sidebar-divider"></div>
 
-        <div v-if="chats.length === 0" class="empty-state small">
-          <p>No chats yet.</p>
+        <div class="chats-heading">
+          <span>Recent chats</span>
+          <span class="chat-count">{{ chats.length }}</span>
         </div>
-      </div>
+
+        <div class="chat-list">
+          <ChatListItem
+            v-for="chat in chats"
+            :key="chat.id"
+            :chat="chat"
+            :is-active="chat.id === activeChatId"
+            @select="selectChat(chat.id)"
+            @delete="handleDeleteChat(chat.id)"
+            @rename="(newTitle) => renameChat(chat, newTitle)"
+          />
+
+          <div v-if="chats.length === 0" class="sidebar-empty-state">
+            <span class="sidebar-empty-icon" aria-hidden="true">◌</span>
+            <p>No chats yet.</p>
+          </div>
+        </div>
+      </template>
 
       <button
         v-else
         class="collapsed-new-chat-btn"
+        type="button"
+        title="New chat"
+        aria-label="Create new chat"
         @click="handleNewChat"
-        title="New Chat"
       >
         +
       </button>
     </aside>
 
-    <div class="chat-main">
-      <header class="page-header">
-        <h1>{{ activeChat?.title || "Chat" }}</h1>
+    <section class="chat-main">
+      <header class="chat-header">
+        <div class="chat-header-copy">
+          <p class="chat-header-eyebrow">Quick chat</p>
+          <h1>{{ activeChat?.title || "Start a conversation" }}</h1>
+        </div>
+
         <select
           v-if="activeChat"
           v-model="selectedModel"
-          class="select"
+          class="model-select"
+          aria-label="Select chat model"
           @change="handleModelChange"
         >
           <option value="" disabled>Select a model</option>
@@ -63,22 +90,28 @@
       </header>
 
       <div v-if="!activeChat" class="empty-chat-state">
-        <p class="empty-chat-title">No chat selected</p>
-        <p class="empty-chat-hint">
-          Start a new conversation to begin chatting.
+        <div class="empty-chat-icon" aria-hidden="true">◌</div>
+
+        <h2>No chat selected</h2>
+
+        <p>
+          Start a new private conversation. It will be saved locally in this
+          browser.
         </p>
-        <button class="btn-primary" @click="handleNewChat">
-          + Start New Chat
+
+        <button class="btn-primary" type="button" @click="handleNewChat">
+          <span aria-hidden="true">+</span>
+          Start new chat
         </button>
       </div>
 
       <ChatThread
         v-else
         :chat="activeChat"
-        empty-hint="Start a conversation by selecting a model and typing a message."
+        empty-hint="Select a model and write your first message."
       />
-    </div>
-  </div>
+    </section>
+  </main>
 </template>
 
 <script setup>
@@ -133,7 +166,11 @@ function createChat() {
   const newChat = {
     id: `chat_${Date.now()}`,
     title: "New Chat",
-    model: settingsStore.defaultModel || ollama.getSelectedModel() || modelNames.value[0] || "",
+    model:
+      settingsStore.defaultModel ||
+      ollama.getSelectedModel() ||
+      modelNames.value[0] ||
+      "",
     messages: [],
     createdAt: new Date().toISOString(),
   };
@@ -197,160 +234,410 @@ function toggleSidebar() {
 
 <style scoped>
 .chat-view {
-  height: 100%;
   display: flex;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-bg);
 }
 
 .chat-sidebar {
-  width: 240px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--color-border);
-  padding: var(--space-4);
   display: flex;
+  width: 272px;
+  flex: 0 0 auto;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 0.9rem;
+  min-height: 0;
+  padding: 1rem;
+  overflow: hidden;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
   transition:
     width 0.2s ease,
     padding 0.2s ease;
-  overflow: hidden;
 }
 
 .chat-sidebar.collapsed {
   width: 56px;
-  padding: var(--space-4) var(--space-2);
+  padding: 1rem 0.55rem;
   align-items: center;
 }
 
-.sidebar-header {
+.sidebar-top {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
-.chat-sidebar.collapsed .sidebar-header {
+.chat-sidebar.collapsed .sidebar-top {
   flex-direction: column;
 }
 
-.new-chat-btn {
-  flex: 1;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
+.sidebar-title {
+  min-width: 0;
 }
 
-.toggle-btn {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-text-muted);
+.sidebar-eyebrow,
+.chat-header-eyebrow {
+  margin: 0 0 0.15rem;
+  overflow: hidden;
+  color: var(--color-text-faint);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.sidebar-title h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.sidebar-toggle-btn {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: var(--color-text-faint);
+  font-family: inherit;
+  font-size: 0.9rem;
   cursor: pointer;
-  font-size: var(--text-sm);
-  padding: var(--space-1) var(--space-2);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.sidebar-toggle-btn:hover {
+  color: var(--color-text);
+  background: var(--color-bg);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.new-chat-btn {
+  width: 100%;
+}
+
+.sidebar-divider {
+  height: 1px;
+  margin: 0.1rem 0;
+  background: var(--color-border);
+}
+
+.chats-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-text-faint);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.chat-count {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0 0.3rem;
+  color: var(--color-text-muted);
+  font-family: "Fira Code", ui-monospace, monospace;
+  font-size: 10px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
 }
 
 .chat-list {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 2px;
+  min-height: 0;
+  padding-right: 0.1rem;
   overflow-y: auto;
 }
 
-.chat-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-6);
-  gap: var(--space-4);
-  min-width: 0;
+.sidebar-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  padding: 1.4rem 0.75rem;
+  margin: auto 0;
+  color: var(--color-text-faint);
+  text-align: center;
 }
 
-.page-header {
+.sidebar-empty-state p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.sidebar-empty-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 1rem;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-radius: 9px;
+}
+
+.collapsed-new-chat-btn {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  background: var(--color-primary);
+  border: 0;
+  border-radius: 9px;
+}
+
+.collapsed-new-chat-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.chat-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.chat-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--color-text);
+  gap: 1rem;
 }
 
-.page-header h1 {
-  font-size: var(--text-xl);
-  font-weight: 700;
+.chat-header-copy {
+  min-width: 0;
+}
+
+.chat-header h1 {
+  margin: 0;
   overflow: hidden;
+  color: var(--color-text);
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.select {
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-bg);
+.model-select {
+  min-width: 180px;
+  max-width: min(38vw, 280px);
+  padding: 0.55rem 2.25rem 0.55rem 0.75rem;
+  overflow: hidden;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  cursor: pointer;
+  appearance: none;
+  background-color: var(--color-surface);
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size:
+    5px 5px,
+    5px 5px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  min-width: 200px;
-  color: var(--color-text-muted);
+  outline: none;
 }
 
-.empty-state {
-  margin: auto;
-  text-align: center;
-  color: var(--color-text-faint);
-  font-size: var(--text-sm);
+.model-select:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
 }
 
-.empty-state.small {
-  padding: var(--space-4) 0;
-  font-size: var(--text-xs);
-}
-
-.btn-primary {
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-primary);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.model-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
 .empty-chat-state {
+  display: grid;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  justify-items: center;
+  align-content: center;
+  gap: 0.65rem;
+  min-height: 0;
+  padding: 2rem;
   text-align: center;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
 }
 
-.empty-chat-title {
-  font-size: var(--text-lg);
-  font-weight: 600;
+.empty-chat-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 0.2rem;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 1.5rem;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-radius: 14px;
+}
+
+.empty-chat-state h2 {
+  margin: 0;
   color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: 650;
 }
 
-.empty-chat-hint {
-  font-size: var(--text-sm);
+.empty-chat-state p {
+  max-width: 330px;
+  margin: 0;
   color: var(--color-text-muted);
-  margin-bottom: var(--space-3);
+  font-size: var(--text-sm);
+  line-height: 1.55;
 }
 
-.collapsed-new-chat-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-primary);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: var(--text-lg);
-  border: none;
-  cursor: pointer;
+.empty-chat-state .btn-primary {
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 760px) {
+  .chat-sidebar {
+    width: 224px;
+  }
+
+  .chat-main {
+    padding: 1rem;
+  }
+
+  .model-select {
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 620px) {
+  .chat-view {
+    position: relative;
+  }
+
+  .chat-sidebar {
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(82vw, 290px);
+    box-shadow: 12px 0 28px rgb(0 0 0 / 0.12);
+  }
+
+  .chat-sidebar.collapsed {
+    width: 48px;
+    padding: 0.75rem 0.45rem;
+    box-shadow: 4px 0 14px rgb(0 0 0 / 0.07);
+  }
+
+  .chat-main {
+    padding: 1rem 1rem 1rem 3.9rem;
+  }
+
+  .chat-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .model-select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .chat-sidebar:not(.collapsed) + .chat-main {
+    pointer-events: none;
+    filter: brightness(0.82);
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  .chat-input,
+  .input,
+  .model-select {
+    font-size: 16px;
+  }
 }
 </style>

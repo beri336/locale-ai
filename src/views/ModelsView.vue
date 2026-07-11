@@ -3,12 +3,101 @@
 <template>
   <div class="models-view">
     <header class="page-header">
-      <h1>
-        <span class="nav-icon"><IconPackage /></span> Models
-      </h1>
+      <div class="page-heading">
+        <div class="header-icon" aria-hidden="true">
+          <IconPackage />
+        </div>
+
+        <div>
+          <p class="eyebrow">Local inference</p>
+          <h1>Models</h1>
+          <p class="header-description">
+            Manage the Ollama models available on this device.
+          </p>
+        </div>
+      </div>
     </header>
 
     <div class="models-content">
+      <!-- Ollama Status -->
+      <section class="card">
+        <h2>Ollama Status</h2>
+
+        <div class="ollama-info">
+          <p class="card-hint">
+            All information about your local Ollama server.
+          </p>
+          <div class="link-row">
+            <a href="https://docs.ollama.com" target="_blank">Documentation</a>
+            <a href="https://docs.ollama.com/cli" target="_blank"
+              >CLI Reference</a
+            >
+            <a href="https://ollama.com/search" target="_blank">Model Search</a>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-row">
+            <span class="info-label">Installation Status</span>
+            <span class="info-value mono">{{ isInstalled }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Connection Status</span>
+            <span class="info-value">
+              <span
+                class="status-dot"
+                :class="isConnectedBool ? 'connected' : 'disconnected'"
+              ></span>
+              {{ isConnected }}
+            </span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Base URL</span>
+            <span class="info-value mono">{{ baseUrl }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Version</span>
+            <span class="info-value mono">{{
+              version ? "v" + version : "Unknown"
+            }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Total Size</span>
+            <span class="info-value mono">{{ totalSize }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Models Available</span>
+            <span class="info-value mono">{{ modelNamesLength }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Running Models</span>
+            <span class="info-value">
+              {{
+                runningModelNames.length ? runningModelNames.join(", ") : "None"
+              }}
+            </span>
+          </div>
+        </div>
+
+        <div class="refresh-row">
+          <button class="btn-ghost small" @click="refreshModelNames">
+            Refresh Models
+          </button>
+          <button class="btn-ghost small" @click="refreshDetailedListOfModels">
+            Refresh Details
+          </button>
+          <button class="btn-ghost small" @click="refreshRunningModels">
+            Refresh Running
+          </button>
+        </div>
+      </section>
+
       <!-- Download -->
       <section class="card">
         <h2>Download New Models</h2>
@@ -115,155 +204,6 @@
         }}</span>
       </section>
 
-      <!-- Ollama Status -->
-      <section class="card">
-        <h2>Ollama Status</h2>
-
-        <div class="ollama-info">
-          <p class="card-hint">
-            All information about your local Ollama server.
-          </p>
-          <div class="link-row">
-            <a href="https://docs.ollama.com" target="_blank">Documentation</a>
-            <a href="https://docs.ollama.com/cli" target="_blank"
-              >CLI Reference</a
-            >
-            <a href="https://ollama.com/search" target="_blank">Model Search</a>
-          </div>
-        </div>
-
-        <div class="info-grid">
-          <div class="info-row">
-            <span class="info-label">Installation Status</span>
-            <span class="info-value mono">{{ isInstalled }}</span>
-          </div>
-
-          <div class="info-row">
-            <span class="info-label">Connection Status</span>
-            <span class="info-value">
-              <span
-                class="status-dot"
-                :class="isConnectedBool ? 'connected' : 'disconnected'"
-              ></span>
-              {{ isConnected }}
-            </span>
-          </div>
-
-          <div class="info-row">
-            <span class="info-label">Base URL</span>
-            <span class="info-value mono">{{ baseUrl }}</span>
-          </div>
-
-          <div class="info-row">
-            <span class="info-label">Version</span>
-            <span class="info-value mono">{{
-              version ? "v" + version : "Unknown"
-            }}</span>
-          </div>
-
-          <div class="info-row">
-            <span class="info-label">Total Size</span>
-            <span class="info-value mono">{{ totalSize }}</span>
-          </div>
-
-          <div class="info-row">
-            <span class="info-label">Models Available</span>
-            <span class="info-value mono">{{ modelNamesLength }}</span>
-          </div>
-
-          <div class="info-row">
-            <span class="info-label">Running Models</span>
-            <span class="info-value">
-              {{
-                runningModelNames.length ? runningModelNames.join(", ") : "None"
-              }}
-            </span>
-          </div>
-        </div>
-
-        <div class="refresh-row">
-          <button class="btn-ghost small" @click="refreshModelNames">
-            Refresh Models
-          </button>
-          <button class="btn-ghost small" @click="refreshDetailedListOfModels">
-            Refresh Details
-          </button>
-          <button class="btn-ghost small" @click="refreshRunningModels">
-            Refresh Running
-          </button>
-        </div>
-      </section>
-
-      <!-- Detailed Model Cards -->
-      <section class="card">
-        <h2>Detailed Model Information</h2>
-
-        <div v-if="detailedModels.length" class="model-cards">
-          <div
-            v-for="model in detailedModels"
-            :key="model.name"
-            class="model-card"
-          >
-            <h3 class="model-card-title">{{ model.name }}</h3>
-
-            <div class="model-card-row">
-              <span class="model-card-key">Size</span>
-              <span class="model-card-value">{{
-                formatBytes(model.size)
-              }}</span>
-            </div>
-
-            <div class="model-card-row">
-              <span class="model-card-key">Modified At</span>
-              <span class="model-card-value">{{
-                formatDate(model.modified_at)
-              }}</span>
-            </div>
-
-            <div class="model-card-row" v-if="model.details?.parent_model">
-              <span class="model-card-key">Parent Model</span>
-              <span class="model-card-value">{{
-                model.details.parent_model
-              }}</span>
-            </div>
-
-            <div class="model-card-row">
-              <span class="model-card-key">Format</span>
-              <span class="model-card-value">{{ model.details?.format }}</span>
-            </div>
-
-            <div class="model-card-row">
-              <span class="model-card-key">Family</span>
-              <span class="model-card-value">{{ model.details?.family }}</span>
-            </div>
-
-            <div class="model-card-row">
-              <span class="model-card-key">Families</span>
-              <span class="model-card-value">{{
-                model.details?.families?.join(", ")
-              }}</span>
-            </div>
-
-            <div class="model-card-row">
-              <span class="model-card-key">Parameter Size</span>
-              <span class="model-card-value">{{
-                model.details?.parameter_size
-              }}</span>
-            </div>
-
-            <div class="model-card-row">
-              <span class="model-card-key">Quantization</span>
-              <span class="model-card-value">{{
-                model.details?.quantization_level
-              }}</span>
-            </div>
-          </div>
-        </div>
-        <p v-else class="empty-state">
-          No detailed model information available.
-        </p>
-      </section>
-
       <!-- Installed Models -->
       <section class="card">
         <div class="card-header-row">
@@ -337,6 +277,76 @@
             <p>No models installed.</p>
           </div>
         </div>
+      </section>
+
+      <!-- Detailed Model Cards -->
+      <section class="card">
+        <h2>Detailed Model Information</h2>
+
+        <div v-if="detailedModels.length" class="model-cards">
+          <div
+            v-for="model in detailedModels"
+            :key="model.name"
+            class="model-card"
+          >
+            <h3 class="model-card-title">{{ model.name }}</h3>
+
+            <div class="model-card-row">
+              <span class="model-card-key">Size</span>
+              <span class="model-card-value">{{
+                formatBytes(model.size)
+              }}</span>
+            </div>
+
+            <div class="model-card-row">
+              <span class="model-card-key">Modified At</span>
+              <span class="model-card-value">{{
+                formatDate(model.modified_at)
+              }}</span>
+            </div>
+
+            <div class="model-card-row" v-if="model.details?.parent_model">
+              <span class="model-card-key">Parent Model</span>
+              <span class="model-card-value">{{
+                model.details.parent_model
+              }}</span>
+            </div>
+
+            <div class="model-card-row">
+              <span class="model-card-key">Format</span>
+              <span class="model-card-value">{{ model.details?.format }}</span>
+            </div>
+
+            <div class="model-card-row">
+              <span class="model-card-key">Family</span>
+              <span class="model-card-value">{{ model.details?.family }}</span>
+            </div>
+
+            <div class="model-card-row">
+              <span class="model-card-key">Families</span>
+              <span class="model-card-value">{{
+                model.details?.families?.join(", ")
+              }}</span>
+            </div>
+
+            <div class="model-card-row">
+              <span class="model-card-key">Parameter Size</span>
+              <span class="model-card-value">{{
+                model.details?.parameter_size
+              }}</span>
+            </div>
+
+            <div class="model-card-row">
+              <span class="model-card-key">Quantization</span>
+              <span class="model-card-value">{{
+                model.details?.quantization_level
+              }}</span>
+            </div>
+          </div>
+        </div>
+        <p v-else class="empty-state">
+          No detailed model information available.
+        </p>
       </section>
 
       <!-- Running Models -->
@@ -635,7 +645,59 @@ onMounted(() => {
 }
 
 .page-header {
-  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin-bottom: 2rem;
+}
+
+.page-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.header-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
+  border-radius: 13px;
+}
+
+.header-icon :deep(svg) {
+  width: 21px;
+  height: 21px;
+}
+
+.eyebrow {
+  margin: 0 0 0.2rem;
+  color: var(--color-text-faint);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: clamp(1.65rem, 3vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.header-description {
+  margin: 0.45rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
 }
 
 .models-content {
@@ -986,7 +1048,7 @@ onMounted(() => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--text-xs);
-  background: transparent;
+  background: var(--color---color-bg);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -1112,5 +1174,12 @@ onMounted(() => {
   width: 20px;
   height: 20px;
   display: block;
+}
+
+/* iOS Safari: at least 16px prevents input auto-zoom */
+@media (pointer: coarse) {
+  .input {
+    font-size: 16px;
+  }
 }
 </style>

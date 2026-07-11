@@ -3,16 +3,18 @@
 <template>
   <main class="faq-view">
     <header class="page-header">
-      <div class="header-icon" aria-hidden="true">
-        <IconSettings />
-      </div>
+      <div class="page-heading">
+        <div class="header-icon" aria-hidden="true">
+          <IconFaq />
+        </div>
 
-      <div>
-        <p class="eyebrow">Help & Setup</p>
-        <h1>FAQ</h1>
-        <p class="header-description">
-          Connect your app securely to Ollama on the local network.
-        </p>
+        <div>
+          <p class="eyebrow">Help & Setup</p>
+          <h1>FAQ</h1>
+          <p class="header-description">
+            Connect your app securely to Ollama on the local network.
+          </p>
+        </div>
       </div>
     </header>
 
@@ -272,7 +274,7 @@
 
 <script setup>
 import { reactive } from "vue";
-import IconSettings from "@/components/icons/IconSettings.vue";
+import IconFaq from "@/components/icons/IconFaq.vue";
 
 const openSections = reactive({
   mobile: false,
@@ -309,9 +311,15 @@ function toggle(key) {
 .page-header {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  max-width: 880px;
+  justify-content: space-between;
+  max-width: 1100px;
   margin-bottom: 2rem;
+}
+
+.page-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
 }
 
 .header-icon {

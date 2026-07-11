@@ -1,69 +1,125 @@
 <!-- src/views/SettingsView.vue -->
 
 <template>
-  <div class="settings-view">
+  <main class="settings-view">
     <header class="page-header">
-      <h1>
-        <span class="nav-icon"><IconSettings /></span> Settings
-      </h1>
+      <div class="page-heading">
+        <div class="header-icon" aria-hidden="true">
+          <IconSettings />
+        </div>
+
+        <div>
+          <p class="eyebrow">Configuration</p>
+          <h1>Settings</h1>
+          <p class="header-description">
+            Configure your Ollama connection, model defaults and local data.
+          </p>
+        </div>
+      </div>
     </header>
 
     <div class="settings-content">
       <!-- Connection -->
-      <section class="card">
-        <h2>Connection</h2>
+      <section class="settings-card connection-card">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Ollama</p>
+            <h2>Connection</h2>
+            <p class="section-description">
+              Set the address of the Ollama server this app should use.
+            </p>
+          </div>
 
-        <label class="field-label" for="api-url">API-URL</label>
+          <span class="connection-badge" :class="statusClass">
+            <span class="status-dot"></span>
+            {{ statusLabel }}
+          </span>
+        </div>
+
+        <label class="field-label" for="api-url">API URL</label>
+
         <div class="input-row">
           <input
             id="api-url"
             v-model="settingsStore.apiUrl"
             class="input"
             placeholder="http://localhost:11434"
+            spellcheck="false"
           />
+
           <button
             class="btn-primary"
             :disabled="isChecking"
             @click="handleTest"
           >
-            {{ isChecking ? "Checking…" : "Test" }}
+            {{ isChecking ? "Checking…" : "Test connection" }}
           </button>
         </div>
 
-        <div class="status-row">
-          <span class="status-dot" :class="statusClass"></span>
-          <span class="status-text">{{ statusLabel }}</span>
-          <span v-if="settingsStore.ollamaVersion" class="version-text">
-            v{{ settingsStore.ollamaVersion }}
-          </span>
-        </div>
+        <p v-if="settingsStore.ollamaVersion" class="version-note">
+          Connected to Ollama
+          <strong>v{{ settingsStore.ollamaVersion }}</strong>
+        </p>
 
-        <div class="network-info">
-          <div class="info-row">
-            <span class="info-label">App Host-IP</span>
-            <span class="info-value mono">{{ hostIpLabel }}</span>
+        <div class="network-panel">
+          <div class="network-panel-header">
+            <span class="network-panel-icon" aria-hidden="true">⌘</span>
+            <div>
+              <h3>Network details</h3>
+              <p>Useful when connecting from another device.</p>
+            </div>
           </div>
-          <div class="info-row">
-            <span class="info-label">App Host-Port</span>
-            <span class="info-value mono">{{ hostPort }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Ollama Host</span>
-            <span class="info-value mono">{{ settingsStore.ollamaHost }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Ollama Serve Port</span>
-            <span class="info-value mono">{{ settingsStore.ollamaPort }}</span>
+
+          <div class="network-info">
+            <div class="info-row">
+              <span class="info-label">App host</span>
+              <code class="info-value">{{ hostIpLabel }}</code>
+            </div>
+
+            <div class="info-row">
+              <span class="info-label">App port</span>
+              <code class="info-value">{{ hostPort }}</code>
+            </div>
+
+            <div class="info-row">
+              <span class="info-label">Ollama host</span>
+              <code class="info-value">{{ settingsStore.ollamaHost }}</code>
+            </div>
+
+            <div class="info-row">
+              <span class="info-label">Ollama port</span>
+              <code class="info-value">{{ settingsStore.ollamaPort }}</code>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- Appearance -->
-      <section class="card">
-        <h2>Appearance</h2>
-        <div class="toggle-row">
-          <span class="field-label">Theme</span>
-          <button class="theme-switch" @click="themeStore.toggle()">
+      <section class="settings-card">
+        <div class="section-heading compact">
+          <div>
+            <p class="section-kicker">Interface</p>
+            <h2>Appearance</h2>
+            <p class="section-description">
+              Choose the preferred color theme for the app.
+            </p>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <span class="setting-label">Color theme</span>
+            <span class="setting-hint"
+              >Switch between light and dark mode.</span
+            >
+          </div>
+
+          <button
+            class="theme-switch"
+            type="button"
+            aria-label="Toggle app theme"
+            @click="themeStore.toggle()"
+          >
             <span :class="{ active: themeStore.theme === 'light' }">Light</span>
             <span :class="{ active: themeStore.theme === 'dark' }">Dark</span>
           </button>
@@ -71,129 +127,244 @@
       </section>
 
       <!-- Model Defaults -->
-      <section class="card">
-        <div class="card-header">
-          <h2>Model Defaults</h2>
-          <button class="btn-reset" @click="settingsStore.resetModelDefaults()">
-            Reset to Default
+      <section class="settings-card">
+        <div class="section-heading compact">
+          <div>
+            <p class="section-kicker">Generation</p>
+            <h2>Model defaults</h2>
+            <p class="section-description">
+              These values are applied to new chats by default.
+            </p>
+          </div>
+
+          <button
+            class="btn-reset"
+            type="button"
+            @click="settingsStore.resetModelDefaults()"
+          >
+            Reset
           </button>
         </div>
 
-        <label class="field-label" for="default-model">Default Model</label>
-        <select
-          id="default-model"
-          v-model="settingsStore.defaultModel"
-          class="input"
-        >
-          <option value="">None</option>
-          <option v-for="name in modelNames" :key="name" :value="name">
-            {{ name }}
-          </option>
-        </select>
+        <div class="settings-fields">
+          <div class="field-group">
+            <label class="field-label" for="default-model">Default model</label>
+            <select
+              id="default-model"
+              v-model="settingsStore.defaultModel"
+              class="input"
+            >
+              <option value="">No default model</option>
+              <option v-for="name in modelNames" :key="name" :value="name">
+                {{ name }}
+              </option>
+            </select>
+          </div>
 
-        <label class="field-label" for="default-temp"
-          >Temperature ({{ settingsStore.temperature }})</label
-        >
-        <input
-          id="default-temp"
-          type="range"
-          min="0"
-          max="2"
-          step="0.1"
-          v-model.number="settingsStore.temperature"
-          class="slider"
-        />
+          <div class="field-group">
+            <div class="label-row">
+              <label class="field-label" for="default-temp">Temperature</label>
+              <output class="range-value">{{
+                settingsStore.temperature
+              }}</output>
+            </div>
 
-        <label class="field-label" for="context-length"
-          >Context Window (num_ctx)</label
-        >
-        <select
-          id="context-length"
-          v-model.number="settingsStore.numCtx"
-          class="input"
-        >
-          <option :value="2048">2048</option>
-          <option :value="4096">4096</option>
-          <option :value="8192">8192</option>
-          <option :value="16384">16384</option>
-        </select>
-      </section>
+            <input
+              id="default-temp"
+              v-model.number="settingsStore.temperature"
+              class="slider"
+              type="range"
+              min="0"
+              max="2"
+              step="0.1"
+            />
 
-      <!-- Data Management -->
-      <section class="card">
-        <h2>Data Management</h2>
+            <p class="field-hint">
+              Lower values are more predictable; higher values are more
+              creative.
+            </p>
+          </div>
 
-        <div class="toggle-row">
-          <span class="field-label">Export all chats & projects</span>
-          <button class="btn-secondary" @click="handleExportAllData">
-            Export JSON
-          </button>
-        </div>
+          <div class="field-group">
+            <label class="field-label" for="context-length">
+              Context window
+            </label>
 
-        <div class="toggle-row">
-          <span class="field-label">Storage used</span>
-          <span class="status-text">{{ storageUsedLabel }}</span>
-        </div>
+            <select
+              id="context-length"
+              v-model.number="settingsStore.numCtx"
+              class="input"
+            >
+              <option :value="2048">2,048 tokens</option>
+              <option :value="4096">4,096 tokens</option>
+              <option :value="8192">8,192 tokens</option>
+              <option :value="16384">16,384 tokens</option>
+            </select>
 
-        <div class="toggle-row">
-          <span class="field-label">Clear all chats</span>
-          <button class="btn-danger" @click="handleClearAllData">
-            Delete Everything
-          </button>
+            <p class="field-hint">
+              A larger context preserves more conversation history but needs
+              more memory.
+            </p>
+          </div>
         </div>
       </section>
 
       <!-- Model Behavior -->
-      <section class="card">
-        <div class="card-header">
-          <h2>Model Behavior</h2>
-          <button class="btn-reset" @click="settingsStore.resetModelBehavior()">
-            Reset to Default
+      <section class="settings-card">
+        <div class="section-heading compact">
+          <div>
+            <p class="section-kicker">Performance</p>
+            <h2>Model behavior</h2>
+            <p class="section-description">
+              Control how long Ollama keeps a model loaded in memory.
+            </p>
+          </div>
+
+          <button
+            class="btn-reset"
+            type="button"
+            @click="settingsStore.resetModelBehavior()"
+          >
+            Reset
           </button>
         </div>
 
-        <label class="field-label" for="keep-alive"
-          >Keep model loaded after use</label
-        >
+        <label class="field-label" for="keep-alive">
+          Keep model loaded after use
+        </label>
+
         <select id="keep-alive" v-model="settingsStore.keepAlive" class="input">
           <option value="0">Unload immediately</option>
-          <option value="5m">5 minutes</option>
-          <option value="30m">30 minutes</option>
-          <option value="-1">Keep loaded forever</option>
+          <option value="5m">Keep loaded for 5 minutes</option>
+          <option value="30m">Keep loaded for 30 minutes</option>
+          <option value="-1">Keep loaded until manually unloaded</option>
         </select>
       </section>
 
       <!-- Default System Prompt -->
-      <section class="card">
-        <div class="card-header">
-          <h2>Default System Prompt</h2>
-          <button class="btn-reset" @click="settingsStore.resetSystemPrompt()">
-            Reset to Default
+      <section class="settings-card">
+        <div class="section-heading compact">
+          <div>
+            <p class="section-kicker">Instructions</p>
+            <h2>Default system prompt</h2>
+            <p class="section-description">
+              Add instructions automatically to every new model request.
+            </p>
+          </div>
+
+          <button
+            class="btn-reset"
+            type="button"
+            @click="settingsStore.resetSystemPrompt()"
+          >
+            Reset
           </button>
         </div>
 
         <textarea
           v-model="settingsStore.defaultSystemPrompt"
           class="input textarea"
-          placeholder="e.g. You are a senior developer. Always answer in German."
-          rows="3"
+          placeholder="For example: You are a senior developer. Always answer in German."
+          rows="4"
         ></textarea>
+
+        <p class="field-hint">
+          The active prompt is shown in the chat toolbar.
+        </p>
+      </section>
+
+      <!-- Data Management -->
+      <section class="settings-card">
+        <div class="section-heading compact">
+          <div>
+            <p class="section-kicker">Storage</p>
+            <h2>Data management</h2>
+            <p class="section-description">
+              Export or permanently remove locally stored data.
+            </p>
+          </div>
+        </div>
+
+        <div class="action-list">
+          <div class="action-row">
+            <div class="setting-copy">
+              <span class="setting-label">Export data</span>
+              <span class="setting-hint">
+                Download all chats and projects as a JSON backup.
+              </span>
+            </div>
+
+            <button
+              class="btn-secondary"
+              type="button"
+              @click="handleExportAllData"
+            >
+              Export JSON
+            </button>
+          </div>
+
+          <div class="action-row">
+            <div class="setting-copy">
+              <span class="setting-label">Local storage</span>
+              <span class="setting-hint"
+                >Used by chats, projects and preferences.</span
+              >
+            </div>
+
+            <span class="storage-badge">{{ storageUsedLabel }}</span>
+          </div>
+
+          <div class="action-row danger-row">
+            <div class="setting-copy">
+              <span class="setting-label">Delete all data</span>
+              <span class="setting-hint">
+                Permanently remove all chats and projects from this browser.
+              </span>
+            </div>
+
+            <button
+              class="btn-danger"
+              type="button"
+              @click="handleClearAllData"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
       </section>
 
       <!-- About -->
-      <section class="card about-card">
-        <h2>About</h2>
+      <section class="settings-card about-card">
+        <div class="section-heading compact">
+          <div>
+            <p class="section-kicker">Locale AI</p>
+            <h2>About</h2>
+          </div>
+        </div>
 
-        <p class="status-text">App Version 1.0.0</p>
-        <p class="status-text">Built with Vue 3</p>
-        <p class="status-link">
-          <a href="https://github.com/beri336/locale-ai" target="_blank"
-            >Link Source Code on GitHub</a
-          >
-        </p>
+        <div class="about-list">
+          <div class="about-row">
+            <span>Version</span>
+            <code>1.0.0</code>
+          </div>
+
+          <div class="about-row">
+            <span>Built with</span>
+            <span>Vue 3 · Ollama API</span>
+          </div>
+        </div>
+
+        <a
+          class="github-link"
+          href="https://github.com/beri336/locale-ai"
+          target="_blank"
+          rel="noreferrer"
+        >
+          View source code <span aria-hidden="true">↗</span>
+        </a>
       </section>
     </div>
-  </div>
+  </main>
 </template>
 
 <script setup>
@@ -329,318 +500,662 @@ const hostIpLabel = computed(() => {
 .settings-view {
   height: 100%;
   overflow-y: auto;
-  padding: var(--space-8) var(--space-6);
+  padding: clamp(1.5rem, 4vw, 3rem);
 }
 
 .page-header {
-  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1100px;
+  margin-bottom: 2rem;
+}
+
+.page-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.header-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
+  border-radius: 13px;
+}
+
+.header-icon :deep(svg) {
+  width: 21px;
+  height: 21px;
+}
+
+.eyebrow {
+  margin: 0 0 0.2rem;
+  color: var(--color-text-faint);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: clamp(1.65rem, 3vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.header-description {
+  margin: 0.45rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.header-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
+  border-radius: 14px;
+}
+
+.header-icon :deep(svg) {
+  width: 22px;
+  height: 22px;
+}
+
+.eyebrow,
+.section-kicker {
+  margin: 0 0 0.25rem;
+  color: var(--color-text-faint);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.header-description {
+  margin: 0.5rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.55;
 }
 
 .settings-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  max-width: 560px;
+  display: grid;
+  max-width: 760px;
+  gap: 0.85rem;
+  padding-bottom: 2rem;
 }
 
-.card {
-  background-color: var(--color-surface);
+.settings-card {
+  padding: clamp(1rem, 2.5vw, 1.35rem);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.025);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.card h2 {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  margin-bottom: var(--space-3);
+.settings-card:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 26%,
+    var(--color-border)
+  );
+  box-shadow: 0 8px 26px rgb(0 0 0 / 0.035);
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.section-heading.compact {
+  margin-bottom: 1rem;
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.section-description {
+  max-width: 540px;
+  margin: 0.35rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.field-group + .field-group {
+  margin-top: 1.25rem;
 }
 
 .field-label {
   display: block;
-  font-size: var(--text-xs);
+  margin-bottom: 0.45rem;
   color: var(--color-text-muted);
-  margin-bottom: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.field-hint {
+  margin: 0.45rem 0 0;
+  color: var(--color-text-faint);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.range-value,
+.storage-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.45rem;
+  color: var(--color-text-muted);
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
 }
 
 .input-row {
   display: flex;
-  gap: var(--space-2);
+  gap: 0.6rem;
 }
 
 .input {
-  flex: 1;
+  display: block;
+  width: 100%;
   min-width: 0;
-  padding: var(--space-2) var(--space-3);
+  padding: 0.65rem 0.75rem;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  line-height: 1.35;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  color: var(--color-text);
   outline: none;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+
+.input:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-text-faint) 40%,
+    var(--color-border)
+  );
 }
 
 .input:focus {
   border-color: var(--color-primary);
-}
-
-.btn-primary {
-  padding: var(--space-2) var(--space-4);
-  background-color: var(--color-primary);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  font-size: var(--text-sm);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-text-faint);
-}
-
-.status-dot.connected {
-  background: #6daa45;
-}
-
-.status-dot.error {
-  background: var(--color-error);
-}
-
-.status-dot.unknown {
-  background: var(--color-text-faint);
-}
-
-.status-text {
-  color: var(--color-text-muted);
-  padding: var(--space-1);
-}
-
-.status-link {
-  margin-top: var(--space-2);
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--color-border);
-}
-
-.status-link a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--color-primary);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.status-link a::after {
-  content: "↗";
-  font-size: 11px;
-  opacity: 0.7;
-}
-
-.status-link a:hover {
-  color: var(--color-primary-hover);
-  text-decoration: underline;
-}
-
-.version-text {
-  color: var(--color-text-faint);
-  font-size: var(--text-xs);
-}
-
-.toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.theme-switch {
-  display: flex;
-  border: 1px solid var(--color-surface-2);
-  border-radius: var(--radius-full);
-  padding: 2px;
-}
-
-.theme-switch span {
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-}
-
-.theme-switch span.active {
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  font-weight: 600;
-}
-
-/* Page header styling */
-.page-header h1 {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-/* Nav icon SVG styling */
-.nav-icon svg {
-  width: 20px;
-  height: 20px;
-  display: block;
-}
-
-.slider {
-  width: 100%;
-  margin: var(--space-2) 0 var(--space-4) 0;
-  accent-color: var(--color-primary);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 select.input {
+  appearance: none;
+  padding-right: 2.5rem;
   cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size:
+    5px 5px,
+    5px 5px;
 }
 
 textarea.input.textarea {
-  display: block;
-  width: 100%;
   box-sizing: border-box;
+  min-height: 100px;
   resize: vertical;
-  min-height: 80px;
-  max-width: 100%;
-  font-family: inherit;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-.card > .field-label:not(:first-of-type) {
-  margin-top: var(--space-4);
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  min-height: 38px;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.btn-primary:active,
+.btn-secondary:active,
+.btn-danger:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .btn-secondary {
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-surface-2);
   color: var(--color-text);
+  background: var(--color-surface-2);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  cursor: pointer;
 }
 
 .btn-secondary:hover {
   background: var(--color-bg);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
 }
 
 .btn-danger {
-  padding: var(--space-2) var(--space-3);
-  background: transparent;
   color: var(--color-error);
-  border: 1px solid var(--color-error);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  cursor: pointer;
+  background: transparent;
+  border: 1px solid
+    color-mix(in srgb, var(--color-error) 60%, var(--color-border));
 }
 
 .btn-danger:hover {
+  color: #fff;
   background: var(--color-error);
-  color: white;
+  border-color: var(--color-error);
 }
 
-.about-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.about-card .status-text {
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-}
-
-/* Reset to Default button styling */
-.card-header {
-  display: flex;
+.connection-badge {
+  display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-3);
-}
-
-.card-header h2 {
-  margin-bottom: 0;
-}
-
-.btn-reset {
-  background: none;
-  border: none;
+  gap: 0.4rem;
+  padding: 0.35rem 0.55rem;
   color: var(--color-text-faint);
-  font-size: var(--text-xs);
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
 }
 
-.btn-reset:hover {
+.connection-badge.connected {
+  color: #4d8d2a;
+  background: rgb(109 170 69 / 0.1);
+  border-color: rgb(109 170 69 / 0.25);
+}
+
+.connection-badge.error {
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 10%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-error) 28%, var(--color-border));
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.version-note {
+  margin: 0.65rem 0 0;
+  color: var(--color-text-faint);
+  font-size: 11px;
+}
+
+.version-note strong {
   color: var(--color-text-muted);
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+  font-weight: 500;
+}
+
+.network-panel {
+  padding: 0.9rem;
+  margin-top: 1.25rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.network-panel-header {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.network-panel-icon {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-radius: 8px;
+}
+
+.network-panel h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-weight: 650;
+}
+
+.network-panel-header p {
+  margin: 0.15rem 0 0;
+  color: var(--color-text-faint);
+  font-size: 10px;
 }
 
 .network-info {
-  margin-top: var(--space-4);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 0.75rem;
+  padding-top: 0.85rem;
 }
 
-.network-info .info-row {
+.info-row {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.info-label {
+  color: var(--color-text-faint);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.info-value {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setting-row,
+.action-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--color-divider, var(--color-border));
-  gap: var(--space-3);
+  gap: 1rem;
 }
 
-.network-info .info-row:last-child {
-  border-bottom: none;
+.setting-copy {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
 }
 
-.network-info .info-label {
-  font-size: var(--text-xs);
+.setting-label {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.setting-hint {
   color: var(--color-text-muted);
-  font-weight: 500;
-  flex-shrink: 0;
+  font-size: var(--text-xs);
+  line-height: 1.45;
 }
 
-.network-info .info-value {
+.theme-switch {
+  display: flex;
+  flex-shrink: 0;
+  padding: 2px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.theme-switch span {
+  padding: 0.32rem 0.65rem;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  border-radius: var(--radius-full);
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.theme-switch span.active {
+  color: var(--color-text);
+  font-weight: 600;
+  background: var(--color-surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+
+.slider {
+  display: block;
+  width: 100%;
+  height: 4px;
+  margin: 0.75rem 0 0;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.btn-reset {
+  padding: 0.3rem 0;
+  color: var(--color-text-faint);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.btn-reset:hover {
+  color: var(--color-primary);
+}
+
+.action-list {
+  display: grid;
+  border-top: 1px solid var(--color-border);
+}
+
+.action-row {
+  min-height: 68px;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.action-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.danger-row .setting-label {
+  color: var(--color-error);
+}
+
+.about-card {
+  margin-bottom: 1rem;
+}
+
+.about-list {
+  display: grid;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.about-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0.65rem 0.75rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.about-row:last-child {
+  border-bottom: 0;
+}
+
+.about-row code {
+  color: var(--color-text);
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-primary);
   font-size: var(--text-xs);
   font-weight: 600;
-  color: var(--color-text);
-  text-align: right;
+  text-decoration: none;
 }
 
-.network-info .info-value.mono {
-  font-family: "JetBrains Mono", "SF Mono", monospace;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 200px;
+.github-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* iOS Safari: at least 16px prevents input auto-zoom */
+@media (pointer: coarse) {
+  .input {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 620px) {
+  .settings-view {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .page-header {
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .header-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .settings-card {
+    padding: 1rem;
+  }
+
+  .section-heading {
+    gap: 0.75rem;
+  }
+
+  .input-row,
+  .setting-row,
+  .action-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    width: 100%;
+  }
+
+  .connection-badge {
+    align-self: flex-start;
+  }
+
+  .theme-switch {
+    align-self: flex-start;
+  }
+
+  .network-info {
+    grid-template-columns: 1fr;
+  }
+
+  .action-row {
+    gap: 0.7rem;
+  }
+
+  .storage-badge {
+    align-self: flex-start;
+  }
 }
 </style>
