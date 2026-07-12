@@ -51,8 +51,14 @@ export const useSettingsStore = defineStore('settings', () => {
             defaultModel: defaultModel.value,
             keepAlive: keepAlive.value,
             defaultSystemPrompt: defaultSystemPrompt.value,
+            weatherCity: localStorage.getItem("weather-city") || "Stuttgart",
         }))
     })
+
+    function setWeatherCity(city) {
+        weatherCity.value = city.trim() || "Stuttgart";
+        localStorage.setItem("weather-city", weatherCity.value);
+    }
 
     function normalizeUrl(url) {
         return url.trim().replace(/\/+$/, '')
@@ -173,5 +179,6 @@ export const useSettingsStore = defineStore('settings', () => {
         defaultModel, keepAlive, defaultSystemPrompt,
         resetModelDefaults, resetModelBehavior, resetSystemPrompt,
         ollamaPort, ollamaHost,
+        setWeatherCity,
     }
 })

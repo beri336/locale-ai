@@ -34,6 +34,68 @@
       </div>
     </header>
 
+    <section class="dashboard-section weather-section">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Local conditions</p>
+          <h2>Weather</h2>
+        </div>
+
+        <button
+          class="link-btn"
+          type="button"
+          :disabled="isWeatherLoading"
+          @click="fetchWeather(settingsStore.weatherCity)"
+        >
+          Refresh
+          <span aria-hidden="true">↻</span>
+        </button>
+      </div>
+
+      <article v-if="weather" class="weather-card">
+        <div class="weather-main">
+          <span class="weather-icon" aria-hidden="true">{{
+            weather.icon
+          }}</span>
+
+          <div>
+            <p class="weather-city">
+              {{ weather.city }}, {{ weather.country }}
+            </p>
+            <p class="weather-condition">{{ weather.label }}</p>
+          </div>
+
+          <strong class="weather-temperature"
+            >{{ weather.temperature }}°</strong
+          >
+        </div>
+
+        <div class="weather-details">
+          <span>Feels like {{ weather.apparentTemperature }}°</span>
+          <span>Wind {{ weather.windSpeed }} km/h</span>
+          <span>Updated {{ formatWeatherTime(weather.updatedAt) }}</span>
+        </div>
+      </article>
+
+      <div v-else class="inline-empty-state">
+        <div class="inline-empty-icon" aria-hidden="true">
+          {{ isWeatherLoading ? "…" : "☁" }}
+        </div>
+
+        <div>
+          <h3>
+            {{ isWeatherLoading ? "Loading weather…" : "Weather unavailable" }}
+          </h3>
+          <p>
+            {{
+              weatherError ||
+              `Could not load the weather for ${settingsStore.weatherCity}.`
+            }}
+          </p>
+        </div>
+      </div>
+    </section>
+
     <section class="overview-grid" aria-label="Workspace overview">
       <article class="stat-card">
         <div class="stat-card-header">
@@ -302,11 +364,30 @@ import { useProjectsStore } from "@/stores/useProjectsStore";
 import { useSearchModal } from "@/composables/useSearchModal";
 import { searchAllChats } from "@/composables/useChatSearch";
 import IconHome from "@/components/icons/IconHome.vue";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { useWeather } from "@/composables/useWeather";
 
 const router = useRouter();
 const ollama = useOllamaStore();
 const projectsStore = useProjectsStore();
 const { openSearchModal } = useSearchModal();
+
+const settingsStore = useSettingsStore();
+const {
+  weather,
+  isLoading: isWeatherLoading,
+  error: weatherError,
+  fetchWeather,
+} = useWeather();
+
+function formatWeatherTime(isoString) {
+  if (!isoString) return "";
+
+  return new Date(isoString).toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 const modelNames = ref([]);
 const ollamaOnline = ref(false);
@@ -350,6 +431,7 @@ function formatDate(isoString) {
 let pollInterval = null;
 
 onMounted(async () => {
+  fetchWeather(settingsStore.weatherCity);
   allChatsData.value = searchAllChats("");
 
   try {
@@ -1085,6 +1167,145 @@ onUnmounted(() => {
 
   .model-list {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Weather section */
+.weather-section {
+  max-width: 1100px;
+}
+
+.weather-section .link-btn:disabled {
+  color: var(--color-text-faint);
+  cursor: wait;
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+.weather-card {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.1rem 1.15rem;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      color-mix(in srgb, var(--color-primary) 12%, transparent),
+      transparent 42%
+    ),
+    var(--color-surface);
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.025);
+}
+
+.weather-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.weather-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  place-items: center;
+  font-size: 1.8rem;
+  line-height: 1;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
+  border-radius: 14px;
+}
+
+.weather-city,
+.weather-condition {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weather-city {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.weather-condition {
+  margin-top: 0.18rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.weather-temperature {
+  color: var(--color-text);
+  font-size: clamp(2rem, 5vw, 2.65rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+}
+
+.weather-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding-top: 0.85rem;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+.weather-details span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weather-details span:nth-child(2) {
+  text-align: center;
+}
+
+.weather-details span:last-child {
+  text-align: right;
+  color: var(--color-text-faint);
+}
+
+@media (max-width: 620px) {
+  .weather-card {
+    gap: 0.85rem;
+    padding: 1rem;
+  }
+
+  .weather-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 1.55rem;
+    border-radius: 12px;
+  }
+
+  .weather-temperature {
+    font-size: 2.2rem;
+  }
+
+  .weather-details {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem 0.75rem;
+    font-size: 10px;
+  }
+
+  .weather-details span:last-child {
+    grid-column: 1 / -1;
+    padding-top: 0.55rem;
+    text-align: left;
+    border-top: 1px solid var(--color-border);
   }
 }
 </style>

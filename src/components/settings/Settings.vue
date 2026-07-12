@@ -273,6 +273,35 @@
         </p>
       </section>
 
+      <section class="settings-card">
+        <div class="settings-card-heading">
+          <h2>Weather</h2>
+          <p>Choose the city shown on your dashboard.</p>
+        </div>
+
+        <label class="form-label" for="weather-city">Current city</label>
+
+        <div class="weather-city-row">
+          <input
+            id="weather-city"
+            v-model="weatherCityInput"
+            class="form-input"
+            type="text"
+            placeholder="e.g. Stuttgart"
+            autocomplete="address-level2"
+            @keyup.enter="saveWeatherCity"
+          />
+
+          <button class="btn-primary" type="button" @click="saveWeatherCity">
+            Save
+          </button>
+        </div>
+
+        <p class="form-hint">
+          Default: Stuttgart. The city name is used only to load the weather.
+        </p>
+      </section>
+
       <!-- Data Management -->
       <section class="settings-card">
         <div class="section-heading compact">
@@ -469,6 +498,12 @@ const backupError = ref("");
 
 const QUICK_CHATS_KEY = "ollama-chats";
 const PROJECTS_KEY = "ollama-projects";
+
+const weatherCityInput = ref(settingsStore.weatherCity);
+
+function saveWeatherCity() {
+  settingsStore.setWeatherCity(weatherCityInput.value);
+}
 
 const isChecking = computed(
   () => settingsStore.connectionStatus === "checking",
@@ -1541,5 +1576,75 @@ textarea.input.textarea {
   .btn-danger {
     width: 100%;
   }
+
+  .weather-city-row {
+    flex-direction: column;
+    gap: var(--space-2);
+    max-width: none;
+  }
+
+  .weather-city-row .form-input {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .weather-city-row .btn-primary {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+/* Weather city input row */
+.weather-city-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  max-width: 480px;
+}
+
+.weather-city-row .form-input {
+  min-width: 0;
+  flex: 1;
+}
+
+.weather-city-row .btn-primary {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding-inline: var(--space-4);
+  white-space: nowrap;
+}
+
+.settings-card:has(.weather-city-row) {
+  position: relative;
+  overflow: hidden;
+}
+
+.settings-card:has(.weather-city-row)::after {
+  position: absolute;
+  top: -56px;
+  right: -52px;
+  width: 150px;
+  height: 150px;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-primary) 9%, transparent),
+    transparent 68%
+  );
+}
+
+.settings-card:has(.weather-city-row) > * {
+  position: relative;
+  z-index: 1;
+}
+
+.weather-city-row + .form-hint {
+  max-width: 470px;
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+  line-height: 1.5;
 }
 </style>
