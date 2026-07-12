@@ -96,6 +96,7 @@
             v-if="message.role === 'assistant'"
             class="message-bubble markdown-body"
             v-html="renderMarkdown(message.content)"
+            @click="handleMarkdownClick"
           ></div>
           <div v-else class="message-bubble">{{ message.content }}</div>
 
@@ -148,6 +149,7 @@
         <div
           class="message-bubble markdown-body streaming"
           v-html="renderMarkdown(streamingText || '…')"
+          @click="handleMarkdownClick"
         ></div>
       </div>
     </div>
@@ -156,26 +158,48 @@
       <p>Select or create a chat to get started.</p>
     </div>
 
-    <div class="chat-input-row" v-if="chat">
-      <textarea
-        v-model="prompt"
-        class="chat-input"
-        placeholder="Type a message…"
-        :disabled="!chat.model || isGenerating"
-        @keydown.enter.exact.prevent="handleSend"
-      ></textarea>
+    <div class="composer-area">
+      <div v-if="chat && !hasValidModel" class="model-warning" role="alert">
+        <span class="model-warning-icon" aria-hidden="true">!</span>
 
-      <button v-if="isGenerating" class="btn-stop" @click="handleStop">
-        ■ Stop
-      </button>
-      <button
-        v-else
-        class="btn-primary"
-        :disabled="!prompt || !chat.model"
-        @click="handleSend"
-      >
-        Send
-      </button>
+        <div>
+          <strong>Model unavailable</strong>
+          <p>{{ unavailableModelMessage }}</p>
+        </div>
+      </div>
+
+      <div class="chat-input-row">
+        <textarea
+          v-model="prompt"
+          class="chat-input"
+          :placeholder="
+            hasValidModel
+              ? 'Type a message...'
+              : 'Select an installed model to continue'
+          "
+          :disabled="!hasValidModel || isGenerating"
+          @keydown.enter.exact.prevent="handleSend"
+        ></textarea>
+
+        <button
+          v-if="isGenerating"
+          class="btn-stop"
+          type="button"
+          @click="handleStop"
+        >
+          Stop
+        </button>
+
+        <button
+          v-else
+          class="btn-primary"
+          type="button"
+          :disabled="!prompt.trim() || !hasValidModel"
+          @click="handleSend"
+        >
+          Send
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -192,9 +216,35 @@ import {
   sanitizeFilename,
 } from "@/utils/export";
 
+const copiedCodeButton = ref(null);
+
 const props = defineProps({
-  chat: { type: Object, default: null },
-  emptyHint: { type: String, default: "Start a conversation." },
+  chat: {
+    type: Object,
+    default: null,
+  },
+  emptyHint: {
+    type: String,
+    default: "Start a conversation.",
+  },
+  modelNames: {
+    type: Array,
+    default: () => [],
+  },
+});
+
+const hasValidModel = computed(() => {
+  if (!props.chat?.model) return false;
+
+  return props.modelNames.includes(props.chat.model);
+});
+
+const unavailableModelMessage = computed(() => {
+  if (!props.chat?.model) {
+    return "Select an installed model before sending a message.";
+  }
+
+  return `The model "${props.chat.model}" is no longer installed. Select an available model to continue.`;
 });
 
 const emit = defineEmits(["message-sent"]);
@@ -248,7 +298,9 @@ function updateChatTitle(chat, firstMessage) {
 }
 
 async function handleSend() {
-  if (!prompt.value || !props.chat?.model || isGenerating.value) return;
+  if (!prompt.value.trim() || !hasValidModel.value || isGenerating.value) {
+    return;
+  }
 
   const chat = props.chat;
   const userMessage = prompt.value;
@@ -342,6 +394,32 @@ async function handleCopyMessage(content, index) {
       copiedIndex.value = null;
     }, 1500);
   }
+}
+
+async function handleMarkdownClick(event) {
+  const button = event.target.closest(".code-copy-btn");
+
+  if (!button) return;
+
+  const code = button.dataset.code;
+
+  if (!code) return;
+
+  const copied = await copyToClipboard(code);
+
+  if (!copied) return;
+
+  copiedCodeButton.value = button;
+  button.classList.add("is-copied");
+  button.setAttribute("title", "Copied!");
+
+  window.setTimeout(() => {
+    if (copiedCodeButton.value === button) {
+      button.classList.remove("is-copied");
+      button.setAttribute("title", "Copy code");
+      copiedCodeButton.value = null;
+    }
+  }, 1500);
 }
 
 async function handleCopyFullChat() {
@@ -682,61 +760,83 @@ function formatTokenCount(value) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 78px;
-  padding: 0.55rem 0.85rem;
-  border-radius: var(--radius-md);
+  min-width: 92px;
+  min-height: 48px;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 12px;
   font-family: inherit;
-  font-size: var(--text-xs);
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
-    color 0.16s ease,
+    box-shadow 0.16s ease,
+    opacity 0.16s ease,
     transform 0.16s ease;
-}
-
-.btn-primary:active,
-.btn-secondary:active,
-.btn-stop:active {
-  transform: translateY(1px);
 }
 
 .btn-primary {
   color: #fff;
-  background: var(--color-primary);
-  border: 1px solid var(--color-primary);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-hover)
+  );
+  border-color: var(--color-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
+  box-shadow: 0 5px 14px
+    color-mix(in srgb, var(--color-primary) 30%, transparent);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled),
+.btn-stop:active:not(:disabled) {
+  box-shadow: none;
+  transform: translateY(0);
 }
 
 .btn-primary:disabled {
+  color: var(--color-text-faint);
   cursor: not-allowed;
-  opacity: 0.5;
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
+  box-shadow: none;
+  opacity: 0.75;
 }
 
 .btn-secondary {
   color: var(--color-text-muted);
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  border-color: var(--color-border);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   color: var(--color-text);
   background: var(--color-surface);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 30%,
+    var(--color-border)
+  );
 }
 
 .btn-stop {
   color: #fff;
-  background: var(--color-error, #ef4444);
-  border: 1px solid var(--color-error, #ef4444);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-color: #dc2626;
 }
 
 .btn-stop:hover {
-  filter: brightness(0.94);
+  box-shadow: 0 5px 14px rgb(220 38 38 / 24%);
+  transform: translateY(-1px);
 }
 
 /* Markdown styles for assistant messages */
@@ -807,6 +907,7 @@ function formatTokenCount(value) {
   max-width: 100%;
   margin: 0.75rem 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   color: #c9d1d9;
   font-size: var(--text-xs);
   background: #0d1117;
@@ -815,12 +916,82 @@ function formatTokenCount(value) {
 }
 
 .markdown-body :deep(.code-header) {
-  padding: 0.35rem 0.65rem;
+  position: sticky;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: max-content;
+  padding: 0.5rem 0.6rem 0.5rem 0.75rem;
   color: #8b949e;
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
   font-size: 10px;
-  letter-spacing: 0.06em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  background: #0d1117;
   border-bottom: 1px solid #21262d;
+}
+
+.markdown-body :deep(.code-language) {
+  padding-right: 1.5rem;
+}
+
+.markdown-body :deep(.code-copy-btn) {
+  display: inline-grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  place-items: center;
+  padding: 0;
+  color: #8b949e;
+  font-family: inherit;
+  font-size: 0;
+  line-height: 1;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.markdown-body :deep(.code-copy-btn::before) {
+  content: "⧉";
+  font-size: 14px;
+  line-height: 1;
+}
+
+.markdown-body :deep(.code-copy-btn:hover) {
+  color: #fff;
+  background: #21262d;
+  border-color: #30363d;
+}
+
+.markdown-body :deep(.code-copy-btn:active) {
+  transform: translateY(1px);
+}
+
+.markdown-body :deep(.code-copy-btn.is-copied) {
+  color: #3fb950;
+}
+
+.markdown-body :deep(.code-copy-btn.is-copied::before) {
+  content: "✓";
+}
+
+.markdown-body :deep(.code-block code) {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  padding: 0.75rem;
+  white-space: pre;
+  background: transparent;
+  border-radius: 0;
 }
 
 .markdown-body :deep(.code-block code) {
@@ -995,37 +1166,6 @@ function formatTokenCount(value) {
   gap: 0.45rem;
 }
 
-.btn-secondary {
-  padding: var(--space-1) var(--space-3);
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-
-.btn-secondary:hover {
-  background: var(--color-surface);
-}
-
-/* Button to stop generation */
-.btn-stop {
-  padding: 0 var(--space-4);
-  background: var(--color-error, #ef4444);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  white-space: nowrap;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-stop:hover {
-  opacity: 0.9;
-}
-
 .chat-toolbar {
   display: flex;
   align-items: center;
@@ -1182,6 +1322,55 @@ function formatTokenCount(value) {
   line-height: 1;
 }
 
+.composer-area {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.model-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.7rem 0.8rem;
+  color: var(--color-warning, #a16207);
+  background: color-mix(
+    in srgb,
+    var(--color-warning, #f59e0b) 12%,
+    var(--color-surface)
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--color-warning, #f59e0b) 30%, var(--color-border));
+  border-radius: var(--radius-md);
+}
+
+.model-warning-icon {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  background: var(--color-warning, #f59e0b);
+  border-radius: 50%;
+}
+
+.model-warning strong {
+  display: block;
+  color: inherit;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.model-warning p {
+  margin: 0.18rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
 /* iOS Safari: at least 16px prevents input auto-zoom */
 @media (pointer: coarse) {
   .chat-input,
@@ -1226,7 +1415,6 @@ function formatTokenCount(value) {
     gap: 0.35rem;
   }
 
-  .message-bubble,
   .message-edit {
     width: min(92%, 820px);
     max-width: min(92%, 820px);
@@ -1247,13 +1435,52 @@ function formatTokenCount(value) {
 
   .btn-primary,
   .btn-stop {
-    min-width: 66px;
-    padding: 0.55rem 0.65rem;
+    min-width: 78px;
+    min-height: 48px;
+    padding: 0.65rem 0.8rem;
+    font-size: 14px;
+  }
+
+  .markdown-body :deep(.code-copy-btn) {
+    min-width: 68px;
+    min-height: 34px;
+    padding: 0.4rem 0.65rem;
+    font-size: 11px;
+  }
+
+  .message-bubble {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .markdown-body :deep(p) {
+    margin-bottom: 0.55rem;
+  }
+
+  .markdown-body :deep(h1) {
+    font-size: 1.1rem;
+  }
+
+  .markdown-body :deep(h2) {
+    font-size: 1rem;
+  }
+
+  .markdown-body :deep(h3) {
+    font-size: 0.9rem;
+  }
+
+  .markdown-body :deep(ul),
+  .markdown-body :deep(ol) {
+    margin: 0.5rem 0;
   }
 
   .markdown-body :deep(.code-block) {
-    margin-right: -0.15rem;
-    margin-left: -0.15rem;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .markdown-body :deep(.code-block code) {
+    padding: 0.65rem;
   }
 }
 </style>

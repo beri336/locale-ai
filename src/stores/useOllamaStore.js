@@ -4,7 +4,9 @@
 import { ref } from 'vue'
 import { isValidModelName } from '@/utils/validation'
 
-let baseUrl = 'http://localhost:11434'
+const BASE_URL_STORAGE_KEY = "ollama-base-url";
+
+let baseUrl = localStorage.getItem(BASE_URL_STORAGE_KEY) || "http://localhost:11434";
 
 const RECOMMENDED_MODELS = [
     {
@@ -76,14 +78,21 @@ function getSelectedModel() {
 }
 
 function setBaseUrl(url) {
-    baseUrl = url.replace(/\/$/, '') // strip trailing slash
+    baseUrl = url.trim().replace(/\/+$/, "");
+
+    localStorage.setItem(BASE_URL_STORAGE_KEY, baseUrl);
+
+    detailedModelsCache = null;
+    modelNamesCache = null;
+    runningModelsCache = null;
+    runningModelNamesCache = null;
 }
 
 function getBaseUrl() {
     return baseUrl
 }
 
-// Checks whether the Ollama server is reachable at all
+// checks whether the Ollama server is reachable at all
 async function checkInstallation() {
     try {
         const response = await fetch(`${baseUrl}/`)
@@ -99,7 +108,7 @@ async function checkIsInstalled() {
     return isInstalled ? 'Installed' : 'Could not verify installation'
 }
 
-// Alias-like check specifically for connection health (same root check, kept separate for semantic clarity)
+// alias-like check specifically for connection health (same root check, kept separate for semantic clarity)
 async function checkConnection() {
     try {
         const response = await fetch(`${baseUrl}/`, { method: 'GET' })
@@ -114,7 +123,7 @@ async function checkIsConnected() {
     return isConnected ? 'Connected' : 'Could not verify connection'
 }
 
-// Retrieves the running Ollama server version
+// retrieves the running Ollama server version
 async function getVersion() {
     try {
         const response = await fetch(`${baseUrl}/api/version`)
@@ -127,7 +136,7 @@ async function getVersion() {
     }
 }
 
-// Fetches the full detailed model list (with size, digest, modified_at, etc.)
+// fetches the full detailed model list (with size, digest, modified_at, etc.)
 async function getDetailedListOfModels() {
     if (detailedModelsCache) return detailedModelsCache
     return refreshDetailedListOfModels()
@@ -146,7 +155,7 @@ async function refreshDetailedListOfModels() {
     }
 }
 
-// Returns just the model names (derived from the detailed list)
+// returns just the model names (derived from the detailed list)
 async function getListOfModelsName() {
     if (modelNamesCache) return modelNamesCache
     return refreshListOfModelsName()
@@ -158,7 +167,7 @@ async function refreshListOfModelsName() {
     return modelNamesCache
 }
 
-// Pulls (downloads) a model, streaming progress updates
+// pulls (downloads) a model, streaming progress updates
 async function pullModel(modelName, onProgress) {
     if (!isValidModelName(modelName)) {
         throw new Error(`Invalid model name: ${modelName}`)
@@ -200,7 +209,7 @@ async function pullModel(modelName, onProgress) {
     return true
 }
 
-// Deletes a model from local storage
+// deletes a model from local storage
 async function removeModel(modelName) {
     if (!isValidModelName(modelName)) {
         console.error(`Invalid model name: ${modelName}`)
@@ -222,7 +231,7 @@ async function removeModel(modelName) {
     }
 }
 
-// Lists models currently loaded into memory, with details (size_vram, expires_at, etc.)
+// lists models currently loaded into memory, with details (size_vram, expires_at, etc.)
 async function getListOfRunningModelsDetails() {
     if (runningModelsCache) return runningModelsCache
     return refreshListOfRunningModels()
@@ -241,12 +250,12 @@ async function refreshListOfRunningModels() {
     }
 }
 
-// Convenience alias returning the same running models list (kept for naming symmetry with getDetailedListOfModels)
+// convenience alias returning the same running models list (kept for naming symmetry with getDetailedListOfModels)
 async function getListOfRunningModels() {
     return getListOfRunningModelsDetails()
 }
 
-// Returns just the names of currently running models
+// returns just the names of currently running models
 async function getRunningModelNames() {
     if (runningModelNamesCache) return runningModelNamesCache
     return refreshRunningModelNames()
@@ -258,7 +267,7 @@ async function refreshRunningModelNames() {
     return runningModelNamesCache
 }
 
-// Unloads a model from memory immediately (keep_alive: 0)
+// unloads a model from memory immediately (keep_alive: 0)
 async function unloadOllamaModel(modelName) {
     if (!isValidModelName(modelName)) {
         console.error(`Invalid model name: ${modelName}`)
@@ -280,7 +289,7 @@ async function unloadOllamaModel(modelName) {
     }
 }
 
-// Loads a model into memory by sending an empty-prompt generate request
+// loads a model into memory by sending an empty-prompt generate request
 async function loadOllamaModel(modelName, keepAlive = '5m') {
     if (!isValidModelName(modelName)) {
         console.error(`Invalid model name: ${modelName}`)
@@ -302,7 +311,7 @@ async function loadOllamaModel(modelName, keepAlive = '5m') {
     }
 }
 
-// Generates a single, complete (non-streaming) answer
+// generates a single, complete (non-streaming) answer
 async function generateOneTimeAnswer(modelName, prompt, options = {}) {
     if (!isValidModelName(modelName)) {
         console.error(`Invalid model name: ${modelName}`)
@@ -323,7 +332,7 @@ async function generateOneTimeAnswer(modelName, prompt, options = {}) {
     }
 }
 
-// Generates a streaming answer, invoking onToken for each incoming chunk
+// generates a streaming answer, invoking onToken for each incoming chunk
 async function generateStreamingAnswer(modelName, prompt, options = {}, onToken) { // remove
     if (!isValidModelName(modelName)) {
         throw new Error(`Invalid model name: ${modelName}`)

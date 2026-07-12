@@ -108,7 +108,9 @@
       <ChatThread
         v-else
         :chat="activeChat"
+        :model-names="modelNames"
         empty-hint="Select a model and write your first message."
+        @message-sent="saveChats"
       />
     </section>
   </main>
@@ -116,6 +118,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import ChatListItem from "@/components/chat/ChatListItem.vue";
 import ChatThread from "@/components/chat/ChatThread.vue";
@@ -123,6 +126,7 @@ import { useSettingsStore } from "@/stores/settingsStore";
 
 const ollama = useOllamaStore();
 const settingsStore = useSettingsStore();
+const route = useRoute();
 
 const STORAGE_KEY = "ollama-chats";
 
@@ -135,10 +139,12 @@ const activeChat = computed(
 );
 
 const selectedModel = computed({
-  get: () => activeChat.value?.model || ollama.getSelectedModel(),
+  get: () => activeChat.value?.model ?? "",
   set: (name) => {
-    if (activeChat.value) activeChat.value.model = name;
-    ollama.setSelectedModel(name);
+    if (activeChat.value) {
+      activeChat.value.model = name;
+      ollama.setSelectedModel(name);
+    }
   },
 });
 
@@ -166,11 +172,7 @@ function createChat() {
   const newChat = {
     id: `chat_${Date.now()}`,
     title: "New Chat",
-    model:
-      settingsStore.defaultModel ||
-      ollama.getSelectedModel() ||
-      modelNames.value[0] ||
-      "",
+    model: settingsStore.defaultModel || "",
     messages: [],
     createdAt: new Date().toISOString(),
   };
@@ -212,11 +214,20 @@ function handleModelChange() {
 
 onMounted(async () => {
   modelNames.value = await ollama.getListOfModelsName();
+
   const hasStoredChats = localStorage.getItem(STORAGE_KEY) !== null;
   loadChats();
 
   if (chats.value.length > 0) {
-    activeChatId.value = chats.value[0].id;
+    const requestedChatId = route.query.chat;
+
+    const requestedChatExists = chats.value.some(
+      (chat) => chat.id === requestedChatId,
+    );
+
+    activeChatId.value = requestedChatExists
+      ? requestedChatId
+      : chats.value[0].id;
   } else if (!hasStoredChats) {
     createChat();
   }

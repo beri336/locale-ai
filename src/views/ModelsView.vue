@@ -455,6 +455,14 @@ function isModelRunning(name) {
   return runningModelNames.value.includes(name);
 }
 
+function restoreOllamaBaseUrl() {
+  const savedBaseUrl = localStorage.getItem("ollama-base-url");
+
+  if (savedBaseUrl) {
+    ollama.setBaseUrl(savedBaseUrl);
+  }
+}
+
 async function loadAllData() {
   loading.value = true;
   try {
@@ -631,9 +639,12 @@ function validateRemoveName() {
   return true;
 }
 
-onMounted(() => {
-  loadAllData();
-  refreshInstalledModels();
+onMounted(async () => {
+  restoreOllamaBaseUrl();
+
+  await loadAllData();
+
+  installedNames.value = [...modelNames.value];
 });
 </script>
 

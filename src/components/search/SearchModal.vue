@@ -18,11 +18,27 @@
       <div class="search-results">
         <div
           v-for="result in results"
-          :key="result.id"
+          :key="`${result.source}-${result.id}`"
           class="search-result-item"
           @click="goToChat(result)"
         >
-          <span class="result-title">{{ result.title }}</span>
+          <div class="result-content">
+            <div class="result-heading">
+              <span class="result-title">{{ result.title }}</span>
+
+              <span v-if="result.model" class="result-model">
+                {{ result.model }}
+              </span>
+            </div>
+
+            <p v-if="result.snippet" class="result-snippet">
+              <span v-if="result.matchLabel" class="match-label">
+                {{ result.matchLabel }}:
+              </span>
+              {{ result.snippet }}
+            </p>
+          </div>
+
           <span class="result-badge" :class="result.source">
             {{ result.source === "project" ? result.projectName : "Chat" }}
           </span>
@@ -37,13 +53,13 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from "vue";
+import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useSearchModal } from "@/composables/useSearchModal";
 import { searchAllChats } from "@/composables/useChatSearch";
 
 const router = useRouter();
-const { isOpen, closeSearchModal } = useSearchModal();
+const { isOpen, openSearchModal, closeSearchModal } = useSearchModal();
 
 const query = ref("");
 const results = ref([]);
@@ -64,21 +80,29 @@ watch(isOpen, async (open) => {
 
 function goToChat(result) {
   if (result.source === "project") {
-    router.push(`/projects/${result.projectId}`);
+    router.push(`/projects/${result.projectId}?chat=${result.id}`);
   } else {
-    router.push(`/chat`);
+    router.push(`/chat?chat=${result.id}`);
   }
+
   closeSearchModal();
 }
-
 function handleKeydown(event) {
-  if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+  const key = event.key.toLowerCase();
+
+  if ((event.metaKey || event.ctrlKey) && key === "k") {
     event.preventDefault();
-    isOpen.value = true;
+    openSearchModal();
   }
 }
 
-window.addEventListener("keydown", handleKeydown);
+onMounted(() => {
+  window.addEventListener("keydown", handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeydown);
+});
 </script>
 
 <style scoped>
@@ -187,5 +211,41 @@ window.addEventListener("keydown", handleKeydown);
   text-align: center;
   color: var(--color-text-faint);
   font-size: var(--text-sm);
+}
+
+.search-result-item {
+  gap: var(--space-3);
+}
+
+.result-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.result-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.result-model {
+  flex-shrink: 0;
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+}
+
+.result-snippet {
+  margin: var(--space-1) 0 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-label {
+  color: var(--color-text-faint);
 }
 </style>

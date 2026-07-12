@@ -108,6 +108,7 @@
           v-model="activeChat.model"
           class="model-select"
           aria-label="Select chat model"
+          @change="projectsStore.saveProjects"
         >
           <option value="" disabled>Select a model</option>
           <option v-for="name in modelNames" :key="name" :value="name">
@@ -116,10 +117,25 @@
         </select>
       </header>
 
+      <div v-if="!activeChat" class="empty-project-chat-state">
+        <span class="empty-project-chat-icon" aria-hidden="true">✦</span>
+        <h3>No chat selected</h3>
+        <p>
+          Create a chat to start a conversation in
+          <strong>{{ project.name }}</strong
+          >.
+        </p>
+        <button class="btn-primary" type="button" @click="handleNewChat">
+          + Start new chat
+        </button>
+      </div>
+
       <ChatThread
+        v-else
         :chat="activeChat"
+        :model-names="modelNames"
         empty-hint="Start a conversation in this project."
-        @message-sent="projectsStore.saveProjects()"
+        @message-sent="projectsStore.saveProjects"
       />
     </section>
   </main>
@@ -192,11 +208,9 @@ function goBack() {
 function handleNewChat() {
   const chat = projectsStore.createChatInProject(
     project.value.id,
-    settingsStore.defaultModel ||
-      ollama.getSelectedModel() ||
-      modelNames.value[0] ||
-      "",
+    settingsStore.defaultModel || "",
   );
+
   activeChatId.value = chat.id;
 }
 
@@ -230,7 +244,15 @@ function updateChatTitle(chat, firstMessage) {
 onMounted(async () => {
   modelNames.value = await ollama.getListOfModelsName();
   if (project.value?.chats.length > 0) {
-    activeChatId.value = project.value.chats[0].id;
+    const requestedChatId = route.query.chat;
+
+    const requestedChatExists = project.value.chats.some(
+      (chat) => chat.id === requestedChatId,
+    );
+
+    activeChatId.value = requestedChatExists
+      ? requestedChatId
+      : project.value.chats[0].id;
   }
   scrollToBottom();
 });
@@ -656,6 +678,49 @@ onMounted(async () => {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   line-height: 1.55;
+}
+
+.empty-project-chat-state {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  place-content: center;
+  justify-items: center;
+  gap: 0.65rem;
+  padding: 2rem;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.empty-project-chat-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 1.3rem;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-radius: 14px;
+}
+
+.empty-project-chat-state h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-md);
+}
+
+.empty-project-chat-state p {
+  max-width: 340px;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.empty-project-chat-state .btn-primary {
+  margin-top: 0.35rem;
 }
 
 @media (max-width: 760px) {
