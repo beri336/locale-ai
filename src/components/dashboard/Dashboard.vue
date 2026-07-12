@@ -26,7 +26,7 @@
         <button
           class="btn-primary"
           type="button"
-          @click="$router.push('/chat')"
+          @click="router.push({ path: '/chat', query: { new: 'true' } })"
         >
           <span aria-hidden="true">+</span>
           New chat
@@ -165,7 +165,11 @@
           <h2>Recent chats</h2>
         </div>
 
-        <button class="link-btn" type="button" @click="$router.push('/chat')">
+        <button
+          class="link-btn"
+          type="button"
+          @click="router.push({ path: '/chat', query: { new: 'true' } })"
+        >
           View all <span aria-hidden="true">→</span>
         </button>
       </div>
@@ -207,7 +211,7 @@
         <button
           class="btn-primary"
           type="button"
-          @click="$router.push('/chat')"
+          @click="router.push({ path: '/chat', query: { new: 'true' } })"
         >
           <span aria-hidden="true">+</span>
           New chat
@@ -407,10 +411,11 @@ const totalChats = computed(() => allChatsData.value.length);
 const totalProjects = computed(() => projectsStore.getAllProjects().length);
 
 const totalMessages = computed(() =>
-  allChatsData.value.reduce(
-    (sum, chat) => sum + (chat.messages?.length || 0),
-    0,
-  ),
+  allChatsData.value.reduce((sum, entry) => {
+    const chat = entry.chat ?? entry;
+
+    return sum + (chat.messages?.length ?? 0);
+  }, 0),
 );
 
 function goToChat(chat) {

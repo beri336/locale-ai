@@ -130,6 +130,7 @@ export function searchAllChats(searchQuery = "") {
                 matchLabel: null,
                 snippet: "",
                 updatedAt: chat.updatedAt ?? chat.createdAt ?? 0,
+                messages: Array.isArray(chat.messages) ? chat.messages : [],
             }))
             .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
     }
@@ -147,6 +148,7 @@ export function searchAllChats(searchQuery = "") {
                 projectId: project?.id ?? null,
                 projectName: project?.name ?? null,
                 model: chat.model ?? null,
+                messages: Array.isArray(chat.messages) ? chat.messages : [],
                 matchType: match.type,
                 matchLabel: match.label,
                 snippet: match.snippet,

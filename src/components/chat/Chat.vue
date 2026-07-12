@@ -219,6 +219,11 @@ onMounted(async () => {
   const hasStoredChats = localStorage.getItem(STORAGE_KEY) !== null;
   loadChats();
 
+  if (route.query.new === "true") {
+    createChat();
+    return;
+  }
+
   if (chats.value.length > 0) {
     const requestedChatId = route.query.chat;
 
