@@ -254,7 +254,14 @@ function archiveChat(id) {
 function loadChats() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    chats.value = stored ? JSON.parse(stored) : [];
+    const parsed = stored ? JSON.parse(stored) : [];
+
+    chats.value = parsed.map((chat) => ({
+      systemPrompt: null,
+      temperature: null,
+      numCtx: null,
+      ...chat,
+    }));
   } catch (error) {
     console.error("Failed to load chats:", error);
     chats.value = [];
@@ -295,6 +302,7 @@ watch(chats, saveChats, { deep: true });
 
 function createChat({ temporary = false } = {}) {
   const now = new Date();
+
   const temporaryDurationMs =
     Number(settingsStore.temporaryChatDurationHours || 4) * 60 * 60 * 1000;
 
@@ -315,6 +323,10 @@ function createChat({ temporary = false } = {}) {
 
     isTemporary: temporary,
     expiresAt,
+
+    systemPrompt: null,
+    temperature: null,
+    numCtx: null,
   };
 
   chats.value.unshift(newChat);

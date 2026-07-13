@@ -3,6 +3,90 @@
 <template>
   <div class="chat-thread">
     <div v-if="chat" class="chat-window" ref="chatWindow">
+      <div class="chat-settings-row">
+        <button
+          class="copy-btn toolbar-copy-btn chat-settings-toggle-btn"
+          type="button"
+          title="Chat settings"
+          @click.stop="showChatSettings = !showChatSettings"
+        >
+          <IconSettings :size="16" :stroke-width="1.8" />
+          Chat settings
+        </button>
+      </div>
+
+      <div v-if="showChatSettings" class="chat-settings-panel">
+        <div class="field-group">
+          <label class="field-label">System prompt override</label>
+          <textarea
+            v-model="chatSystemPromptInput"
+            class="input textarea"
+            rows="3"
+            :placeholder="
+              settingsStore.defaultSystemPrompt ||
+              'No default system prompt set'
+            "
+            @blur="applyChatSystemPrompt"
+          ></textarea>
+          <button
+            v-if="props.chat.systemPrompt !== null"
+            class="btn-reset"
+            type="button"
+            @click="resetChatSystemPrompt"
+          >
+            Reset to global default
+          </button>
+        </div>
+
+        <div class="field-group">
+          <div class="label-row">
+            <label class="field-label">Temperature override</label>
+            <output class="range-value">
+              {{ chat.temperature ?? settingsStore.temperature }}
+            </output>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="2"
+            step="0.1"
+            :value="chat.temperature ?? settingsStore.temperature"
+            class="slider"
+            @input="setChatTemperature($event.target.valueAsNumber)"
+          />
+          <button
+            v-if="props.chat.temperature !== null"
+            class="btn-reset"
+            type="button"
+            @click="resetChatTemperature"
+          >
+            Reset to global default
+          </button>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Context window override</label>
+          <select
+            class="input"
+            :value="chat.numCtx ?? settingsStore.numCtx"
+            @change="setChatNumCtx(Number($event.target.value))"
+          >
+            <option :value="2048">2,048 tokens</option>
+            <option :value="4096">4,096 tokens</option>
+            <option :value="8192">8,192 tokens</option>
+            <option :value="16384">16,384 tokens</option>
+          </select>
+          <button
+            v-if="props.chat.numCtx !== null"
+            class="btn-reset"
+            type="button"
+            @click="resetChatNumCtx"
+          >
+            Reset to global default
+          </button>
+        </div>
+      </div>
+
       <div class="chat-toolbar" v-if="chat.messages.length">
         <div class="toolbar-context">
           <div class="context-header">
@@ -205,11 +289,12 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, watch } from "vue";
+import { ref, computed, nextTick, watch, onMounted, onUnmounted } from "vue";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import { renderMarkdown } from "@/utils/markdown";
 import { copyToClipboard } from "@/utils/clipboard";
 import { useSettingsStore } from "@/stores/settingsStore";
+import { IconSettings } from "@tabler/icons-vue";
 import {
   buildChatMarkdown,
   downloadMarkdownFile,
@@ -265,6 +350,113 @@ const editText = ref("");
 const editTextarea = ref(null);
 
 const abortController = ref(null);
+const chatSettingsPanel = ref(null);
+const showChatSettings = ref(false);
+const chatSystemPromptInput = ref(props.chat?.systemPrompt ?? "");
+
+const effectiveSystemPrompt = computed(() => {
+  return props.chat?.systemPrompt ?? settingsStore.defaultSystemPrompt ?? "";
+});
+
+const effectiveTemperature = computed(() => {
+  const value = props.chat?.temperature;
+  return Number.isFinite(value) ? value : settingsStore.temperature;
+});
+
+const effectiveNumCtx = computed(() => {
+  const value = props.chat?.numCtx;
+  return Number.isFinite(value) ? value : settingsStore.numCtx;
+});
+
+watch(
+  () => props.chat?.id,
+  () => {
+    chatSystemPromptInput.value = props.chat?.systemPrompt ?? "";
+  },
+);
+
+function applyChatSystemPrompt() {
+  if (!props.chat) return;
+
+  props.chat.systemPrompt = chatSystemPromptInput.value.trim() || null;
+  props.chat.updatedAt = new Date().toISOString();
+
+  emit("message-sent");
+}
+
+function resetChatSystemPrompt() {
+  if (!props.chat) return;
+
+  props.chat.systemPrompt = null;
+  chatSystemPromptInput.value = "";
+  props.chat.updatedAt = new Date().toISOString();
+
+  emit("message-sent");
+}
+
+function setChatTemperature(value) {
+  if (!props.chat) return;
+
+  props.chat.temperature = value;
+  props.chat.updatedAt = new Date().toISOString();
+
+  emit("message-sent");
+}
+
+function resetChatTemperature() {
+  if (!props.chat) return;
+
+  props.chat.temperature = null;
+  props.chat.updatedAt = new Date().toISOString();
+
+  emit("message-sent");
+}
+
+function setChatNumCtx(value) {
+  if (!props.chat) return;
+
+  props.chat.numCtx = value;
+  props.chat.updatedAt = new Date().toISOString();
+
+  emit("message-sent");
+}
+
+function resetChatNumCtx() {
+  if (!props.chat) return;
+
+  props.chat.numCtx = null;
+  props.chat.updatedAt = new Date().toISOString();
+
+  emit("message-sent");
+}
+
+function handleClickOutside(event) {
+  if (!showChatSettings.value) return;
+
+  const panel = chatSettingsPanel.value;
+  const toggleButton = document.querySelector(".chat-settings-toggle-btn");
+
+  if (panel?.contains(event.target)) return;
+  if (toggleButton?.contains(event.target)) return;
+
+  showChatSettings.value = false;
+}
+
+function handleEscapeKey(event) {
+  if (event.key === "Escape" && showChatSettings.value) {
+    showChatSettings.value = false;
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+  document.addEventListener("keydown", handleEscapeKey);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+  document.removeEventListener("keydown", handleEscapeKey);
+});
 
 function handleExportChat() {
   if (!props.chat?.messages?.length) return;
@@ -318,12 +510,12 @@ async function handleSend() {
   try {
     const messagesPayload = [];
     if (
-      settingsStore.defaultSystemPrompt &&
+      effectiveSystemPrompt.value &&
       !chat.messages.some((m) => m.role === "system")
     ) {
       messagesPayload.push({
         role: "system",
-        content: settingsStore.defaultSystemPrompt,
+        content: effectiveSystemPrompt.value,
       });
     }
     messagesPayload.push(
@@ -334,8 +526,8 @@ async function handleSend() {
       chat.model,
       messagesPayload,
       {
-        temperature: settingsStore.temperature,
-        num_ctx: settingsStore.numCtx,
+        temperature: effectiveTemperature.value,
+        num_ctx: effectiveNumCtx.value,
       },
       (chunk) => {
         streamingText.value += chunk.response || "";
@@ -597,7 +789,7 @@ async function handleRegenerate(index) {
 }
 
 const contextLimit = computed(() => {
-  const configuredLimit = Number(settingsStore.numCtx);
+  const configuredLimit = Number(effectiveNumCtx.value);
 
   return Number.isFinite(configuredLimit) && configuredLimit > 0
     ? configuredLimit
@@ -1375,6 +1567,37 @@ function formatTokenCount(value) {
   color: var(--color-text-muted);
   font-size: var(--text-xs);
   line-height: 1.45;
+}
+
+/* Settings modal styles */
+.chat-settings-panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.chat-settings-panel .btn-reset {
+  justify-self: start;
+}
+
+.chat-settings-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 0.5rem;
+}
+
+.chat-window .chat-toolbar {
+  margin-top: 0;
+}
+
+.chat-settings-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 /* iOS Safari: at least 16px prevents input auto-zoom */
