@@ -273,33 +273,87 @@
         </p>
       </section>
 
+      <!-- Weather -->
       <section class="settings-card">
-        <div class="settings-card-heading">
-          <h2>Weather</h2>
-          <p>Choose the city shown on your dashboard.</p>
+        <div class="section-heading compact">
+          <div>
+            <p class="section-kicker">Dashboard</p>
+            <h2>Weather</h2>
+            <p class="section-description">
+              Choose the city shown on your dashboard.
+            </p>
+          </div>
         </div>
 
-        <label class="form-label" for="weather-city">Current city</label>
+        <div class="field-group">
+          <label class="field-label" for="weather-city">Current city</label>
 
-        <div class="weather-city-row">
-          <input
-            id="weather-city"
-            v-model="weatherCityInput"
-            class="form-input"
-            type="text"
-            placeholder="e.g. Stuttgart"
-            autocomplete="address-level2"
-            @keyup.enter="saveWeatherCity"
-          />
+          <div class="input-row weather-city-row">
+            <input
+              id="weather-city"
+              v-model="weatherCityInput"
+              class="input"
+              type="text"
+              placeholder="e.g. Stuttgart"
+              autocomplete="address-level2"
+              @keyup.enter="saveWeatherCity"
+            />
 
-          <button class="btn-primary" type="button" @click="saveWeatherCity">
-            Save
+            <button class="btn-primary" type="button" @click="saveWeatherCity">
+              Save
+            </button>
+          </div>
+
+          <p class="field-hint">
+            Default: Stuttgart. The city name is only used to load weather data.
+          </p>
+        </div>
+      </section>
+
+      <!-- Temporary chats -->
+      <section class="settings-card">
+        <div class="section-heading compact">
+          <div>
+            <p class="section-kicker">Privacy</p>
+            <h2>Temporary chats</h2>
+            <p class="section-description">
+              Set how long new temporary chats remain available.
+            </p>
+          </div>
+
+          <button
+            class="btn-reset"
+            type="button"
+            :disabled="settingsStore.temporaryChatDurationHours === 4"
+            @click="resetTemporaryChatDuration"
+          >
+            Reset
           </button>
         </div>
 
-        <p class="form-hint">
-          Default: Stuttgart. The city name is used only to load the weather.
-        </p>
+        <div class="field-group">
+          <label class="field-label" for="temporary-chat-duration">
+            Default duration
+          </label>
+
+          <select
+            id="temporary-chat-duration"
+            v-model="temporaryChatDuration"
+            class="input temporary-duration-select"
+          >
+            <option
+              v-for="duration in temporaryChatDurations"
+              :key="duration"
+              :value="duration"
+            >
+              {{ duration }} {{ duration === 1 ? "hour" : "hours" }}
+            </option>
+          </select>
+
+          <p class="field-hint">
+            Existing temporary chats retain their original expiry time.
+          </p>
+        </div>
       </section>
 
       <!-- Data Management -->
@@ -500,6 +554,22 @@ const QUICK_CHATS_KEY = "ollama-chats";
 const PROJECTS_KEY = "ollama-projects";
 
 const weatherCityInput = ref(settingsStore.weatherCity);
+
+const temporaryChatDurations = [1, 2, 4, 8, 12, 24, 48]; // TODO durch settingsstore ersetzen
+
+const temporaryChatDuration = computed({
+  get: () => settingsStore.temporaryChatDurationHours,
+  set: (hours) => settingsStore.setTemporaryChatDurationHours(hours),
+});
+
+const temporaryChatDurationInput = ref(
+  settingsStore.temporaryChatDurationHours,
+);
+
+function resetTemporaryChatDuration() {
+  settingsStore.resetTemporaryChatDurationHours();
+  temporaryChatDurationInput.value = settingsStore.temporaryChatDurationHours;
+}
 
 function saveWeatherCity() {
   settingsStore.setWeatherCity(weatherCityInput.value);
@@ -1579,72 +1649,39 @@ textarea.input.textarea {
 
   .weather-city-row {
     flex-direction: column;
-    gap: var(--space-2);
     max-width: none;
-  }
-
-  .weather-city-row .form-input {
-    width: 100%;
-    min-height: 44px;
-    font-size: 16px;
   }
 
   .weather-city-row .btn-primary {
     width: 100%;
-    min-height: 44px;
+  }
+
+  .temporary-duration-select {
+    width: 100%;
   }
 }
 
 /* Weather city input row */
 .weather-city-row {
-  display: flex;
-  align-items: stretch;
-  gap: var(--space-2);
   max-width: 480px;
 }
 
-.weather-city-row .form-input {
-  min-width: 0;
+.weather-city-row .input {
   flex: 1;
 }
 
 .weather-city-row .btn-primary {
   flex: 0 0 auto;
-  min-height: 40px;
-  padding-inline: var(--space-4);
-  white-space: nowrap;
 }
 
-.settings-card:has(.weather-city-row) {
-  position: relative;
-  overflow: hidden;
+.temporary-duration-select {
+  width: min(100%, 320px);
 }
 
-.settings-card:has(.weather-city-row)::after {
-  position: absolute;
-  top: -56px;
-  right: -52px;
-  width: 150px;
-  height: 150px;
-  pointer-events: none;
-  content: "";
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-primary) 9%, transparent),
-    transparent 68%
-  );
-}
-
-.settings-card:has(.weather-city-row) > * {
-  position: relative;
-  z-index: 1;
-}
-
-.weather-city-row + .form-hint {
-  max-width: 470px;
-  margin: var(--space-2) 0 0;
+.btn-reset:disabled {
   color: var(--color-text-faint);
-  font-size: var(--text-xs);
-  line-height: 1.5;
+  cursor: default;
+  opacity: 0.55;
+  text-decoration: none;
 }
 </style>

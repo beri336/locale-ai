@@ -32,7 +32,9 @@
           :aria-controls="`faq-${item.id}`"
           @click="toggle(item.id)"
         >
-          <span class="question-icon" aria-hidden="true">{{ item.icon }}</span>
+          <span class="question-icon" aria-hidden="true">
+            <component :is="item.icon" :size="20" :stroke-width="1.8" />
+          </span>
 
           <span class="question-content">
             <span class="question-title">{{ item.title }}</span>
@@ -60,7 +62,11 @@
           >
             <template v-if="item.id === 'mobile'">
               <div class="intro-box">
-                <span class="intro-icon">ℹ️</span>
+                <IconInfoCircle
+                  class="intro-icon"
+                  :size="18"
+                  :stroke-width="1.8"
+                />
                 <p>
                   In order for another device to access your app and Ollama,
                   both the Vite server and the Ollama API must be accessible on
@@ -175,7 +181,11 @@
               </div>
 
               <aside class="notice notice-warning">
-                <span>⚠️</span>
+                <IconAlertTriangle
+                  class="notice-icon warning-icon"
+                  :size="18"
+                  :stroke-width="1.8"
+                />
                 <p>
                   Both devices must be on the same local network. Guest WLANs,
                   VPNs or Client-Isolation in the router can prevent the
@@ -186,7 +196,7 @@
 
             <template v-else>
               <div class="intro-box">
-                <span class="intro-icon">💡</span>
+                <IconBulb class="intro-icon" :size="18" :stroke-width="1.8" />
                 <p>
                   The key point is not where the website is running, but rather
                   which device the browser should use to call the Ollama API.
@@ -236,7 +246,7 @@
               </div>
 
               <aside class="notice notice-info">
-                <span>🔑</span>
+                <IconKey class="notice-icon" :size="18" :stroke-width="1.8" />
                 <p>
                   The API-URL must always point to the machine where Ollama is
                   actually running. The hosting location of the Vue app is
@@ -275,6 +285,14 @@
 <script setup>
 import { reactive } from "vue";
 import IconFaq from "@/components/icons/IconFaq.vue";
+import {
+  IconInfoCircle,
+  IconAlertTriangle,
+  IconBulb,
+  IconKey,
+  IconDeviceMobile,
+  IconBrandWindows,
+} from "@tabler/icons-vue";
 
 const openSections = reactive({
   mobile: false,
@@ -284,15 +302,15 @@ const openSections = reactive({
 const faqItems = [
   {
     id: "mobile",
-    icon: "📱",
+    icon: IconDeviceMobile,
     title: "Access from a smartphone or network device",
     subtitle: "Make Vite and Ollama reachable in the local network",
   },
   {
     id: "windows",
-    icon: "💻",
+    icon: IconBrandWindows,
     title: "Test on a different Windows computer",
-    subtitle: "Find the correct API-URL for your specific setup",
+    subtitle: "Find the correct API URL for your specific setup",
   },
 ];
 
@@ -409,13 +427,31 @@ function toggle(key) {
   color: var(--color-primary);
 }
 
+:deep(svg) {
+  width: 1em;
+  height: 1em;
+}
+
+.faq-question :deep(svg),
+.intro-box :deep(svg),
+.notice :deep(svg) {
+  width: 1em;
+  height: 1em;
+}
+
+.question-icon :deep(svg) {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 .question-icon {
   display: grid;
   width: 38px;
   height: 38px;
   flex: 0 0 auto;
   place-items: center;
-  font-size: 1.15rem;
+  color: var(--color-primary);
   background: var(--color-surface-2);
   border-radius: 11px;
 }
@@ -650,6 +686,23 @@ function toggle(key) {
 .accordion-leave-to {
   opacity: 0;
   transform: translateY(-6px);
+}
+
+.question-icon,
+.intro-icon,
+.notice-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.question-icon :deep(svg),
+.intro-icon,
+.notice-icon,
+.faq-icon :deep(svg) {
+  display: block;
+  flex-shrink: 0;
 }
 
 @media (max-width: 680px) {

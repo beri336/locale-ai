@@ -216,7 +216,7 @@ import {
   sanitizeFilename,
 } from "@/utils/export";
 
-const copiedCodeButton = ref(null);
+// const copiedCodeButton = ref(null);
 
 const props = defineProps({
   chat: {
@@ -397,28 +397,29 @@ async function handleCopyMessage(content, index) {
 }
 
 async function handleMarkdownClick(event) {
-  const button = event.target.closest(".code-copy-btn");
+  const copyButton = event.target.closest(".code-copy-btn");
 
-  if (!button) return;
+  if (!copyButton) return;
 
-  const code = button.dataset.code;
+  const code = copyButton.dataset.code;
 
-  if (!code) return;
+  if (!code) {
+    console.warn("No code found for copy button.");
+    return;
+  }
 
-  const copied = await copyToClipboard(code);
+  const success = await copyToClipboard(code);
 
-  if (!copied) return;
+  if (!success) return;
 
-  copiedCodeButton.value = button;
-  button.classList.add("is-copied");
-  button.setAttribute("title", "Copied!");
+  copyButton.classList.add("is-copied");
+  copyButton.setAttribute("aria-label", "Code copied");
+  copyButton.setAttribute("title", "Copied!");
 
   window.setTimeout(() => {
-    if (copiedCodeButton.value === button) {
-      button.classList.remove("is-copied");
-      button.setAttribute("title", "Copy code");
-      copiedCodeButton.value = null;
-    }
+    copyButton.classList.remove("is-copied");
+    copyButton.setAttribute("aria-label", "Copy code");
+    copyButton.setAttribute("title", "Copy code");
   }, 1500);
 }
 
@@ -709,18 +710,19 @@ function formatTokenCount(value) {
   color: var(--color-text);
   font-size: var(--text-sm);
   line-height: 1.6;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
   border-radius: 14px;
 }
 
 .message.user .message-bubble {
+  white-space: pre-wrap;
   color: #fff;
   background: var(--color-primary);
   border-bottom-right-radius: 5px;
 }
 
 .message.assistant .message-bubble {
+  white-space: normal;
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-bottom-left-radius: 5px;
@@ -845,17 +847,28 @@ function formatTokenCount(value) {
 }
 
 .markdown-body :deep(p) {
-  margin: 0 0 0.75rem;
+  margin: 0;
 }
 
-.markdown-body :deep(p:last-child) {
-  margin-bottom: 0;
+.markdown-body :deep(p + p) {
+  margin-top: 0.6rem;
 }
 
 .markdown-body :deep(h1),
 .markdown-body :deep(h2),
 .markdown-body :deep(h3) {
-  margin: 1rem 0 0.55rem;
+  margin: 1.1rem 0 0.45rem;
+}
+
+.markdown-body :deep(h1:first-child),
+.markdown-body :deep(h2:first-child),
+.markdown-body :deep(h3:first-child) {
+  margin-top: 0;
+}
+
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3) {
   font-weight: 700;
   line-height: 1.3;
 }
@@ -905,7 +918,7 @@ function formatTokenCount(value) {
 
 .markdown-body :deep(.code-block) {
   max-width: 100%;
-  margin: 0.75rem 0;
+  margin: 0.55rem 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   color: #c9d1d9;
@@ -940,9 +953,9 @@ function formatTokenCount(value) {
 
 .markdown-body :deep(.code-copy-btn) {
   display: inline-grid;
-  width: 26px;
-  height: 26px;
-  flex: 0 0 26px;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
   place-items: center;
   padding: 0;
   color: #8b949e;
@@ -950,6 +963,7 @@ function formatTokenCount(value) {
   font-size: 0;
   line-height: 1;
   cursor: pointer;
+  pointer-events: auto;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
@@ -988,14 +1002,6 @@ function formatTokenCount(value) {
   display: block;
   width: max-content;
   min-width: 100%;
-  padding: 0.75rem;
-  white-space: pre;
-  background: transparent;
-  border-radius: 0;
-}
-
-.markdown-body :deep(.code-block code) {
-  display: block;
   padding: 0.75rem;
   white-space: pre;
   background: transparent;

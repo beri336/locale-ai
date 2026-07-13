@@ -12,6 +12,8 @@ export const SETTINGS_DEFAULTS = {
     numCtx: 4096,
     keepAlive: "5m",
     defaultSystemPrompt: "",
+    weatherCity: "Stuttgart",
+    temporaryChatDurationHours: 4,
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -27,6 +29,33 @@ export const useSettingsStore = defineStore('settings', () => {
     const keepAlive = ref(stored.keepAlive || SETTINGS_DEFAULTS.keepAlive)
     const defaultSystemPrompt = ref(stored.defaultSystemPrompt || SETTINGS_DEFAULTS.defaultSystemPrompt)
 
+    const weatherCity = ref(
+        stored.weatherCity || SETTINGS_DEFAULTS.weatherCity,
+    );
+
+    const temporaryChatDurationHours = ref(
+        stored.temporaryChatDurationHours ??
+        SETTINGS_DEFAULTS.temporaryChatDurationHours,
+    );
+
+    function setTemporaryChatDurationHours(hours) {
+        const duration = Number(hours);
+
+        temporaryChatDurationHours.value =
+            ALLOWED_TEMPORARY_DURATIONS.includes(duration)
+                ? duration
+                : SETTINGS_DEFAULTS.temporaryChatDurationHours;
+    }
+
+    function resetTemporaryChatDurationHours() {
+        temporaryChatDurationHours.value =
+            SETTINGS_DEFAULTS.temporaryChatDurationHours;
+    }
+
+    // const DEFAULT_TEMPORARY_CHAT_DURATION = 4;
+    // const TEMPORARY_CHAT_DURATION_KEY = "temporary-chat-duration-hours";
+    // const ALLOWED_TEMPORARY_DURATIONS = [1, 2, 4, 8, 12, 24, 48];
+
     const connectionStatus = ref('unknown')
     const ollamaVersion = ref(null)
 
@@ -34,30 +63,8 @@ export const useSettingsStore = defineStore('settings', () => {
     let connectionRequest = null;
     let isCheckingConnection = false;
 
-    // IMPORTANT: set `baseUrl` in `ollama-store` immediately during store initialization
-    ollama.setBaseUrl(normalizeUrl(apiUrl.value))
-
-    // IMPORTANT: synchronize the ollama-store with any changes to apiUrl
-    watch(apiUrl, (newUrl) => {
-        ollama.setBaseUrl(normalizeUrl(newUrl))
-    })
-
-    watch([apiUrl, systemPrompt, temperature, numCtx, defaultModel, keepAlive, defaultSystemPrompt], () => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            apiUrl: apiUrl.value,
-            systemPrompt: systemPrompt.value,
-            temperature: temperature.value,
-            numCtx: numCtx.value,
-            defaultModel: defaultModel.value,
-            keepAlive: keepAlive.value,
-            defaultSystemPrompt: defaultSystemPrompt.value,
-            weatherCity: localStorage.getItem("weather-city") || "Stuttgart",
-        }))
-    })
-
     function setWeatherCity(city) {
-        weatherCity.value = city.trim() || "Stuttgart";
-        localStorage.setItem("weather-city", weatherCity.value);
+        weatherCity.value = city.trim() || SETTINGS_DEFAULTS.weatherCity;
     }
 
     function normalizeUrl(url) {
@@ -171,14 +178,90 @@ export const useSettingsStore = defineStore('settings', () => {
         }
     })
 
-    return {
-        apiUrl, systemPrompt, temperature, numCtx,
-        connectionStatus, ollamaVersion,
-        testConnection, normalizeUrl,
-        startPolling, stopPolling,
-        defaultModel, keepAlive, defaultSystemPrompt,
-        resetModelDefaults, resetModelBehavior, resetSystemPrompt,
-        ollamaPort, ollamaHost,
-        setWeatherCity,
+    // IMPORTANT: set `baseUrl` in `ollama-store` immediately during store initialization
+    ollama.setBaseUrl(normalizeUrl(apiUrl.value))
+
+    // IMPORTANT: synchronize the ollama-store with any changes to apiUrl
+    watch(apiUrl, (newUrl) => {
+        ollama.setBaseUrl(normalizeUrl(newUrl))
+    })
+
+    function saveSettings() {
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+                apiUrl: apiUrl.value,
+                systemPrompt: systemPrompt.value,
+                temperature: temperature.value,
+                numCtx: numCtx.value,
+                defaultModel: defaultModel.value,
+                keepAlive: keepAlive.value,
+                defaultSystemPrompt: defaultSystemPrompt.value,
+                weatherCity: weatherCity.value,
+                temporaryChatDurationHours: temporaryChatDurationHours.value,
+            }),
+        );
     }
+
+    watch(
+        [
+            apiUrl,
+            systemPrompt,
+            temperature,
+            numCtx,
+            defaultModel,
+            keepAlive,
+            defaultSystemPrompt,
+            weatherCity,
+            temporaryChatDurationHours,
+        ],
+        saveSettings,
+        () => {
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                    apiUrl: apiUrl.value,
+                    systemPrompt: systemPrompt.value,
+                    temperature: temperature.value,
+                    numCtx: numCtx.value,
+                    defaultModel: defaultModel.value,
+                    keepAlive: keepAlive.value,
+                    defaultSystemPrompt: defaultSystemPrompt.value,
+                    weatherCity: weatherCity.value,
+                    temporaryChatDurationHours: temporaryChatDurationHours.value,
+                }),
+            );
+        },
+    );
+
+    saveSettings();
+
+    return {
+        apiUrl,
+        systemPrompt,
+        temperature,
+        numCtx,
+        defaultModel,
+        keepAlive,
+        defaultSystemPrompt,
+
+        weatherCity,
+        setWeatherCity,
+
+        temporaryChatDurationHours,
+        setTemporaryChatDurationHours,
+        resetTemporaryChatDurationHours,
+
+        connectionStatus,
+        ollamaVersion,
+        testConnection,
+        normalizeUrl,
+        startPolling,
+        stopPolling,
+        resetModelDefaults,
+        resetModelBehavior,
+        resetSystemPrompt,
+        ollamaPort,
+        ollamaHost,
+    };
 })

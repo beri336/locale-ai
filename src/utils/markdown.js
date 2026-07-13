@@ -6,35 +6,35 @@ import DOMPurify from "dompurify";
 import "highlight.js/styles/github-dark.css";
 
 marked.setOptions({
-    breaks: true,
-    gfm: true,
+  breaks: false,
+  gfm: true,
 });
 
 const renderer = new marked.Renderer();
 
 function escapeHtmlAttribute(value) {
-    return value
-        .replace(/&/g, "&amp;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 renderer.code = (token) => {
-    const code = typeof token === "string" ? token : token.text;
-    const language = typeof token === "string" ? "" : token.lang;
+  const code = typeof token === "string" ? token : token.text;
+  const language = typeof token === "string" ? "" : token.lang;
 
-    const validLang =
-        language && hljs.getLanguage(language) ? language : "plaintext";
+  const validLang =
+    language && hljs.getLanguage(language) ? language : "plaintext";
 
-    const highlighted = hljs.highlight(code, {
-        language: validLang,
-    }).value;
+  const highlighted = hljs.highlight(code, {
+    language: validLang,
+  }).value;
 
-    const encodedCode = escapeHtmlAttribute(code);
+  const encodedCode = escapeHtmlAttribute(code);
 
-    return `
+  return `
     <pre class="code-block">
       <div class="code-header">
         <span class="code-language">${validLang}</span>
@@ -56,11 +56,17 @@ renderer.code = (token) => {
 marked.use({ renderer });
 
 export function renderMarkdown(text) {
-    if (!text) return "";
+  if (!text) return "";
 
-    const rawHtml = marked.parse(text);
+  const normalizedText = String(text)
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
-    return DOMPurify.sanitize(rawHtml, {
-        ADD_ATTR: ["data-code", "aria-label"],
-    });
+  const rawHtml = marked.parse(normalizedText);
+
+  return DOMPurify.sanitize(rawHtml, {
+    ADD_TAGS: ["button"],
+    ADD_ATTR: ["data-code", "aria-label", "title", "type"],
+  });
 }

@@ -32,41 +32,65 @@
           New chat
         </button>
 
+        <button
+          class="btn-secondary temporary-chat-btn"
+          type="button"
+          @click="handleTemporaryChat"
+        >
+          <span aria-hidden="true">◷</span>
+          Temporary chat
+        </button>
+
+        <p class="temporary-chat-hint">Automatically deleted after 4 hours.</p>
+
         <div class="sidebar-divider"></div>
 
         <div class="chats-heading">
           <span>Recent chats</span>
-          <span class="chat-count">{{ chats.length }}</span>
+          <span class="chat-count">{{ visibleChats.length }}</span>
         </div>
 
         <div class="chat-list">
           <ChatListItem
-            v-for="chat in chats"
+            v-for="chat in visibleChats"
             :key="chat.id"
             :chat="chat"
             :is-active="chat.id === activeChatId"
             @select="selectChat(chat.id)"
             @delete="handleDeleteChat(chat.id)"
             @rename="(newTitle) => renameChat(chat, newTitle)"
+            @toggle-pin="togglePin(chat.id)"
+            @archive="archiveChat(chat.id)"
           />
 
-          <div v-if="chats.length === 0" class="sidebar-empty-state">
+          <div v-if="visibleChats.length === 0" class="sidebar-empty-state">
             <span class="sidebar-empty-icon" aria-hidden="true">◌</span>
-            <p>No chats yet.</p>
+            <p>No active chats yet.</p>
           </div>
         </div>
       </template>
 
-      <button
-        v-else
-        class="collapsed-new-chat-btn"
-        type="button"
-        title="New chat"
-        aria-label="Create new chat"
-        @click="handleNewChat"
-      >
-        +
-      </button>
+      <template v-else>
+        <button
+          class="collapsed-new-chat-btn"
+          type="button"
+          title="New chat"
+          aria-label="Create new chat"
+          @click="handleNewChat"
+        >
+          +
+        </button>
+
+        <button
+          class="collapsed-temporary-chat-btn"
+          type="button"
+          title="Temporary chat — deleted after 4 hours"
+          aria-label="Create temporary chat"
+          @click="handleTemporaryChat"
+        >
+          ◷
+        </button>
+      </template>
     </aside>
 
     <section class="chat-main">
@@ -74,6 +98,34 @@
         <div class="chat-header-copy">
           <p class="chat-header-eyebrow">Quick chat</p>
           <h1>{{ activeChat?.title || "Start a conversation" }}</h1>
+
+          <div
+            v-if="activeChat?.isTemporary"
+            class="temporary-chat-notice"
+            role="status"
+          >
+            <span class="temporary-chat-notice-icon" aria-hidden="true">◷</span>
+
+            <p>
+              <strong>Temporary chat</strong>
+
+              <span>
+                This chat will be deleted in
+                {{ formatRemainingTime(activeChat.expiresAt) }}.
+              </span>
+            </p>
+
+            <button
+              class="extend-temporary-chat-btn"
+              type="button"
+              title="Extend by one hour"
+              aria-label="Extend temporary chat by one hour"
+              @click="extendTemporaryChat"
+            >
+              <span aria-hidden="true">+</span>
+              1h
+            </button>
+          </div>
         </div>
 
         <select
@@ -81,9 +133,9 @@
           v-model="selectedModel"
           class="model-select"
           aria-label="Select chat model"
-          @change="handleModelChange"
         >
           <option value="" disabled>Select a model</option>
+
           <option v-for="name in modelNames" :key="name" :value="name">
             {{ name }}
           </option>
@@ -118,7 +170,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import ChatListItem from "@/components/chat/ChatListItem.vue";
@@ -135,9 +187,30 @@ const modelNames = ref([]);
 const chats = ref([]);
 const activeChatId = ref(null);
 
+const currentTime = ref(Date.now());
+
 const activeChat = computed(
   () => chats.value.find((c) => c.id === activeChatId.value) || null,
 );
+
+const visibleChats = computed(() =>
+  chats.value
+    .filter((chat) => !chat.isArchived)
+    .sort((a, b) => {
+      if (Boolean(b.isPinned) !== Boolean(a.isPinned)) {
+        return Number(b.isPinned) - Number(a.isPinned);
+      }
+
+      return (
+        new Date(b.updatedAt ?? b.createdAt) -
+        new Date(a.updatedAt ?? a.createdAt)
+      );
+    }),
+);
+
+// const archivedChats = computed(() =>
+//   chats.value.filter((chat) => chat.isArchived),
+// );
 
 const selectedModel = computed({
   get: () => activeChat.value?.model ?? "",
@@ -149,6 +222,35 @@ const selectedModel = computed({
   },
 });
 
+let temporaryChatTimer = null;
+
+function getChat(id) {
+  return chats.value.find((chat) => chat.id === id);
+}
+
+function togglePin(id) {
+  const chat = getChat(id);
+
+  if (!chat) return;
+
+  chat.isPinned = !chat.isPinned;
+  chat.updatedAt = new Date().toISOString();
+}
+
+function archiveChat(id) {
+  const chat = getChat(id);
+
+  if (!chat) return;
+
+  chat.isArchived = true;
+  chat.isPinned = false;
+  chat.updatedAt = new Date().toISOString();
+
+  if (activeChatId.value === id) {
+    activeChatId.value = visibleChats.value[0]?.id ?? null;
+  }
+}
+
 function loadChats() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -156,6 +258,28 @@ function loadChats() {
   } catch (error) {
     console.error("Failed to load chats:", error);
     chats.value = [];
+  }
+}
+
+function removeExpiredChats() {
+  const now = Date.now();
+
+  const activeChatExpired = chats.value.some(
+    (chat) =>
+      chat.id === activeChatId.value &&
+      chat.isTemporary &&
+      chat.expiresAt &&
+      new Date(chat.expiresAt).getTime() <= now,
+  );
+
+  chats.value = chats.value.filter((chat) => {
+    if (!chat.isTemporary || !chat.expiresAt) return true;
+
+    return new Date(chat.expiresAt).getTime() > now;
+  });
+
+  if (activeChatExpired) {
+    activeChatId.value = chats.value[0]?.id ?? null;
   }
 }
 
@@ -169,21 +293,42 @@ function saveChats() {
 
 watch(chats, saveChats, { deep: true });
 
-function createChat() {
+function createChat({ temporary = false } = {}) {
+  const now = new Date();
+  const temporaryDurationMs =
+    Number(settingsStore.temporaryChatDurationHours || 4) * 60 * 60 * 1000;
+
+  const expiresAt = temporary
+    ? new Date(now.getTime() + temporaryDurationMs).toISOString()
+    : null;
+
   const newChat = {
     id: `chat_${Date.now()}`,
-    title: "New Chat",
+    title: temporary ? "Temporary Chat" : "New Chat",
     model: settingsStore.defaultModel || "",
     messages: [],
-    createdAt: new Date().toISOString(),
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+
+    isPinned: false,
+    isArchived: false,
+
+    isTemporary: temporary,
+    expiresAt,
   };
+
   chats.value.unshift(newChat);
   activeChatId.value = newChat.id;
+
   return newChat;
 }
 
 function handleNewChat() {
   createChat();
+}
+
+function handleTemporaryChat() {
+  createChat({ temporary: true });
 }
 
 function selectChat(id) {
@@ -207,17 +352,64 @@ function renameChat(chat, newTitle) {
   chat.title = newTitle;
 }
 
-function handleModelChange() {
-  if (activeChat.value) {
-    ollama.setSelectedModel(activeChat.value.model);
+const isSidebarCollapsed = ref(
+  localStorage.getItem("chat-sidebar-collapsed") === "true",
+);
+
+function toggleSidebar() {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value;
+  localStorage.setItem("chat-sidebar-collapsed", isSidebarCollapsed.value);
+}
+
+function formatRemainingTime(expiresAt) {
+  if (!expiresAt) return "soon";
+
+  const remainingMs = new Date(expiresAt).getTime() - currentTime.value;
+
+  if (remainingMs <= 0) {
+    return "less than a minute";
   }
+
+  const totalMinutes = Math.ceil(remainingMs / 60_000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours === 0) {
+    return `${minutes} minutes`;
+  }
+
+  if (minutes === 0) {
+    return `${hours} hour${hours === 1 ? "" : "s"}`;
+  }
+
+  return `${hours}h ${minutes}m`;
+}
+
+function extendTemporaryChat() {
+  if (!activeChat.value?.isTemporary) return;
+
+  const currentExpiry = new Date(activeChat.value.expiresAt).getTime();
+  const baseTime = Math.max(currentExpiry, Date.now());
+
+  activeChat.value.expiresAt = new Date(
+    baseTime + 60 * 60 * 1000,
+  ).toISOString();
+
+  activeChat.value.updatedAt = new Date().toISOString();
 }
 
 onMounted(async () => {
-  modelNames.value = await ollama.getListOfModelsName();
+  loadChats();
+  removeExpiredChats();
+
+  try {
+    modelNames.value = await ollama.getListOfModelsName();
+  } catch (error) {
+    console.error("Failed to load models in Chat.vue:", error);
+    modelNames.value = [];
+  }
 
   const hasStoredChats = localStorage.getItem(STORAGE_KEY) !== null;
-  loadChats();
 
   if (route.query.new === "true") {
     createChat();
@@ -239,14 +431,11 @@ onMounted(async () => {
   }
 });
 
-const isSidebarCollapsed = ref(
-  localStorage.getItem("chat-sidebar-collapsed") === "true",
-);
-
-function toggleSidebar() {
-  isSidebarCollapsed.value = !isSidebarCollapsed.value;
-  localStorage.setItem("chat-sidebar-collapsed", isSidebarCollapsed.value);
-}
+onUnmounted(() => {
+  if (temporaryChatTimer) {
+    window.clearInterval(temporaryChatTimer);
+  }
+});
 </script>
 
 <style scoped>
@@ -656,5 +845,146 @@ function toggleSidebar() {
   .model-select {
     font-size: 16px;
   }
+
+  .temporary-chat-notice {
+    max-width: none;
+    padding: 0.55rem 0.6rem;
+  }
+}
+
+/* Temporary chat button */
+.temporary-chat-btn {
+  width: 100%;
+  min-height: 32px;
+  padding-block: 0.4rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+.temporary-chat-btn:hover {
+  color: var(--color-primary);
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
+}
+
+.temporary-chat-hint {
+  margin: -0.35rem 0 0;
+  color: var(--color-text-faint);
+  font-size: 10px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.collapsed-temporary-chat-btn {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+}
+
+.collapsed-temporary-chat-btn:hover {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
+}
+
+.temporary-chat-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: 460px;
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.65rem;
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  border-radius: var(--radius-md);
+}
+
+.temporary-chat-notice-icon {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-radius: 7px;
+}
+
+.temporary-chat-notice p {
+  display: grid;
+  gap: 0.1rem;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.temporary-chat-notice strong {
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-weight: 650;
+}
+
+.temporary-chat-notice p span {
+  color: var(--color-text-muted);
+}
+
+.extend-temporary-chat-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  min-height: 26px;
+  flex: 0 0 auto;
+  padding: 0.3rem 0.45rem;
+  margin-left: auto;
+  color: var(--color-primary);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
+  border-radius: 7px;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.extend-temporary-chat-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface));
+  border-color: var(--color-primary);
+}
+
+.extend-temporary-chat-btn:active {
+  transform: translateY(1px);
+}
+
+.extend-temporary-chat-btn span {
+  font-size: 0.9rem;
+  line-height: 0.8;
 }
 </style>

@@ -42,6 +42,26 @@
     >
       ✕
     </button>
+
+    <button
+      type="button"
+      class="chat-action-btn"
+      :title="chat.isPinned ? 'Unpin chat' : 'Pin chat'"
+      :aria-label="chat.isPinned ? 'Unpin chat' : 'Pin chat'"
+      @click.stop="togglePin"
+    >
+      {{ chat.isPinned ? "★" : "☆" }}
+    </button>
+
+    <button
+      type="button"
+      class="chat-action-btn"
+      title="Archive chat"
+      aria-label="Archive chat"
+      @click.stop="archiveChat"
+    >
+      ⤓
+    </button>
   </div>
 </template>
 
@@ -54,7 +74,13 @@ const props = defineProps({
   showModel: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["select", "delete", "rename"]);
+const emit = defineEmits([
+  "select",
+  "delete",
+  "rename",
+  "toggle-pin",
+  "archive",
+]);
 
 const isEditing = ref(false);
 const editingTitle = ref("");
@@ -78,6 +104,14 @@ function save() {
 function cancel() {
   isEditing.value = false;
   editingTitle.value = "";
+}
+
+function togglePin() {
+  emit("toggle-pin");
+}
+
+function archiveChat() {
+  emit("archive");
 }
 </script>
 
