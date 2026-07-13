@@ -546,6 +546,12 @@ async function handleSend() {
     });
     emit("message-sent");
     scrollToBottom(true);
+    const isFirstExchange =
+      chat.messages.filter((m) => m.role === "assistant").length === 1;
+
+    if (isFirstExchange) {
+      generateChatTitle(chat, userMessage, result.text);
+    }
   } catch (error) {
     if (error.name === "AbortError") {
       chat.messages.push({
@@ -835,6 +841,41 @@ function formatTokenCount(value) {
 
   const formatted = value / 1000;
   return `${formatted.toFixed(formatted >= 10 ? 0 : 1)}k`;
+}
+
+async function generateChatTitle(chat, userMessage, assistantMessage) {
+  try {
+    const titlePrompt = [
+      {
+        role: "system",
+        content:
+          "Generate a short, concise chat title (max 6 words, no quotes, no punctuation at the end) that summarizes the following conversation. Reply with only the title, nothing else.",
+      },
+      {
+        role: "user",
+        content: `User: ${userMessage}\n\nAssistant: ${assistantMessage}`,
+      },
+    ];
+
+    const result = await ollama.generateStreamingChatAnswer(
+      chat.model,
+      titlePrompt,
+      { temperature: 0.3, num_ctx: 1024 },
+      () => {},
+    );
+
+    const generatedTitle = result.text
+      .replace(/^["'\s]+|["'\s]+$/g, "")
+      .split("\n")[0]
+      .trim();
+
+    if (generatedTitle && generatedTitle.length <= 80) {
+      chat.title = generatedTitle;
+      emit("message-sent");
+    }
+  } catch (error) {
+    console.error("Title generation failed, keeping fallback title:", error);
+  }
 }
 </script>
 
