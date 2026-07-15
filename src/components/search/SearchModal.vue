@@ -251,4 +251,76 @@ onUnmounted(() => {
 .match-label {
   color: var(--color-text-faint);
 }
+
+/* iOS Safari: at least 16px prevents input auto-zoom */
+@media (pointer: coarse) {
+  .search-input {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 620px) {
+  .search-overlay {
+    padding-top: 6vh;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .search-modal {
+    width: 100%;
+    max-width: none;
+    max-height: 88vh;
+    margin: 0 0.5rem;
+    border-radius: var(--radius-md);
+  }
+
+  .search-input-row {
+    gap: 0.5rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .search-icon {
+    font-size: 14px;
+  }
+
+  .search-input {
+    font-size: 13px;
+  }
+
+  .esc-hint {
+    display: none;
+  }
+
+  .search-results {
+    padding: 0.35rem;
+  }
+
+  .search-result-item {
+    gap: 0.5rem;
+    padding: 0.55rem 0.6rem;
+  }
+
+  .result-title {
+    font-size: 12px;
+  }
+
+  .result-model {
+    font-size: 10px;
+  }
+
+  .result-snippet {
+    font-size: 10px;
+  }
+
+  .result-badge {
+    padding: 1px 6px;
+    margin-left: 0.5rem;
+    font-size: 9px;
+  }
+
+  .empty-results {
+    padding: 1.5rem;
+    font-size: 12px;
+  }
+}
 </style>

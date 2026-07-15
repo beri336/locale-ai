@@ -928,46 +928,159 @@ function formatDate(isoString) {
   transform: translateY(8px) scale(0.98);
 }
 
+@media (pointer: coarse) {
+  .input {
+    font-size: 16px;
+  }
+}
+
 @media (max-width: 620px) {
   .projects-view {
-    padding: 1.25rem 1rem 2rem;
+    padding: 0.85rem 0.75rem 1.5rem;
   }
 
   .page-header {
     flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
   }
 
   .page-heading {
-    gap: 0.75rem;
+    gap: 0.55rem;
   }
 
   .header-icon {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+  }
+
+  .header-icon :deep(svg) {
+    width: 17px;
+    height: 17px;
+  }
+
+  .eyebrow {
+    font-size: 0.6rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .header-description {
+    margin-top: 0.3rem;
+    font-size: 12px;
   }
 
   .new-project-btn {
     width: 100%;
+    min-height: 32px;
+    padding: 0.4rem 0.6rem;
     margin-top: 0;
+    font-size: 11px;
+  }
+
+  .filter-section {
+    padding: 0.55rem 0 0.85rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .filter-label {
+    font-size: 0.6rem;
+  }
+
+  .clear-filter-btn {
+    font-size: 10px;
+  }
+
+  .filter-row {
+    gap: 0.3rem;
+  }
+
+  .tag-filter {
+    padding: 0.25rem 0.5rem;
+    font-size: 10px;
   }
 
   .project-grid {
     grid-template-columns: 1fr;
-    gap: 0.7rem;
+    gap: 0.5rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .project-card {
+    border-radius: var(--radius-md);
   }
 
   .project-main {
-    padding: 1rem;
+    gap: 0.55rem;
+    padding: 0.75rem 0.75rem 0.6rem;
+  }
+
+  .project-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 0.95rem;
+    border-radius: 7px;
+  }
+
+  .project-card h2 {
+    font-size: 12px;
+  }
+
+  .open-indicator {
+    width: 20px;
+    height: 20px;
+    font-size: 0.65rem;
+  }
+
+  .project-desc {
+    min-height: 2.4em;
+    font-size: 11px;
+  }
+
+  .tag-chip {
+    padding: 0.16rem 0.4rem;
+    font-size: 9px;
   }
 
   .project-footer {
-    padding: 0.6rem 1rem;
+    min-height: 34px;
+    padding: 0.45rem 0.75rem;
+    font-size: 9px;
+  }
+
+  .project-meta-icon {
+    font-size: 0.75rem;
   }
 
   .delete-btn {
+    width: 20px;
+    height: 20px;
+    font-size: 0.85rem;
     opacity: 1;
+  }
+
+  .empty-state {
+    padding: 2rem 1rem;
+    margin: 1rem auto;
+  }
+
+  .empty-state-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0.6rem;
+    border-radius: 11px;
+  }
+
+  .empty-state h2 {
+    font-size: 13px;
+  }
+
+  .empty-state p {
+    margin: 0.4rem 0 0.85rem;
+    font-size: 12px;
   }
 
   .modal-overlay {
@@ -978,18 +1091,63 @@ function formatDate(isoString) {
   .modal {
     width: 100%;
     max-height: 92vh;
+    padding: 1rem;
     overflow-y: auto;
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
   }
 
+  .modal-header {
+    margin-bottom: 0.85rem;
+  }
+
+  .modal-header h2 {
+    font-size: 0.95rem;
+  }
+
+  .modal-description {
+    font-size: 11px;
+  }
+
+  .modal-close-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 1.05rem;
+  }
+
+  .modal-form {
+    gap: 0.75rem;
+  }
+
+  .field-label {
+    font-size: 11px;
+  }
+
+  .field-hint {
+    font-size: 9px;
+  }
+
+  .input {
+    padding: 0.5rem 0.6rem;
+    font-size: 13px;
+  }
+
+  .input.textarea {
+    min-height: 64px;
+  }
+
   .modal-actions {
     flex-direction: column-reverse;
+    gap: 0.4rem;
+    padding-top: 0.85rem;
+    margin-top: 0.85rem;
   }
 
   .modal-actions .btn-primary,
   .modal-actions .btn-secondary {
     width: 100%;
+    min-height: 32px;
+    font-size: 11px;
   }
 }
 </style>

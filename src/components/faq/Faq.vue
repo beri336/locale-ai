@@ -707,34 +707,160 @@ function toggle(key) {
 
 @media (max-width: 680px) {
   .faq-view {
-    padding: 1.25rem 1rem 2rem;
+    padding: 0.85rem 0.75rem 1.5rem;
   }
 
   .page-header {
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
+    gap: 0.55rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-heading {
+    gap: 0.5rem;
   }
 
   .header-icon {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+  }
+
+  .header-icon :deep(svg) {
+    width: 17px;
+    height: 17px;
+  }
+
+  .eyebrow {
+    font-size: 0.6rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .header-description {
+    margin-top: 0.3rem;
+    font-size: 12px;
+  }
+
+  .faq-content {
+    gap: 0.5rem;
   }
 
   .faq-question {
-    padding: 1rem;
+    gap: 0.6rem;
+    padding: 0.7rem 0.75rem;
   }
 
-  .faq-answer {
-    padding: 0 1rem 1rem;
+  .question-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+
+  .question-icon :deep(svg) {
+    width: 16px;
+    height: 16px;
+  }
+
+  .question-title {
+    font-size: 12px;
   }
 
   .question-subtitle {
     display: none;
   }
 
+  .chevron {
+    width: 22px;
+    height: 22px;
+  }
+
+  .chevron svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .faq-answer {
+    padding: 0 0.75rem 0.85rem;
+    font-size: 12px;
+  }
+
+  .intro-box {
+    gap: 0.55rem;
+    padding: 0.7rem;
+    margin: 0.2rem 0 1rem;
+  }
+
+  .steps {
+    gap: 1rem;
+  }
+
+  .step {
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 0.6rem;
+  }
+
+  .step-number {
+    width: 22px;
+    height: 22px;
+    font-size: 0.65rem;
+  }
+
+  .faq-answer h3 {
+    font-size: 12px;
+  }
+
+  .faq-answer p + p {
+    margin-top: 0.45rem;
+  }
+
   .platform-grid,
   .scenario-grid {
     grid-template-columns: 1fr;
+    gap: 0.55rem;
+    margin-top: 0.6rem;
+  }
+
+  .platform-card,
+  .scenario-card {
+    padding: 0.65rem;
+  }
+
+  .platform-label,
+  .scenario-badge {
+    font-size: 0.62rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .scenario-grid {
+    margin-bottom: 0.7rem;
+  }
+
+  .muted {
+    font-size: 10px;
+  }
+
+  .faq-answer code {
+    font-size: 0.8em;
+  }
+
+  .faq-answer pre {
+    padding: 0.6rem 0.7rem;
+    margin: 0.55rem 0;
+    font-size: 11px;
+  }
+
+  .notice {
+    gap: 0.5rem;
+    padding: 0.65rem 0.7rem;
+    margin-top: 1rem;
+    font-size: 11px;
+  }
+
+  .diagnostic-card {
+    padding: 0.75rem;
+    margin-top: 0.7rem;
   }
 }
 </style>

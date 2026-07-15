@@ -398,7 +398,7 @@ const isRemoving = ref(false);
 //const pullProgress = ref(null);
 
 const isConnectedStatus = computed(() =>
-  isConnected.value ? "Connected" : "Disconnected"
+  isConnected.value ? "Connected" : "Disconnected",
 );
 
 const isConnectedBool = computed(() => isConnected.value === true);
@@ -1063,7 +1063,7 @@ onMounted(async () => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--text-xs);
-  background: var(--color---color-bg);
+  background: var(--color-bg);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -1195,6 +1195,224 @@ onMounted(async () => {
 @media (pointer: coarse) {
   .input {
     font-size: 16px;
+  }
+}
+
+@media (max-width: 620px) {
+  .models-view {
+    padding: 0.85rem 0.75rem 1.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 1rem;
+  }
+
+  .page-heading {
+    gap: 0.55rem;
+  }
+
+  .header-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+  }
+
+  .header-icon :deep(svg) {
+    width: 17px;
+    height: 17px;
+  }
+
+  .eyebrow {
+    font-size: 0.6rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .header-description {
+    margin-top: 0.3rem;
+    font-size: 12px;
+  }
+
+  .models-content {
+    gap: 0.6rem;
+    max-width: none;
+  }
+
+  .card {
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+  }
+
+  .card h2 {
+    font-size: 12px;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-header-row {
+    margin-bottom: 0.4rem;
+  }
+
+  .count-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  .card-hint {
+    font-size: 10px;
+  }
+
+  .link-row {
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .link-row a {
+    font-size: 10px;
+  }
+
+  .pull-form {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .input {
+    padding: 0.45rem 0.6rem;
+    font-size: 13px;
+  }
+
+  .btn-primary,
+  .btn-danger {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 12px;
+  }
+
+  .progress-info {
+    margin-top: 0.5rem;
+  }
+
+  .progress-text {
+    font-size: 10px;
+  }
+
+  .info-row {
+    flex-wrap: wrap;
+    padding: 0.5rem 0;
+    gap: 0.3rem;
+  }
+
+  .info-label {
+    font-size: 12px;
+  }
+
+  .info-value {
+    font-size: 12px;
+  }
+
+  .info-value.mono {
+    max-width: none;
+    font-size: 10px;
+  }
+
+  .refresh-row {
+    gap: 0.35rem;
+    margin-top: 0.65rem;
+  }
+
+  .refresh-row .btn-ghost {
+    flex: 1;
+    min-width: 0;
+    padding: 0.35rem 0.5rem;
+    font-size: 10px;
+    text-align: center;
+  }
+
+  .model-cards {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .model-card {
+    padding: 0.65rem;
+  }
+
+  .model-card-title {
+    font-size: 12px;
+    padding-bottom: 0.4rem;
+  }
+
+  .model-card-row {
+    font-size: 10px;
+  }
+
+  .model-item {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.6rem 0;
+  }
+
+  .model-name {
+    font-size: 12px;
+  }
+
+  .model-tag {
+    padding: 1px 6px;
+    font-size: 9px;
+  }
+
+  .model-size,
+  .model-date,
+  .running-badge {
+    font-size: 10px;
+  }
+
+  .model-actions {
+    width: 100%;
+    gap: 0.35rem;
+  }
+
+  .model-actions .btn-ghost,
+  .model-actions .btn-danger {
+    flex: 1;
+    padding: 0.35rem 0.5rem;
+    font-size: 10px;
+  }
+
+  .recommended-models {
+    gap: 0.4rem;
+  }
+
+  .model-recommend-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.6rem;
+  }
+
+  .model-recommend-name {
+    font-size: 12px;
+  }
+
+  .model-recommend-desc {
+    font-size: 10px;
+  }
+
+  .model-recommend-item .btn-primary,
+  .model-recommend-item .btn-installed,
+  .model-recommend-item .btn-pulling {
+    width: 100%;
+    text-align: center;
+  }
+
+  .empty-state {
+    padding: 1.5rem 0;
+    font-size: 12px;
+  }
+
+  .input-error-text {
+    font-size: 10px;
   }
 }
 </style>

@@ -1651,106 +1651,196 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 
 @media (max-width: 620px) {
   .chat-thread {
-    gap: 0.7rem;
+    gap: 0.5rem;
   }
 
   .chat-window {
-    gap: 0.85rem;
-    padding: 0.75rem;
-    border-radius: var(--radius-md);
+    gap: 0.6rem;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
   }
 
   .chat-toolbar {
     align-items: stretch;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    padding-bottom: 0.6rem;
   }
 
   .toolbar-context {
     max-width: none;
+    gap: 0.2rem;
+  }
+
+  .context-label {
+    font-size: 10px;
+  }
+
+  .context-value {
+    font-size: 10px;
+  }
+
+  .context-meta {
+    font-size: 9px;
   }
 
   .toolbar-actions {
     width: 100%;
+    gap: 0.3rem;
   }
 
   .toolbar-copy-btn {
     flex: 1;
-    min-height: 34px;
+    min-height: 28px;
+    padding: 0.3rem 0.45rem;
+    font-size: 10px;
+  }
+
+  .system-prompt-badge {
+    font-size: 9px;
+    padding: 0.14rem 0.32rem;
   }
 
   .context-footer {
     align-items: flex-start;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.25rem;
+  }
+
+  .message {
+    gap: 0.2rem;
   }
 
   .message-edit {
-    width: min(92%, 820px);
-    max-width: min(92%, 820px);
-    padding: 0.7rem 0.75rem;
+    width: min(94%, 820px);
+    max-width: min(94%, 820px);
+    padding: 0.5rem 0.55rem;
+    gap: 0.4rem;
   }
 
   .message-footer .copy-btn {
     opacity: 1;
+    min-width: 20px;
+    min-height: 20px;
+    font-size: 10px;
+  }
+
+  .message-meta {
+    font-size: 9px;
   }
 
   .chat-input-row {
-    gap: 0.45rem;
+    gap: 0.35rem;
   }
 
   .chat-input {
-    min-height: 50px;
+    min-height: 40px;
+    max-height: 120px;
+    padding: 0.5rem 0.6rem;
   }
 
   .btn-primary,
+  .btn-secondary,
   .btn-stop {
-    min-width: 78px;
-    min-height: 48px;
-    padding: 0.65rem 0.8rem;
-    font-size: 14px;
+    min-width: 64px;
+    min-height: 40px;
+    padding: 0.45rem 0.65rem;
+    font-size: 13px;
+  }
+
+  .chat-settings-panel {
+    gap: 0.7rem;
+    padding: 0.7rem;
+  }
+
+  .field-label {
+    font-size: 12px;
+  }
+
+  .chat-settings-toggle-btn {
+    font-size: 12px;
+    padding: 0.3rem 0.5rem;
   }
 
   .markdown-body :deep(.code-copy-btn) {
-    min-width: 68px;
-    min-height: 34px;
-    padding: 0.4rem 0.65rem;
-    font-size: 11px;
+    min-width: 56px;
+    min-height: 28px;
+    padding: 0.3rem 0.5rem;
+    font-size: 10px;
   }
 
   .message-bubble {
-    font-size: 14px;
-    line-height: 1.5;
+    max-width: 92%;
+    padding: 0.55rem 0.7rem;
+    font-size: 13px;
+    line-height: 1.45;
   }
 
   .markdown-body :deep(p) {
-    margin-bottom: 0.55rem;
+    margin-bottom: 0.4rem;
   }
 
   .markdown-body :deep(h1) {
-    font-size: 1.1rem;
-  }
-
-  .markdown-body :deep(h2) {
     font-size: 1rem;
   }
 
+  .markdown-body :deep(h2) {
+    font-size: 0.92rem;
+  }
+
   .markdown-body :deep(h3) {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   .markdown-body :deep(ul),
   .markdown-body :deep(ol) {
-    margin: 0.5rem 0;
+    padding-left: 1rem;
+    margin: 0.4rem 0;
   }
 
   .markdown-body :deep(.code-block) {
-    font-size: 12px;
-    border-radius: 8px;
+    font-size: 11px;
+    border-radius: 6px;
   }
 
   .markdown-body :deep(.code-block code) {
-    padding: 0.65rem;
+    padding: 0.5rem;
+  }
+
+  .markdown-body :deep(.code-header) {
+    padding: 0.35rem 0.5rem;
+    font-size: 9px;
+  }
+
+  .model-warning {
+    padding: 0.5rem 0.6rem;
+    gap: 0.45rem;
+  }
+
+  .model-warning strong {
+    font-size: 11px;
+  }
+
+  .model-warning p {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 430px) {
+  .message-bubble {
+    font-size: 12.5px;
+    max-width: 94%;
+  }
+
+  .toolbar-copy-btn {
+    font-size: 9px;
+    padding: 0.25rem 0.35rem;
+  }
+
+  .btn-primary,
+  .btn-stop {
+    min-width: 56px;
+    padding: 0.4rem 0.55rem;
   }
 }
 </style>

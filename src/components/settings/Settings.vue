@@ -1563,104 +1563,6 @@ textarea.input.textarea {
   border: 0;
 }
 
-/* iOS Safari: at least 16px prevents input auto-zoom */
-@media (pointer: coarse) {
-  .input {
-    font-size: 16px;
-  }
-}
-
-@media (max-width: 620px) {
-  .settings-view {
-    padding: 1.25rem 1rem 2rem;
-  }
-
-  .page-header {
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .header-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .settings-card {
-    padding: 1rem;
-  }
-
-  .section-heading {
-    gap: 0.75rem;
-  }
-
-  .input-row,
-  .setting-row,
-  .action-row {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .btn-primary,
-  .btn-secondary,
-  .btn-danger {
-    width: 100%;
-  }
-
-  .connection-badge {
-    align-self: flex-start;
-  }
-
-  .theme-switch {
-    align-self: flex-start;
-  }
-
-  .network-info {
-    grid-template-columns: 1fr;
-  }
-
-  .action-row {
-    gap: 0.7rem;
-  }
-
-  .storage-badge {
-    align-self: flex-start;
-  }
-
-  .backup-action,
-  .danger-row {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .backup-action .btn-secondary,
-  .danger-row .btn-danger {
-    width: 100%;
-  }
-
-  .delete-action {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .btn-danger-outline,
-  .btn-danger {
-    width: 100%;
-  }
-
-  .weather-city-row {
-    flex-direction: column;
-    max-width: none;
-  }
-
-  .weather-city-row .btn-primary {
-    width: 100%;
-  }
-
-  .temporary-duration-select {
-    width: 100%;
-  }
-}
-
 /* Weather city input row */
 .weather-city-row {
   max-width: 480px;
@@ -1683,5 +1585,291 @@ textarea.input.textarea {
   cursor: default;
   opacity: 0.55;
   text-decoration: none;
+}
+
+/* iOS Safari: at least 16px prevents input auto-zoom */
+@media (pointer: coarse) {
+  .input {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 620px) {
+  .settings-view {
+    padding: 0.85rem 0.75rem 1.5rem;
+  }
+
+  .page-header {
+    gap: 0.55rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-heading {
+    gap: 0.5rem;
+  }
+
+  .header-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+  }
+
+  .header-icon :deep(svg) {
+    width: 17px;
+    height: 17px;
+  }
+
+  .eyebrow,
+  .section-kicker {
+    font-size: 0.6rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .header-description {
+    margin-top: 0.3rem;
+    font-size: 12px;
+  }
+
+  .settings-content {
+    gap: 0.55rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .settings-card {
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+  }
+
+  .section-heading {
+    gap: 0.55rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .section-heading.compact {
+    margin-bottom: 0.65rem;
+  }
+
+  .section-heading h2 {
+    font-size: 0.9rem;
+  }
+
+  .section-description {
+    font-size: 11px;
+  }
+
+  .field-group + .field-group {
+    margin-top: 0.85rem;
+  }
+
+  .field-label {
+    font-size: 11px;
+  }
+
+  .field-hint {
+    font-size: 10px;
+  }
+
+  .range-value,
+  .storage-badge {
+    font-size: 9px;
+  }
+
+  .input-row,
+  .setting-row,
+  .action-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .input {
+    padding: 0.5rem 0.6rem;
+    font-size: 13px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    width: 100%;
+    min-height: 34px;
+    padding: 0.45rem 0.6rem;
+    font-size: 11px;
+  }
+
+  .connection-badge {
+    align-self: flex-start;
+    padding: 0.3rem 0.5rem;
+    font-size: 10px;
+  }
+
+  .version-note {
+    font-size: 10px;
+  }
+
+  .network-panel {
+    padding: 0.65rem;
+    margin-top: 0.85rem;
+  }
+
+  .network-panel-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+
+  .network-panel h3 {
+    font-size: 11px;
+  }
+
+  .network-panel-header p {
+    font-size: 9px;
+  }
+
+  .network-info {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    padding-top: 0.65rem;
+  }
+
+  .info-label {
+    font-size: 9px;
+  }
+
+  .info-value {
+    font-size: 10px;
+  }
+
+  .theme-switch {
+    align-self: flex-start;
+  }
+
+  .theme-switch span {
+    padding: 0.28rem 0.55rem;
+    font-size: 10px;
+  }
+
+  .setting-label {
+    font-size: 12px;
+  }
+
+  .setting-hint {
+    font-size: 11px;
+  }
+
+  .slider {
+    margin-top: 0.55rem;
+  }
+
+  .btn-reset {
+    font-size: 10px;
+  }
+
+  .storage-badge {
+    align-self: flex-start;
+  }
+
+  .backup-actions {
+    gap: 0.55rem;
+    margin-top: 0.75rem;
+  }
+
+  .backup-action,
+  .danger-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.65rem;
+  }
+
+  .backup-action h3,
+  .danger-row h3 {
+    font-size: 12px;
+  }
+
+  .backup-action p,
+  .danger-row p {
+    font-size: 11px;
+  }
+
+  .backup-action .btn-secondary,
+  .danger-row .btn-danger {
+    width: 100%;
+  }
+
+  .backup-feedback {
+    padding: 0.5rem 0.6rem;
+    font-size: 11px;
+  }
+
+  .data-divider {
+    margin: 0.75rem 0;
+  }
+
+  .data-danger-heading {
+    margin-bottom: 0.55rem;
+  }
+
+  .data-danger-heading h3 {
+    font-size: 12px;
+  }
+
+  .data-danger-heading p {
+    font-size: 11px;
+  }
+
+  .delete-actions {
+    gap: 0.5rem;
+  }
+
+  .delete-action {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.65rem;
+  }
+
+  .delete-action h4 {
+    font-size: 12px;
+  }
+
+  .delete-action p {
+    font-size: 11px;
+  }
+
+  .btn-danger-outline,
+  .btn-danger {
+    width: 100%;
+    min-height: 34px;
+    font-size: 11px;
+  }
+
+  .about-row {
+    padding: 0.5rem 0.6rem;
+    font-size: 11px;
+  }
+
+  .about-row code {
+    font-size: 10px;
+  }
+
+  .github-link {
+    font-size: 11px;
+  }
+
+  .weather-city-row {
+    flex-direction: column;
+    max-width: none;
+  }
+
+  .weather-city-row .btn-primary {
+    width: 100%;
+  }
+
+  .temporary-duration-select {
+    width: 100%;
+  }
 }
 </style>

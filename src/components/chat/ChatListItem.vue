@@ -40,7 +40,7 @@
       class="chat-delete-btn"
       @click.stop="$emit('delete')"
     >
-      ✕
+      <IconX :size="14" :stroke-width="2" />
     </button>
 
     <button
@@ -50,7 +50,11 @@
       :aria-label="chat.isPinned ? 'Unpin chat' : 'Pin chat'"
       @click.stop="togglePin"
     >
-      {{ chat.isPinned ? "★" : "☆" }}
+      <component
+        :is="chat.isPinned ? IconStarFilled : IconStar"
+        :size="14"
+        :stroke-width="1.8"
+      />
     </button>
 
     <button
@@ -60,13 +64,19 @@
       aria-label="Archive chat"
       @click.stop="archiveChat"
     >
-      ⤓
+      <IconDownload :size="14" :stroke-width="1.8" />
     </button>
   </div>
 </template>
 
 <script setup>
 import { ref, nextTick } from "vue";
+import {
+  IconX,
+  IconStarFilled,
+  IconStar,
+  IconDownload,
+} from "@tabler/icons-vue";
 
 const props = defineProps({
   chat: { type: Object, required: true },
@@ -187,5 +197,63 @@ function archiveChat() {
 
 .chat-delete-btn:hover {
   color: var(--color-error);
+}
+
+.chat-delete-btn :deep(svg),
+.chat-action-btn :deep(svg) {
+  display: block;
+}
+
+.chat-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 2px 4px;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease;
+}
+
+.chat-action-btn:hover {
+  color: var(--color-primary);
+  background: var(--color-surface-2);
+}
+
+@media (max-width: 620px) {
+  .chat-list-item {
+    gap: 0.35rem;
+    padding: 0.4rem 0.55rem;
+    font-size: 12px;
+  }
+
+  .chat-title {
+    font-size: 12px;
+  }
+
+  .chat-model-tag {
+    font-size: 9px;
+  }
+
+  .chat-title-input {
+    padding: 1px 5px;
+    font-size: 12px;
+  }
+
+  .char-count {
+    font-size: 9px;
+  }
+
+  .chat-delete-btn,
+  .chat-action-btn {
+    min-width: 22px;
+    min-height: 22px;
+    padding: 1px 3px;
+    font-size: 11px;
+  }
 }
 </style>

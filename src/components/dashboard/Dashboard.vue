@@ -1126,95 +1126,6 @@ onUnmounted(() => {
   margin-left: auto;
 }
 
-@media (max-width: 900px) {
-  .overview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 620px) {
-  .dashboard-view {
-    padding: 1.25rem 1rem 2rem;
-  }
-
-  .page-header {
-    flex-direction: column;
-    gap: 1.25rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .page-heading {
-    gap: 0.75rem;
-  }
-
-  .header-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .header-actions {
-    width: 100%;
-    margin-top: 0;
-  }
-
-  .header-actions .btn-primary,
-  .header-actions .btn-secondary {
-    flex: 1;
-  }
-
-  .overview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem;
-    margin-bottom: 1.75rem;
-  }
-
-  .stat-card {
-    padding: 0.85rem;
-  }
-
-  .stat-description {
-    display: none;
-  }
-
-  .dashboard-section {
-    margin-bottom: 1.75rem;
-  }
-
-  .section-header {
-    align-items: flex-end;
-  }
-
-  .source-badge {
-    display: none;
-  }
-
-  .project-grid-compact {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem;
-  }
-
-  .project-card-compact,
-  .new-project-card {
-    min-height: 130px;
-    padding: 0.85rem;
-  }
-
-  .inline-empty-state {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .inline-empty-state .btn-primary,
-  .inline-empty-state .btn-secondary {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .model-list {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* Weather section */
 .weather-section {
   max-width: 1100px;
@@ -1325,32 +1236,276 @@ onUnmounted(() => {
 
 @media (max-width: 620px) {
   .weather-card {
-    gap: 0.85rem;
-    padding: 1rem;
+    gap: 0.6rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
   }
 
   .weather-icon {
-    width: 42px;
-    height: 42px;
-    font-size: 1.55rem;
-    border-radius: 12px;
+    width: 34px;
+    height: 34px;
+    font-size: 1.25rem;
+    border-radius: 10px;
+  }
+
+  .weather-city {
+    font-size: 12px;
+  }
+
+  .weather-condition {
+    font-size: 11px;
   }
 
   .weather-temperature {
-    font-size: 2.2rem;
+    font-size: 1.7rem;
   }
 
   .weather-details {
     grid-template-columns: 1fr 1fr;
-    gap: 0.55rem 0.75rem;
-    font-size: 10px;
+    gap: 0.4rem 0.6rem;
+    padding-top: 0.6rem;
+    font-size: 9px;
   }
 
   .weather-details span:last-child {
     grid-column: 1 / -1;
-    padding-top: 0.55rem;
+    padding-top: 0.4rem;
     text-align: left;
     border-top: 1px solid var(--color-border);
+  }
+}
+
+@media (max-width: 900px) {
+  .overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .dashboard-view {
+    padding: 0.85rem 0.75rem 1.5rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-heading {
+    gap: 0.6rem;
+  }
+
+  .header-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+  }
+
+  .header-icon :deep(svg) {
+    width: 18px;
+    height: 18px;
+  }
+
+  .eyebrow,
+  .section-kicker {
+    font-size: 0.62rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .header-description {
+    margin-top: 0.3rem;
+    font-size: 12px;
+  }
+
+  .header-actions {
+    width: 100%;
+    gap: 0.4rem;
+    margin-top: 0;
+  }
+
+  .header-actions .btn-primary,
+  .header-actions .btn-secondary {
+    flex: 1;
+    min-height: 32px;
+    padding: 0.4rem 0.6rem;
+    font-size: 11px;
+  }
+
+  .overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .stat-card {
+    padding: 0.6rem;
+    border-radius: var(--radius-md);
+  }
+
+  .stat-label {
+    font-size: 0.58rem;
+  }
+
+  .stat-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+  }
+
+  .stat-icon :deep(svg) {
+    width: 12px;
+    height: 12px;
+  }
+
+  .stat-value {
+    margin-top: 0.5rem;
+    font-size: 1.25rem;
+  }
+
+  .stat-description {
+    display: none;
+  }
+
+  .dashboard-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .section-header {
+    align-items: flex-end;
+    margin-bottom: 0.55rem;
+  }
+
+  .section-header h2 {
+    font-size: 0.9rem;
+  }
+
+  .link-btn {
+    font-size: 11px;
+  }
+
+  .recent-chat-item {
+    gap: 0.55rem;
+    padding: 0.55rem 0.65rem;
+  }
+
+  .recent-chat-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+  }
+
+  .recent-chat-icon :deep(svg) {
+    width: 14px;
+    height: 14px;
+  }
+
+  .recent-chat-title {
+    font-size: 12px;
+  }
+
+  .recent-chat-meta {
+    font-size: 9px;
+  }
+
+  .source-badge {
+    display: none;
+  }
+
+  .project-grid-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .project-card-compact,
+  .new-project-card {
+    min-height: 105px;
+    padding: 0.6rem;
+    border-radius: var(--radius-md);
+  }
+
+  .project-icon,
+  .new-project-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 0.9rem;
+    border-radius: 7px;
+  }
+
+  .project-arrow {
+    width: 19px;
+    height: 19px;
+    font-size: 0.65rem;
+  }
+
+  .project-name {
+    margin-top: 0.5rem;
+    font-size: 12px;
+  }
+
+  .tag-chip {
+    padding: 0.15rem 0.35rem;
+    font-size: 9px;
+  }
+
+  .project-chat-count {
+    font-size: 9px;
+  }
+
+  .new-project-card span:last-child {
+    font-size: 11px;
+  }
+
+  .model-list {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .model-item {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .model-name {
+    font-size: 10px;
+  }
+
+  .model-status-label {
+    font-size: 9px;
+  }
+
+  .inline-empty-state {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    min-height: 0;
+    padding: 0.75rem;
+  }
+
+  .inline-empty-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  .inline-empty-state h3 {
+    font-size: 12px;
+  }
+
+  .inline-empty-state p {
+    font-size: 11px;
+  }
+
+  .inline-empty-state .btn-primary,
+  .inline-empty-state .btn-secondary {
+    width: 100%;
+    min-height: 34px;
+    padding: 0.45rem 0.6rem;
+    margin-left: 0;
+    font-size: 11px;
   }
 }
 </style>

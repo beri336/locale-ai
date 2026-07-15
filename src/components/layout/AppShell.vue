@@ -563,7 +563,7 @@ watch(isMobileMenuOpen, (isOpen) => {
   .content {
     height: 100%;
     min-height: 0;
-    padding-bottom: calc(66px + env(safe-area-inset-bottom));
+    padding-bottom: calc(58px + env(safe-area-inset-bottom));
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -576,7 +576,7 @@ watch(isMobileMenuOpen, (isOpen) => {
     left: 0;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    min-height: calc(62px + env(safe-area-inset-bottom));
+    min-height: calc(56px + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
     background: color-mix(in srgb, var(--color-surface) 92%, transparent);
     border-top: 1px solid var(--color-border);
@@ -588,13 +588,13 @@ watch(isMobileMenuOpen, (isOpen) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.2rem;
+    gap: 0.15rem;
     min-width: 0;
-    min-height: 58px;
-    padding: 0.35rem 0.25rem;
+    min-height: 52px;
+    padding: 0.3rem 0.2rem;
     color: var(--color-text-faint);
     font-family: inherit;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     line-height: 1.1;
     text-decoration: none;
@@ -606,13 +606,13 @@ watch(isMobileMenuOpen, (isOpen) => {
 
   .bottom-nav-icon {
     display: grid;
-    width: 22px;
-    height: 22px;
+    width: 19px;
+    height: 19px;
     place-items: center;
   }
 
   .more-icon {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     letter-spacing: 1px;
   }
 
@@ -647,21 +647,21 @@ watch(isMobileMenuOpen, (isOpen) => {
     bottom: 0;
     left: 0;
     display: block;
-    max-height: min(78dvh, 580px);
-    padding: 0.5rem 1rem calc(1rem + env(safe-area-inset-bottom));
+    max-height: min(72dvh, 520px);
+    padding: 0.4rem 0.85rem calc(0.85rem + env(safe-area-inset-bottom));
     overflow-y: auto;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-bottom: 0;
-    border-radius: 22px 22px 0 0;
+    border-radius: 18px 18px 0 0;
     box-shadow: 0 -18px 44px rgb(0 0 0 / 0.16);
     -webkit-overflow-scrolling: touch;
   }
 
   .sheet-handle {
-    width: 36px;
-    height: 4px;
-    margin: 0 auto 1rem;
+    width: 32px;
+    height: 3px;
+    margin: 0 auto 0.75rem;
     background: var(--color-border);
     border-radius: var(--radius-full);
   }
@@ -671,13 +671,13 @@ watch(isMobileMenuOpen, (isOpen) => {
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    padding: 0 0.35rem 0.9rem;
+    padding: 0 0.25rem 0.65rem;
   }
 
   .sheet-eyebrow {
     margin: 0 0 0.15rem;
     color: var(--color-text-faint);
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -686,20 +686,20 @@ watch(isMobileMenuOpen, (isOpen) => {
   .sheet-header h2 {
     margin: 0;
     color: var(--color-text);
-    font-size: 1.15rem;
+    font-size: 1rem;
     font-weight: 700;
     letter-spacing: -0.025em;
   }
 
   .sheet-close-btn {
     display: grid;
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     place-items: center;
     padding: 0;
     color: var(--color-text-muted);
     font-family: inherit;
-    font-size: 1.35rem;
+    font-size: 1.1rem;
     line-height: 1;
     cursor: pointer;
     background: var(--color-surface-2);
@@ -712,13 +712,13 @@ watch(isMobileMenuOpen, (isOpen) => {
   .sheet-theme-btn {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.55rem;
     width: 100%;
-    min-height: 52px;
-    padding: 0.7rem;
+    min-height: 44px;
+    padding: 0.55rem;
     color: var(--color-text);
     font-family: inherit;
-    font-size: var(--text-sm);
+    font-size: 12px;
     font-weight: 600;
     text-align: left;
     text-decoration: none;
@@ -743,21 +743,21 @@ watch(isMobileMenuOpen, (isOpen) => {
 
   .sheet-item-icon {
     display: grid;
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     flex: 0 0 auto;
     place-items: center;
     color: var(--color-primary);
     background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-    border-radius: 8px;
+    border-radius: 7px;
   }
 
   .sheet-item-hint,
   .theme-state {
-    padding: 0.2rem 0.4rem;
+    padding: 0.15rem 0.35rem;
     margin-left: auto;
     color: var(--color-text-faint);
-    font-size: 10px;
+    font-size: 9px;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 5px;
@@ -766,14 +766,23 @@ watch(isMobileMenuOpen, (isOpen) => {
   .sheet-arrow {
     margin-left: auto;
     color: var(--color-text-faint);
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     line-height: 1;
   }
 
   .sheet-divider {
     height: 1px;
-    margin: 0.55rem 0;
+    margin: 0.4rem 0;
     background: var(--color-border);
+  }
+
+  .nav-icon :deep(svg),
+  .theme-toggle :deep(svg),
+  .sheet-item-icon :deep(svg),
+  .bottom-nav-icon :deep(svg) {
+    width: 18px;
+    height: 18px;
+    display: block;
   }
 
   .fade-enter-active,

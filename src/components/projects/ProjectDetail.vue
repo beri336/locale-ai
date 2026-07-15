@@ -723,17 +723,25 @@ onMounted(async () => {
   margin-top: 0.35rem;
 }
 
+@media (pointer: coarse) {
+  .model-select {
+    font-size: 16px;
+  }
+}
+
 @media (max-width: 760px) {
   .project-sidebar {
-    width: 224px;
+    width: 200px;
+    padding: 0.75rem;
   }
 
   .chat-main {
-    padding: 1rem;
+    padding: 0.85rem;
   }
 
   .model-select {
-    min-width: 150px;
+    min-width: 130px;
+    font-size: 11px;
   }
 }
 
@@ -748,34 +756,148 @@ onMounted(async () => {
     top: 0;
     bottom: 0;
     left: 0;
-    width: min(82vw, 290px);
+    width: min(80vw, 260px);
+    padding: 0.75rem;
+    gap: 0.65rem;
     box-shadow: 12px 0 28px rgb(0 0 0 / 0.12);
   }
 
   .project-sidebar.collapsed {
-    width: 48px;
-    padding: 0.75rem 0.45rem;
+    width: 42px;
+    padding: 0.6rem 0.35rem;
     box-shadow: 4px 0 14px rgb(0 0 0 / 0.07);
   }
 
+  .back-btn {
+    font-size: 10px;
+  }
+
+  .sidebar-toggle-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .project-summary {
+    gap: 0.5rem;
+    padding-top: 0.25rem;
+  }
+
+  .project-summary-icon {
+    width: 26px;
+    height: 26px;
+    font-size: 1rem;
+    border-radius: 8px;
+  }
+
+  .sidebar-eyebrow,
+  .chat-header-eyebrow {
+    font-size: 0.58rem;
+  }
+
+  .project-name {
+    font-size: 13px;
+  }
+
+  .project-description {
+    font-size: 10px;
+  }
+
+  .tag-chip {
+    padding: 0.15rem 0.35rem;
+    font-size: 9px;
+  }
+
+  .chats-heading {
+    font-size: 0.58rem;
+  }
+
+  .chat-count {
+    min-width: 15px;
+    height: 15px;
+    font-size: 9px;
+  }
+
+  .new-chat-btn {
+    min-height: 30px;
+    padding: 0.4rem 0.6rem;
+    font-size: 11px;
+  }
+
+  .sidebar-empty-state p {
+    font-size: 10px;
+  }
+
+  .sidebar-empty-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 0.85rem;
+  }
+
+  .collapsed-new-chat-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 1.05rem;
+  }
+
   .chat-main {
-    padding: 1rem 1rem 1rem 3.9rem;
+    gap: 0.65rem;
+    padding: 0.75rem 0.75rem 0.75rem 3.4rem;
   }
 
   .chat-header {
     align-items: flex-start;
     flex-direction: column;
-    gap: 0.7rem;
+    gap: 0.5rem;
+  }
+
+  .chat-header h2 {
+    font-size: 1rem;
   }
 
   .model-select {
     width: 100%;
     max-width: none;
+    padding: 0.45rem 2rem 0.45rem 0.6rem;
+    font-size: 12px;
   }
 
   .project-sidebar:not(.collapsed) + .chat-main {
     filter: brightness(0.82);
     pointer-events: none;
+  }
+
+  .empty-project-chat-state {
+    gap: 0.5rem;
+    padding: 1.25rem;
+  }
+
+  .empty-project-chat-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .empty-project-chat-state h3 {
+    font-size: 13px;
+  }
+
+  .empty-project-chat-state p {
+    font-size: 12px;
+  }
+
+  .not-found-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 1.4rem;
+  }
+
+  .not-found-state h1 {
+    font-size: 1.05rem;
+  }
+
+  .not-found-state p {
+    font-size: 12px;
   }
 }
 </style>
