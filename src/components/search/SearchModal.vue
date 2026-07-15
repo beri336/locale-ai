@@ -4,7 +4,9 @@
   <div v-if="isOpen" class="search-overlay" @click.self="closeSearchModal">
     <div class="search-modal">
       <div class="search-input-row">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon" aria-hidden="true">
+          <IconSearch :size="16" :stroke-width="1.8" />
+        </span>
         <input
           ref="searchInput"
           v-model="query"
@@ -57,6 +59,7 @@ import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useSearchModal } from "@/composables/useSearchModal";
 import { searchAllChats } from "@/composables/useChatSearch";
+import { IconSearch } from "@tabler/icons-vue";
 
 const router = useRouter();
 const { isOpen, openSearchModal, closeSearchModal } = useSearchModal();

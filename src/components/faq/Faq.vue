@@ -216,7 +216,7 @@
                   </p>
 
                   <CodeBlock
-                    >API-URL: http://&lt;IP-von-Rechner-A&gt;:11434</CodeBlock
+                    >API-URL: http://&lt;Computer-IP-Address-A&gt;:11434</CodeBlock
                   >
 
                   <p class="muted">
@@ -265,7 +265,7 @@
                 </div>
 
                 <CodeBlock
-                  >curl http://&lt;ziel-ip&gt;:11434/api/tags</CodeBlock
+                  >curl http://&lt;destination-IP&gt;:11434/api/tags</CodeBlock
                 >
 
                 <p class="muted">

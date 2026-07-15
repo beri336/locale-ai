@@ -100,7 +100,12 @@
       <article class="stat-card">
         <div class="stat-card-header">
           <span class="stat-label">All chats</span>
-          <span class="stat-icon" aria-hidden="true">◌</span>
+          <IconChat
+            class="stat-icon"
+            :size="20"
+            :stroke-width="2"
+            aria-hidden="true"
+          />
         </div>
 
         <strong class="stat-value">{{ totalChats }}</strong>
@@ -116,7 +121,12 @@
       <article class="stat-card">
         <div class="stat-card-header">
           <span class="stat-label">Projects</span>
-          <span class="stat-icon" aria-hidden="true">□</span>
+          <IconFolder
+            class="stat-icon"
+            :size="20"
+            :stroke-width="2"
+            aria-hidden="true"
+          />
         </div>
 
         <strong class="stat-value">{{ totalProjects }}</strong>
@@ -128,7 +138,12 @@
       <article class="stat-card">
         <div class="stat-card-header">
           <span class="stat-label">Messages</span>
-          <span class="stat-icon" aria-hidden="true">⌁</span>
+          <IconMessages
+            class="stat-icon"
+            :size="20"
+            :stroke-width="2"
+            aria-hidden="true"
+          />
         </div>
 
         <strong class="stat-value">{{ totalMessages }}</strong>
@@ -183,7 +198,11 @@
           @click="goToChat(chat)"
         >
           <span class="recent-chat-icon" aria-hidden="true">
-            {{ chat.source === "project" ? "□" : "◌" }}
+            <component
+              :is="chat.source === 'project' ? IconFolder : IconMessages"
+              :size="18"
+              :stroke-width="2"
+            />
           </span>
 
           <span class="recent-chat-info">
@@ -203,7 +222,9 @@
       </div>
 
       <div v-else class="inline-empty-state">
-        <div class="inline-empty-icon" aria-hidden="true">◌</div>
+        <div class="inline-empty-icon" aria-hidden="true">
+          <IconMessages :size="40" :stroke-width="1.5" />
+        </div>
         <div>
           <h3>No conversations yet</h3>
           <p>Start a new chat to begin working with your local models.</p>
@@ -213,7 +234,7 @@
           type="button"
           @click="router.push({ path: '/chat', query: { new: 'true' } })"
         >
-          <span aria-hidden="true">+</span>
+          <IconPlus :size="18" :stroke-width="2" aria-hidden="true" />
           New chat
         </button>
       </div>
@@ -278,7 +299,9 @@
       </div>
 
       <div v-else class="inline-empty-state">
-        <div class="inline-empty-icon" aria-hidden="true">□</div>
+        <div class="inline-empty-icon" aria-hidden="true">
+          <IconFolder :size="40" :stroke-width="1.5" />
+        </div>
         <div>
           <h3>No projects yet</h3>
           <p>Group related chats, prompts and experiments in one workspace.</p>
@@ -288,7 +311,7 @@
           type="button"
           @click="$router.push('/projects')"
         >
-          <span aria-hidden="true">+</span>
+          <IconPlus :size="18" :stroke-width="2" aria-hidden="true" />
           Create project
         </button>
       </div>
@@ -370,6 +393,10 @@ import { searchAllChats } from "@/composables/useChatSearch";
 import IconHome from "@/components/icons/IconHome.vue";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useWeather } from "@/composables/useWeather";
+import IconChat from "@/components/icons/IconChat.vue";
+import IconFolder from "@/components/icons/IconFolder.vue";
+import IconMessages from "@/components/icons/IconMessages.vue";
+import IconPlus from "@/components/icons/IconPlus.vue";
 
 const router = useRouter();
 const ollama = useOllamaStore();
@@ -396,7 +423,6 @@ function formatWeatherTime(isoString) {
 const modelNames = ref([]);
 const ollamaOnline = ref(false);
 const allChatsData = ref([]);
-
 const runningModels = ref([]);
 
 const recentChats = computed(() => allChatsData.value.slice(0, 5));
@@ -435,24 +461,38 @@ function formatDate(isoString) {
 
 let pollInterval = null;
 
-onMounted(async () => {
-  fetchWeather(settingsStore.weatherCity);
+// Centralized loading function, reusable for both Mount and manual refresh
+async function loadDashboardData() {
   allChatsData.value = searchAllChats("");
 
   try {
     modelNames.value = await ollama.getListOfModelsName();
-    ollamaOnline.value = true;
+    ollamaOnline.value = await ollama.checkConnection();
     runningModels.value = await ollama.refreshRunningModelNames();
   } catch (error) {
     console.error("Ollama server not reachable:", error);
     ollamaOnline.value = false;
   }
+}
+
+onMounted(async () => {
+  fetchWeather(settingsStore.weatherCity);
+  await loadDashboardData();
+
+  allChatsData.value = searchAllChats("");
+
   pollInterval = setInterval(async () => {
     if (ollamaOnline.value) {
       runningModels.value = await ollama.refreshRunningModelNames();
     }
   }, 5000);
 });
+
+// Called after data changes (e.g., settings update) -
+// updates only the reactive refs; NO window.location.reload()
+async function reloadAfterDataChange() {
+  await loadDashboardData();
+}
 
 onUnmounted(() => {
   if (pollInterval) clearInterval(pollInterval);

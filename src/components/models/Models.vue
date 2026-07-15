@@ -49,7 +49,7 @@
                 class="status-dot"
                 :class="isConnectedBool ? 'connected' : 'disconnected'"
               ></span>
-              {{ isConnected }}
+              {{ isConnectedStatus }}
             </span>
           </div>
 
@@ -397,7 +397,11 @@ const isRemoving = ref(false);
 
 //const pullProgress = ref(null);
 
-const isConnectedBool = computed(() => isConnected.value === "Connected");
+const isConnectedStatus = computed(() =>
+  isConnected.value ? "Connected" : "Disconnected"
+);
+
+const isConnectedBool = computed(() => isConnected.value === true);
 
 async function refreshInstalledModels() {
   installedNames.value = await ollama.refreshListOfModelsName();
@@ -468,7 +472,7 @@ async function loadAllData() {
   try {
     baseUrl.value = ollama.getBaseUrl();
     isInstalled.value = await ollama.checkIsInstalled();
-    isConnected.value = await ollama.checkIsConnected();
+    isConnected.value = await ollama.checkConnection();
     modelNames.value = await ollama.getListOfModelsName();
     modelNamesLength.value = modelNames.value.length;
     detailedModels.value = await ollama.getDetailedListOfModels();

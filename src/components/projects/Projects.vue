@@ -22,7 +22,7 @@
         type="button"
         @click="openCreateModal"
       >
-        <span aria-hidden="true">+</span>
+        <IconPlus :size="18" :stroke-width="2" aria-hidden="true" />
         New project
       </button>
     </header>
@@ -113,11 +113,13 @@
     </div>
 
     <section v-else class="empty-state">
-      <div class="empty-state-icon" aria-hidden="true">□</div>
+      <div class="empty-state-icon" aria-hidden="true">
+        <IconFolder :size="40" :stroke-width="1.5" />
+      </div>
       <h2>No projects yet</h2>
       <p>Create a project to group related chats, prompts and experiments.</p>
       <button class="btn-primary" type="button" @click="openCreateModal">
-        <span aria-hidden="true">+</span>
+        <IconPlus :size="18" :stroke-width="2" aria-hidden="true" />
         Create your first project
       </button>
     </section>
@@ -227,6 +229,7 @@ import { ref, computed, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 import IconFolder from "@/components/icons/IconFolder.vue";
+import IconPlus from "@/components/icons/IconPlus.vue";
 
 const router = useRouter();
 const projectsStore = useProjectsStore();

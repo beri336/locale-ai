@@ -475,6 +475,7 @@ export function useOllamaStore() {
         setBaseUrl,
         getBaseUrl,
         checkIsInstalled,
+        checkConnection,
         checkIsConnected,
         getVersion,
         getDetailedListOfModels,

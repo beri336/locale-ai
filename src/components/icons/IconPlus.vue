@@ -1,4 +1,4 @@
-<!-- src/components/icons/IconChat.vue -->
+<!-- src/components/icons/IconPlus.vue -->
 
 <template>
   <svg
@@ -11,13 +11,12 @@
     :stroke-width="strokeWidth"
     stroke-linecap="round"
     stroke-linejoin="round"
-    class="icon icon-tabler icon-tabler-message-circle"
+    class="icon icon-tabler icon-tabler-plus"
     aria-hidden="true"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-    <path
-      d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.615c3.526 -2.743 8.59 -2.663 12.017 .19c3.427 2.853 3.783 7.286 .84 10.56c-1.716 1.925 -4.44 2.978 -7.176 2.798a8.716 8.716 0 0 1 -2.16 -.4z"
-    />
+    <path d="M12 5l0 14" />
+    <path d="M5 12l14 0" />
   </svg>
 </template>
 
