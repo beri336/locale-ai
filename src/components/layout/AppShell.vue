@@ -81,6 +81,15 @@
         </RouterLink>
 
         <RouterLink
+          to="/archive"
+          class="nav-item"
+          :title="isCollapsed ? 'Archive' : ''"
+        >
+          <span class="nav-icon"><IconArchive /></span>
+          <span v-if="!isCollapsed" class="nav-label">Archive</span>
+        </RouterLink>
+
+        <RouterLink
           to="/settings"
           class="nav-item"
           :title="isCollapsed ? 'Settings' : ''"
@@ -180,6 +189,16 @@
         </RouterLink>
 
         <RouterLink
+          to="/archive"
+          class="sheet-nav-item"
+          @click="closeMobileMenu"
+        >
+          <span class="sheet-item-icon"><IconArchive /></span>
+          <span>Archive</span>
+          <span class="sheet-arrow" aria-hidden="true">›</span>
+        </RouterLink>
+
+        <RouterLink
           to="/settings"
           class="sheet-nav-item"
           @click="closeMobileMenu"
@@ -264,6 +283,7 @@ import IconSun from "@/components/icons/IconSun.vue";
 import IconFaq from "@/components/icons/IconFaq.vue";
 import IconSearch from "@/components/icons/IconSearch.vue";
 import IconX from "@/components/icons/IconX.vue";
+import IconArchive from "@/components/icons/IconArchive.vue";
 
 const themeStore = useThemeStore();
 const { openSearchModal } = useSearchModal();

@@ -57,7 +57,10 @@
 
         <div class="chats-heading">
           <span>Chats</span>
-          <span class="chat-count">{{ project.chats.length }}</span>
+          <span class="chat-count">Total: {{ project.chats.length }}</span>
+          <span class="chat-count"
+            >Visible: {{ sortedVisibleChats.length }}</span
+          >
         </div>
 
         <button
@@ -73,7 +76,7 @@
 
         <div class="chat-list">
           <ChatListItem
-            v-for="chat in project.chats"
+            v-for="chat in sortedVisibleChats"
             :key="chat.id"
             :chat="chat"
             :is-active="chat.id === activeChatId"
@@ -81,9 +84,15 @@
             @select="selectChat(chat.id)"
             @delete="handleDeleteChat(chat.id)"
             @rename="(newTitle) => renameChat(chat, newTitle)"
+            @toggle-pin="projectsStore.toggleChatPin(project.id, chat.id)"
+            @archive="handleArchiveChat(chat.id)"
           />
 
-          <div v-if="project.chats.length === 0" class="sidebar-empty-state">
+          <div v-if="project.chats.length === 0" class="sidebar-empty-state" />
+          <div
+            v-if="sortedVisibleChats.length === 0"
+            class="sidebar-empty-state"
+          >
             <span class="sidebar-empty-icon" aria-hidden="true"
               ><IconChat :size="20" :stroke-width="2"></IconChat
             ></span>
@@ -245,6 +254,19 @@ function handleDeleteChat(id) {
   if (activeChatId.value === id) {
     activeChatId.value = project.value.chats[0]?.id || null;
   }
+}
+
+const sortedVisibleChats = computed(() => {
+  if (!project.value) return [];
+  return projectsStore.sortChatsByPin(
+    projectsStore.getVisibleChats(project.value),
+  );
+});
+
+function handleArchiveChat(chatId) {
+  projectsStore.toggleChatArchive(project.value.id, chatId);
+  if (activeChatId.value === chatId)
+    activeChatId.value = sortedVisibleChats.value[0]?.id || null;
 }
 
 async function scrollToBottom() {
