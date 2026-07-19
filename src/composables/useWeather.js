@@ -4,6 +4,8 @@ import { ref } from "vue";
 
 const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 const WEATHER_URL = "https://api.open-meteo.com/v1/forecast";
+const REQUEST_TIMEOUT_MS = 8000;
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 const weatherCodeMap = {
     0: { label: "Clear sky", icon: "☀️" },
@@ -29,6 +31,8 @@ const weatherCodeMap = {
     99: { label: "Thunderstorm with hail", icon: "⛈️" },
 };
 
+const cache = new Map();
+
 function getWeatherDetails(code) {
     return weatherCodeMap[code] ?? {
         label: "Unknown weather",
@@ -36,32 +40,58 @@ function getWeatherDetails(code) {
     };
 }
 
+async function fetchWithTimeout(url, signal) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    signal?.addEventListener("abort", () => controller.abort());
+
+    try {
+        return await fetch(url, { signal: controller.signal });
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
 export function useWeather() {
     const weather = ref(null);
     const isLoading = ref(false);
     const error = ref("");
 
+    let currentController = null;
+
     async function fetchWeather(city) {
         const normalizedCity = city?.trim() || "Stuttgart";
+        const cacheKey = normalizedCity.toLowerCase();
+
+        const cached = cache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+            weather.value = cached.data;
+            error.value = "";
+            return;
+        }
+
+        currentController?.abort();
+        currentController = new AbortController();
+        const { signal } = currentController;
 
         isLoading.value = true;
         error.value = "";
 
         try {
-            const geocodingResponse = await fetch(
+            const geocodingResponse = await fetchWithTimeout(
                 `${GEOCODING_URL}?name=${encodeURIComponent(normalizedCity)}&count=1&language=en&format=json`,
+                signal,
             );
 
-            if (!geocodingResponse.ok) {
+            if (!geocodingResponse.ok)
                 throw new Error("Could not find the city.");
-            }
 
             const geocodingData = await geocodingResponse.json();
             const location = geocodingData.results?.[0];
 
-            if (!location) {
+            if (!location)
                 throw new Error(`No location found for "${normalizedCity}".`);
-            }
 
             const params = new URLSearchParams({
                 latitude: location.latitude,
@@ -70,17 +100,16 @@ export function useWeather() {
                 timezone: "auto",
             });
 
-            const weatherResponse = await fetch(`${WEATHER_URL}?${params}`);
+            const weatherResponse = await fetchWithTimeout(`${WEATHER_URL}?${params}`, signal);
 
-            if (!weatherResponse.ok) {
+            if (!weatherResponse.ok)
                 throw new Error("Could not load the weather.");
-            }
 
             const weatherData = await weatherResponse.json();
             const current = weatherData.current;
             const details = getWeatherDetails(current.weather_code);
 
-            weather.value = {
+            const result = {
                 city: location.name,
                 country: location.country,
                 temperature: Math.round(current.temperature_2m),
@@ -89,13 +118,28 @@ export function useWeather() {
                 updatedAt: current.time,
                 ...details,
             };
+
+            if (signal.aborted)
+                return;
+
+            cache.set(cacheKey, { data: result, timestamp: Date.now() });
+            weather.value = result;
         } catch (fetchError) {
+            if (fetchError.name === "AbortError")
+                return;
+
             console.error("Failed to fetch weather:", fetchError);
             weather.value = null;
             error.value = fetchError.message || "Could not load weather.";
         } finally {
-            isLoading.value = false;
+            if (!signal.aborted || currentController.signal === signal)
+                isLoading.value = false;
         }
+    }
+
+    function cancelFetch() {
+        currentController?.abort();
+        isLoading.value = false;
     }
 
     return {
@@ -103,5 +147,6 @@ export function useWeather() {
         isLoading,
         error,
         fetchWeather,
+        cancelFetch,
     };
 }

@@ -423,9 +423,10 @@ import { useOllamaStore } from "@/stores/useOllamaStore";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 import { useSearchModal } from "@/composables/useSearchModal";
 import { useChatSearch } from "@/composables/useChatSearch";
-import IconHome from "@/components/icons/IconHome.vue";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useWeather } from "@/composables/useWeather";
+
+import IconHome from "@/components/icons/IconHome.vue";
 import IconChat from "@/components/icons/IconChat.vue";
 import IconFolder from "@/components/icons/IconFolder.vue";
 import IconMessages from "@/components/icons/IconMessages.vue";
