@@ -9,9 +9,10 @@
         </span>
         <input
           ref="searchInput"
-          v-model="query"
+          :value="searchQuery"
           class="search-input"
           placeholder="Search chats…"
+          @input="setSearchQuery($event.target.value)"
           @keydown.esc="closeSearchModal"
         />
         <kbd class="esc-hint">Esc</kbd>
@@ -55,27 +56,22 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
+import { watch, nextTick, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useSearchModal } from "@/composables/useSearchModal";
-import { searchAllChats } from "@/composables/useChatSearch";
-import { IconSearch } from "@tabler/icons-vue";
+import { useChatSearch } from "@/composables/useChatSearch";
+import IconSearch from "@/components/icons/IconSearch.vue";
 
 const router = useRouter();
-const { isOpen, openSearchModal, closeSearchModal } = useSearchModal();
 
-const query = ref("");
-const results = ref([]);
+const { isOpen, closeSearchModal } = useSearchModal();
+const { searchQuery, setSearchQuery, results } = useChatSearch();
+
 const searchInput = ref(null);
-
-watch(query, (value) => {
-  results.value = searchAllChats(value).slice(0, 20);
-});
 
 watch(isOpen, async (open) => {
   if (open) {
-    query.value = "";
-    results.value = searchAllChats("").slice(0, 20);
+    setSearchQuery("");
     await nextTick();
     searchInput.value?.focus();
   }
@@ -83,29 +79,13 @@ watch(isOpen, async (open) => {
 
 function goToChat(result) {
   if (result.source === "project") {
-    router.push(`/projects/${result.projectId}?chat=${result.id}`);
+    router.push(`/projects/${result.projectId}?chat=${result.chatId}`);
   } else {
-    router.push(`/chat?chat=${result.id}`);
+    router.push(`/chat?chat=${result.chatId}`);
   }
 
   closeSearchModal();
 }
-function handleKeydown(event) {
-  const key = event.key.toLowerCase();
-
-  if ((event.metaKey || event.ctrlKey) && key === "k") {
-    event.preventDefault();
-    openSearchModal();
-  }
-}
-
-onMounted(() => {
-  window.addEventListener("keydown", handleKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeydown);
-});
 </script>
 
 <style scoped>

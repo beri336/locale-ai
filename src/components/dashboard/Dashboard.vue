@@ -422,7 +422,7 @@ import { useRouter } from "vue-router";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 import { useSearchModal } from "@/composables/useSearchModal";
-import { searchAllChats } from "@/composables/useChatSearch";
+import { useChatSearch } from "@/composables/useChatSearch";
 import IconHome from "@/components/icons/IconHome.vue";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useWeather } from "@/composables/useWeather";
@@ -443,7 +443,7 @@ import IconCloud from "@/components/icons/IconCloud.vue";
 const router = useRouter();
 const ollama = useOllamaStore();
 const projectsStore = useProjectsStore();
-const { openSearchModal } = useSearchModal();
+const { openSearchModal } = useSearchModal({ enableShortcut: false });
 
 const settingsStore = useSettingsStore();
 const {
@@ -452,6 +452,8 @@ const {
   error: weatherError,
   fetchWeather,
 } = useWeather();
+
+const { results: allChats } = useChatSearch();
 
 function formatWeatherTime(isoString) {
   if (!isoString) return "";
@@ -467,7 +469,7 @@ const ollamaOnline = ref(false);
 const allChatsData = ref([]);
 const runningModels = ref([]);
 
-const recentChats = computed(() => allChatsData.value.slice(0, 5));
+const recentChats = computed(() => allChats.value.slice(0, 5));
 
 const recentProjects = computed(() =>
   [...projectsStore.getAllProjects()]
@@ -475,22 +477,18 @@ const recentProjects = computed(() =>
     .slice(0, 4),
 );
 
-const totalChats = computed(() => allChatsData.value.length);
+const totalChats = computed(() => allChats.value.length);
 const totalProjects = computed(() => projectsStore.getAllProjects().length);
 
 const totalMessages = computed(() =>
-  allChatsData.value.reduce((sum, entry) => {
-    const chat = entry.chat ?? entry;
-
-    return sum + (chat.messages?.length ?? 0);
-  }, 0),
+  allChats.value.reduce((sum, chat) => sum + (chat.messages?.length ?? 0), 0),
 );
 
 function goToChat(chat) {
   if (chat.source === "project") {
-    router.push(`/projects/${chat.projectId}`);
+    router.push(`/projects/${chat.projectId}?chat=${chat.chatId}`);
   } else {
-    router.push("/chat");
+    router.push(`/chat?chat=${chat.chatId}`);
   }
 }
 
@@ -503,10 +501,7 @@ function formatDate(isoString) {
 
 let pollInterval = null;
 
-// Centralized loading function, reusable for both Mount and manual refresh
-async function loadDashboardData() {
-  allChatsData.value = searchAllChats("");
-
+async function loadOllamaStatus() {
   try {
     modelNames.value = await ollama.getListOfModelsName();
     ollamaOnline.value = await ollama.checkConnection();
@@ -519,9 +514,7 @@ async function loadDashboardData() {
 
 onMounted(async () => {
   fetchWeather(settingsStore.weatherCity);
-  await loadDashboardData();
-
-  allChatsData.value = searchAllChats("");
+  await loadOllamaStatus();
 
   pollInterval = setInterval(async () => {
     if (ollamaOnline.value) {
@@ -529,12 +522,6 @@ onMounted(async () => {
     }
   }, 5000);
 });
-
-// Called after data changes (e.g., settings update) -
-// updates only the reactive refs; NO window.location.reload()
-async function reloadAfterDataChange() {
-  await loadDashboardData();
-}
 
 onUnmounted(() => {
   if (pollInterval) clearInterval(pollInterval);

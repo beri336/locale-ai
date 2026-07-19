@@ -1,9 +1,11 @@
 // src/composables/useChatSearch.js
 
+import { ref, computed } from "vue";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 
 const CHAT_STORAGE_KEY = "ollama-chats";
 const MAX_SNIPPET_LENGTH = 150;
+const DEBOUNCE_MS = 200;
 
 function normalize(value = "") {
     return String(value).toLocaleLowerCase().trim();
@@ -22,21 +24,20 @@ function getGlobalChats() {
 }
 
 function getMessageText(message) {
-    if (typeof message === "string") return message;
+    if (typeof message === "string")
+        return message;
 
     return message?.content ?? message?.text ?? message?.message ?? "";
 }
 
 function getSnippet(text, query) {
     const source = String(text).replace(/\s+/g, " ").trim();
-
-    if (!source) return "";
+    if (!source)
+        return "";
 
     const index = normalize(source).indexOf(normalize(query));
-
-    if (index === -1) {
+    if (index === -1)
         return source.slice(0, MAX_SNIPPET_LENGTH);
-    }
 
     const start = Math.max(0, index - 55);
     const end = Math.min(
@@ -97,69 +98,78 @@ function getMatch(chat, project, query) {
     return null;
 }
 
-export function searchAllChats(searchQuery = "") {
-    const query = normalize(searchQuery);
+function buildEntry({ chat, project, source }, match = null) {
+    return {
+        id: `${source}-${chat.id}`,
+        chatId: chat.id,
+        title: chat.title || "Untitled chat",
+        source,
+        projectId: project?.id ?? null,
+        projectName: project?.name ?? null,
+        model: chat.model ?? null,
+        messages: Array.isArray(chat.messages) ? chat.messages : [],
+        matchType: match?.type ?? null,
+        matchLabel: match?.label ?? null,
+        snippet: match?.snippet ?? "",
+        score: match?.score ?? 0,
+        updatedAt: chat.updatedAt ?? chat.createdAt ?? 0,
+    };
+}
+
+export function useChatSearch() {
     const projectsStore = useProjectsStore();
+    const searchQuery = ref("");
+    let debounceTimer = null;
+    const debouncedQuery = ref("");
 
-    const globalChats = getGlobalChats().map((chat) => ({
-        chat,
-        project: null,
-        source: "global",
-    }));
-
-    const projectChats = projectsStore.getAllProjects().flatMap((project) =>
-        (project.chats ?? []).map((chat) => ({
-            chat,
-            project,
-            source: "project",
-        })),
-    );
-
-    const allChats = [...globalChats, ...projectChats];
-
-    if (!query) {
-        return allChats
-            .map(({ chat, project, source }) => ({
-                id: chat.id,
-                title: chat.title || "Untitled chat",
-                source,
-                projectId: project?.id ?? null,
-                projectName: project?.name ?? null,
-                model: chat.model ?? null,
-                matchType: null,
-                matchLabel: null,
-                snippet: "",
-                updatedAt: chat.updatedAt ?? chat.createdAt ?? 0,
-                messages: Array.isArray(chat.messages) ? chat.messages : [],
-            }))
-            .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    function setSearchQuery(value) {
+        searchQuery.value = value;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            debouncedQuery.value = value;
+        }, DEBOUNCE_MS);
     }
 
-    return allChats
-        .map(({ chat, project, source }) => {
-            const match = getMatch(chat, project, query);
+    const results = computed(() => {
+        const query = normalize(debouncedQuery.value);
 
-            if (!match) return null;
+        const globalChats = getGlobalChats().map((chat) => ({
+            chat,
+            project: null,
+            source: "global",
+        }));
 
-            return {
-                id: chat.id,
-                title: chat.title || "Untitled chat",
-                source,
-                projectId: project?.id ?? null,
-                projectName: project?.name ?? null,
-                model: chat.model ?? null,
-                messages: Array.isArray(chat.messages) ? chat.messages : [],
-                matchType: match.type,
-                matchLabel: match.label,
-                snippet: match.snippet,
-                score: match.score,
-                updatedAt: chat.updatedAt ?? chat.createdAt ?? 0,
-            };
-        })
-        .filter(Boolean)
-        .sort((a, b) => {
-            if (b.score !== a.score) return b.score - a.score;
+        const projectChats = projectsStore.getAllProjects().flatMap((project) =>
+            (project.chats ?? []).map((chat) => ({
+                chat,
+                project,
+                source: "project",
+            })),
+        );
 
-            return new Date(b.updatedAt) - new Date(a.updatedAt);
-        });
+        const allChats = [...globalChats, ...projectChats];
+
+        if (!query) {
+            return allChats
+                .map((entry) => buildEntry(entry))
+                .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        }
+
+        return allChats
+            .map((entry) => {
+                const match = getMatch(entry.chat, entry.project, query);
+                return match ? buildEntry(entry, match) : null;
+            })
+            .filter(Boolean)
+            .sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return new Date(b.updatedAt) - new Date(a.updatedAt);
+            });
+    });
+
+    return {
+        searchQuery,
+        setSearchQuery,
+        results,
+    };
 }
