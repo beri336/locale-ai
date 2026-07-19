@@ -145,7 +145,7 @@
             aria-label="Close navigation menu"
             @click="closeMobileMenu"
           >
-            ×
+            <IconX :size="12" :stroke-width="2" aria-hidden="true" />
           </button>
         </div>
 
@@ -154,7 +154,9 @@
           type="button"
           @click="handleMobileSearch"
         >
-          <span class="sheet-item-icon" aria-hidden="true">⌕</span>
+          <span class="sheet-item-icon" aria-hidden="true">
+            <IconSearch :size="12" :stroke-width="2" aria-hidden="true" />
+          </span>
           <span>Search all chats</span>
           <span class="sheet-item-hint">⌘ K</span>
         </button>
@@ -260,6 +262,8 @@ import IconSettings from "@/components/icons/IconSettings.vue";
 import IconMoon from "@/components/icons/IconMoon.vue";
 import IconSun from "@/components/icons/IconSun.vue";
 import IconFaq from "@/components/icons/IconFaq.vue";
+import IconSearch from "@/components/icons/IconSearch.vue";
+import IconX from "@/components/icons/IconX.vue";
 
 const themeStore = useThemeStore();
 const { openSearchModal } = useSearchModal();

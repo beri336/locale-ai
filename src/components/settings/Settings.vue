@@ -514,7 +514,10 @@
           target="_blank"
           rel="noreferrer"
         >
-          View source code <span aria-hidden="true">↗</span>
+          View source code
+          <span aria-hidden="true"
+            ><IconArrowUpRight :size="12" :stroke-width="2"></IconArrowUpRight
+          ></span>
         </a>
       </section>
     </div>
@@ -532,6 +535,7 @@ import {
   importAppBackup,
   LOCALAI_STORAGE_KEYS,
 } from "@/utils/appBackup";
+import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
 
 const settingsStore = useSettingsStore();
 const themeStore = useThemeStore();

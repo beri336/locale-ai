@@ -19,7 +19,7 @@
 
       <div class="header-actions">
         <button class="btn-secondary" type="button" @click="openSearchModal">
-          <span aria-hidden="true">⌕</span>
+          <IconSearch :size="12" :stroke-width="2" aria-hidden="true" />
           Search chats
         </button>
 
@@ -28,7 +28,7 @@
           type="button"
           @click="router.push({ path: '/chat', query: { new: 'true' } })"
         >
-          <span aria-hidden="true">+</span>
+          <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
           New chat
         </button>
       </div>
@@ -48,7 +48,7 @@
           @click="fetchWeather(settingsStore.weatherCity)"
         >
           Refresh
-          <span aria-hidden="true">↻</span>
+          <IconRefresh :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
       </div>
 
@@ -71,7 +71,10 @@
         </div>
 
         <div class="weather-details">
-          <span>Feels like {{ weather.apparentTemperature }}°</span>
+          <span
+            >Feels like {{ weather.apparentTemperature }}
+            <IconThermometer :size="12" :stroke-width="2" aria-hidden="true"
+          /></span>
           <span>Wind {{ weather.windSpeed }} km/h</span>
           <span>Updated {{ formatWeatherTime(weather.updatedAt) }}</span>
         </div>
@@ -79,7 +82,13 @@
 
       <div v-else class="inline-empty-state">
         <div class="inline-empty-icon" aria-hidden="true">
-          {{ isWeatherLoading ? "…" : "☁" }}
+          <IconLoader
+            v-if="isWeatherLoading"
+            :size="32"
+            :stroke-width="1.5"
+            aria-hidden="true"
+          />
+          <IconCloud v-else :size="32" :stroke-width="1.5" aria-hidden="true" />
         </div>
 
         <div>
@@ -185,7 +194,8 @@
           type="button"
           @click="router.push({ path: '/chat', query: { new: 'true' } })"
         >
-          View all <span aria-hidden="true">→</span>
+          View all
+          <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
       </div>
 
@@ -217,7 +227,9 @@
             {{ chat.source === "project" ? chat.projectName : "Quick chat" }}
           </span>
 
-          <span class="row-arrow" aria-hidden="true">→</span>
+          <span class="row-arrow" aria-hidden="true"
+            ><IconArrowRight :size="12" :stroke-width="2" aria-hidden="true"
+          /></span>
         </button>
       </div>
 
@@ -234,7 +246,7 @@
           type="button"
           @click="router.push({ path: '/chat', query: { new: 'true' } })"
         >
-          <IconPlus :size="18" :stroke-width="2" aria-hidden="true" />
+          <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
           New chat
         </button>
       </div>
@@ -252,7 +264,8 @@
           type="button"
           @click="$router.push('/projects')"
         >
-          View all <span aria-hidden="true">→</span>
+          View all
+          <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
       </div>
 
@@ -265,8 +278,12 @@
           @click="$router.push(`/projects/${project.id}`)"
         >
           <div class="project-card-header">
-            <span class="project-icon" aria-hidden="true">□</span>
-            <span class="project-arrow" aria-hidden="true">↗</span>
+            <span class="project-icon" aria-hidden="true"
+              ><IconFolder :size="20" :stroke-width="1.5"
+            /></span>
+            <span class="project-arrow" aria-hidden="true"
+              ><IconArrowUpRight :size="15" :stroke-width="1.5"
+            /></span>
           </div>
 
           <span class="project-name">{{ project.name }}</span>
@@ -282,7 +299,9 @@
           </span>
 
           <span class="project-chat-count">
-            <span aria-hidden="true">◌</span>
+            <span aria-hidden="true"
+              ><IconMessages :size="12" :stroke-width="1.5"
+            /></span>
             {{ project.chats.length }}
             {{ project.chats.length === 1 ? "chat" : "chats" }}
           </span>
@@ -293,7 +312,9 @@
           type="button"
           @click="$router.push('/projects')"
         >
-          <span class="new-project-icon" aria-hidden="true">+</span>
+          <span class="new-project-icon" aria-hidden="true"
+            ><IconPlus :size="12" :stroke-width="2" aria-hidden="true"
+          /></span>
           <span>Create project</span>
         </button>
       </div>
@@ -311,7 +332,7 @@
           type="button"
           @click="$router.push('/projects')"
         >
-          <IconPlus :size="18" :stroke-width="2" aria-hidden="true" />
+          <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
           Create project
         </button>
       </div>
@@ -325,7 +346,8 @@
         </div>
 
         <button class="link-btn" type="button" @click="$router.push('/models')">
-          Manage <span aria-hidden="true">→</span>
+          Manage
+          <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
       </div>
 
@@ -353,7 +375,18 @@
           :class="{ offline: !ollamaOnline }"
           aria-hidden="true"
         >
-          {{ ollamaOnline ? "◌" : "!" }}
+          <IconBox
+            v-if="ollamaOnline"
+            :size="32"
+            :stroke-width="1.5"
+            aria-hidden="true"
+          />
+          <IconAlertTriangle
+            v-else
+            :size="32"
+            :stroke-width="1.5"
+            aria-hidden="true"
+          />
         </div>
 
         <div>
@@ -397,6 +430,15 @@ import IconChat from "@/components/icons/IconChat.vue";
 import IconFolder from "@/components/icons/IconFolder.vue";
 import IconMessages from "@/components/icons/IconMessages.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
+import IconSearch from "@/components/icons/IconSearch.vue";
+import IconRefresh from "@/components/icons/IconRefresh.vue";
+import IconArrowRight from "@/components/icons/IconArrowRight.vue";
+import IconThermometer from "@/components/icons/IconThermometer.vue";
+import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
+import IconBox from "@/components/icons/IconBox.vue";
+import IconAlertTriangle from "@/components/icons/IconAlertTriangle.vue";
+import IconLoader from "@/components/icons/IconLoader.vue";
+import IconCloud from "@/components/icons/IconCloud.vue";
 
 const router = useRouter();
 const ollama = useOllamaStore();
@@ -1232,6 +1274,18 @@ onUnmounted(() => {
 .weather-details span:last-child {
   text-align: right;
   color: var(--color-text-faint);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.icon-spin {
+  animation: spin 1s linear infinite;
 }
 
 @media (max-width: 620px) {

@@ -157,7 +157,8 @@
               class="btn-installed"
               disabled
             >
-              ✓ Installed
+              <IconCheck :size="10" :stroke-width="2" aria-hidden="true" />
+              Installed
             </button>
 
             <button
@@ -370,6 +371,7 @@ import { ref, computed, onMounted } from "vue";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import { isValidModelName } from "@/utils/validation";
 import IconPackage from "@/components/icons/IconPackage.vue";
+import IconCheck from "@/components/icons/IconCheck.vue";
 
 const ollama = useOllamaStore();
 

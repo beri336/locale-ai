@@ -28,7 +28,9 @@
           type="button"
           @click="handleNewChat"
         >
-          <span aria-hidden="true">+</span>
+          <span aria-hidden="true"
+            ><IconPlus :size="12" :stroke-width="2" aria-hidden="true"
+          /></span>
           New chat
         </button>
 
@@ -37,7 +39,9 @@
           type="button"
           @click="handleTemporaryChat"
         >
-          <span aria-hidden="true">◷</span>
+          <span aria-hidden="true"
+            ><IconTemp :size="12" :stroke-width="2" aria-hidden="true"
+          /></span>
           Temporary chat
         </button>
 
@@ -78,7 +82,7 @@
           aria-label="Create new chat"
           @click="handleNewChat"
         >
-          +
+          <IconPlus :size="14" :stroke-width="2" aria-hidden="true" />
         </button>
 
         <button
@@ -88,7 +92,7 @@
           aria-label="Create temporary chat"
           @click="handleTemporaryChat"
         >
-          ◷
+          <IconTemp :size="14" :stroke-width="2" aria-hidden="true" />
         </button>
       </template>
     </aside>
@@ -122,7 +126,9 @@
               aria-label="Extend temporary chat by one hour"
               @click="extendTemporaryChat"
             >
-              <span aria-hidden="true">+</span>
+              <span aria-hidden="true"
+                ><IconPlus :size="12" :stroke-width="2" aria-hidden="true"
+              /></span>
               1h
             </button>
           </div>
@@ -153,7 +159,9 @@
         </p>
 
         <button class="btn-primary" type="button" @click="handleNewChat">
-          <span aria-hidden="true">+</span>
+          <span aria-hidden="true"
+            ><IconPlus :size="12" :stroke-width="2" aria-hidden="true"
+          /></span>
           Start new chat
         </button>
       </div>
@@ -176,6 +184,8 @@ import { useOllamaStore } from "@/stores/useOllamaStore";
 import ChatListItem from "@/components/chat/ChatListItem.vue";
 import ChatThread from "@/components/chat/ChatThread.vue";
 import { useSettingsStore } from "@/stores/settingsStore";
+import IconPlus from "@/components/icons/IconPlus.vue";
+import IconTemp from "@/components/icons/IconTemp.vue";
 
 const ollama = useOllamaStore();
 const settingsStore = useSettingsStore();

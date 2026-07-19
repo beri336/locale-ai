@@ -122,7 +122,9 @@
               class="system-prompt-badge"
               title="A default system prompt is included in this chat"
             >
-              <span class="system-prompt-badge-icon" aria-hidden="true">✦</span>
+              <span class="system-prompt-badge-icon" aria-hidden="true"
+                ><IconSparkles :size="10" :stroke-width="2" aria-hidden="true"
+              /></span>
               System prompt active
             </span>
           </div>
@@ -134,7 +136,14 @@
             @click="handleCopyFullChat"
             :title="copiedAll ? 'Copied!' : 'Copy entire chat'"
           >
-            {{ copiedAll ? "✓ Copied" : "⧉ Copy chat" }}
+            <IconCheck
+              v-if="copiedAll"
+              :size="14"
+              :stroke-width="2"
+              aria-hidden="true"
+            />
+            <IconCopy v-else :size="14" :stroke-width="2" aria-hidden="true" />
+            {{ copiedAll ? "Copied" : "Copy chat" }}
           </button>
 
           <button
@@ -142,7 +151,8 @@
             @click="handleExportChat"
             title="Export chat as Markdown"
           >
-            ⬇ Export .md
+            <IconDownload :size="14" :stroke-width="2" aria-hidden="true" />
+            Export .md
           </button>
         </div>
       </div>
@@ -202,7 +212,7 @@
               @click="handleStartEdit(index, message.content)"
               title="Edit message"
             >
-              ✎
+              <IconEdit :size="10" :stroke-width="2" aria-hidden="true" />
             </button>
 
             <button
@@ -215,7 +225,7 @@
               @click="handleRegenerate(index)"
               title="Regenerate response"
             >
-              ↻
+              <IconRefresh :size="10" :stroke-width="2" aria-hidden="true" />
             </button>
 
             <button
@@ -223,7 +233,18 @@
               @click="handleCopyMessage(message.content, index)"
               :title="copiedIndex === index ? 'Copied!' : 'Copy message'"
             >
-              {{ copiedIndex === index ? "✓" : "⧉" }}
+              <IconCheck
+                v-if="copiedIndex === index"
+                :size="10"
+                :stroke-width="2"
+                aria-hidden="true"
+              />
+              <IconCopy
+                v-else
+                :size="10"
+                :stroke-width="2"
+                aria-hidden="true"
+              />
             </button>
           </div>
         </template>
@@ -300,6 +321,12 @@ import {
   downloadMarkdownFile,
   sanitizeFilename,
 } from "@/utils/export";
+import IconSparkles from "@/components/icons/IconSparkles.vue";
+import IconCheck from "@/components/icons/IconCheck.vue";
+import IconCopy from "@/components/icons/IconCopy.vue";
+import IconDownload from "@/components/icons/IconDownload.vue";
+import IconEdit from "@/components/icons/IconEdit.vue";
+import IconRefresh from "@/components/icons/IconRefresh.vue";
 
 // const copiedCodeButton = ref(null);
 

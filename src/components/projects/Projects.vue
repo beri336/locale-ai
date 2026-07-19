@@ -22,7 +22,7 @@
         type="button"
         @click="openCreateModal"
       >
-        <IconPlus :size="18" :stroke-width="2" aria-hidden="true" />
+        <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
         New project
       </button>
     </header>
@@ -70,11 +70,15 @@
         >
           <div class="project-card-header">
             <div class="project-title-group">
-              <span class="project-icon" aria-hidden="true">□</span>
+              <span class="project-icon" aria-hidden="true"
+                ><IconFolder :size="20" :stroke-width="2"></IconFolder
+              ></span>
               <h2>{{ project.name }}</h2>
             </div>
 
-            <span class="open-indicator" aria-hidden="true">↗</span>
+            <span class="open-indicator" aria-hidden="true"
+              ><IconArrowUpRight :size="20" :stroke-width="2"></IconArrowUpRight
+            ></span>
           </div>
 
           <p v-if="project.description" class="project-desc">
@@ -106,7 +110,7 @@
             title="Delete project"
             @click="handleDelete(project.id)"
           >
-            ×
+            <IconX :size="16" :stroke-width="2" aria-hidden="true" />
           </button>
         </footer>
       </article>
@@ -152,7 +156,7 @@
                 aria-label="Close dialog"
                 @click="closeCreateModal"
               >
-                ×
+                <IconX :size="16" :stroke-width="2" aria-hidden="true" />
               </button>
             </div>
 
@@ -230,6 +234,8 @@ import { useRouter } from "vue-router";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 import IconFolder from "@/components/icons/IconFolder.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
+import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
+import IconX from "@/components/icons/IconX.vue";
 
 const router = useRouter();
 const projectsStore = useProjectsStore();

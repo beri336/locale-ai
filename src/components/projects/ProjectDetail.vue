@@ -10,7 +10,9 @@
           type="button"
           @click="goBack"
         >
-          <span aria-hidden="true">←</span>
+          <span aria-hidden="true"
+            ><IconArrowLeft :size="12" :stroke-width="2"></IconArrowLeft
+          ></span>
           All projects
         </button>
 
@@ -31,7 +33,9 @@
 
       <template v-if="!isSidebarCollapsed">
         <div class="project-summary">
-          <div class="project-summary-icon" aria-hidden="true">□</div>
+          <div class="project-summary-icon" aria-hidden="true">
+            <IconFolder :size="20" :stroke-width="2"></IconFolder>
+          </div>
 
           <div class="project-summary-copy">
             <p class="sidebar-eyebrow">Project</p>
@@ -61,7 +65,9 @@
           type="button"
           @click="handleNewChat"
         >
-          <span aria-hidden="true">+</span>
+          <span aria-hidden="true"
+            ><IconPlus :size="12" :stroke-width="2"></IconPlus
+          ></span>
           New chat
         </button>
 
@@ -78,7 +84,9 @@
           />
 
           <div v-if="project.chats.length === 0" class="sidebar-empty-state">
-            <span class="sidebar-empty-icon" aria-hidden="true">◌</span>
+            <span class="sidebar-empty-icon" aria-hidden="true"
+              ><IconChat :size="20" :stroke-width="2"></IconChat
+            ></span>
             <p>No chats in this project yet.</p>
           </div>
         </div>
@@ -92,7 +100,7 @@
         aria-label="Create new chat"
         @click="handleNewChat"
       >
-        +
+        <IconPlus :size="12" :stroke-width="2" aria-hidden="true"></IconPlus>
       </button>
     </aside>
 
@@ -118,7 +126,9 @@
       </header>
 
       <div v-if="!activeChat" class="empty-project-chat-state">
-        <span class="empty-project-chat-icon" aria-hidden="true">✦</span>
+        <span class="empty-project-chat-icon" aria-hidden="true"
+          ><IconSparkles :size="20" :stroke-width="2"></IconSparkles
+        ></span>
         <h3>No chat selected</h3>
         <p>
           Create a chat to start a conversation in
@@ -126,7 +136,8 @@
           >.
         </p>
         <button class="btn-primary" type="button" @click="handleNewChat">
-          + Start new chat
+          <IconPlus :size="12" :stroke-width="2" aria-hidden="true"></IconPlus>
+          Start new chat
         </button>
       </div>
 
@@ -141,14 +152,18 @@
   </main>
 
   <section v-else class="not-found-state">
-    <div class="not-found-icon" aria-hidden="true">□</div>
+    <div class="not-found-icon" aria-hidden="true">
+      <IconFolder :size="20" :stroke-width="2"></IconFolder>
+    </div>
     <h1>Project not found</h1>
     <p>
       This project may have been deleted or is no longer available in local
       storage.
     </p>
     <button class="btn-secondary" type="button" @click="goBack">
-      <span aria-hidden="true">←</span>
+      <span aria-hidden="true"
+        ><IconArrowLeft :size="12" :stroke-width="2"></IconArrowLeft
+      ></span>
       Back to projects
     </button>
   </section>
@@ -162,6 +177,11 @@ import { useOllamaStore } from "@/stores/useOllamaStore";
 import ChatThread from "@/components/chat/ChatThread.vue";
 import ChatListItem from "@/components/chat/ChatListItem.vue";
 import { useSettingsStore } from "@/stores/settingsStore";
+import IconArrowLeft from "@/components/icons/IconArrowLeft.vue";
+import IconPlus from "@/components/icons/IconPlus.vue";
+import IconSparkles from "@/components/icons/IconSparkles.vue";
+import IconFolder from "@/components/icons/IconFolder.vue";
+import IconChat from "@/components/icons/IconChat.vue";
 
 const route = useRoute();
 const router = useRouter();
