@@ -69,6 +69,15 @@
           <span v-if="!isCollapsed" class="nav-label">Models</span>
         </RouterLink>
 
+        <RouterLink
+          to="/prompts"
+          class="nav-item"
+          :title="isCollapsed ? 'Prompts' : ''"
+        >
+          <span class="nav-icon"><IconPrompt /></span>
+          <span v-if="!isCollapsed" class="nav-label">Prompts</span>
+        </RouterLink>
+
         <div class="nav-spacer"></div>
 
         <RouterLink
@@ -199,6 +208,16 @@
         </RouterLink>
 
         <RouterLink
+          to="/prompts"
+          class="sheet-nav-item"
+          @click="closeMobileMenu"
+        >
+          <span class="sheet-item-icon"><IconPrompt /></span>
+          <span>Prompts</span>
+          <span class="sheet-arrow" aria-hidden="true">›</span>
+        </RouterLink>
+
+        <RouterLink
           to="/settings"
           class="sheet-nav-item"
           @click="closeMobileMenu"
@@ -284,6 +303,7 @@ import IconFaq from "@/components/icons/IconFaq.vue";
 import IconSearch from "@/components/icons/IconSearch.vue";
 import IconX from "@/components/icons/IconX.vue";
 import IconArchive from "@/components/icons/IconArchive.vue";
+import IconPrompt from "@/components/icons/IconPrompt.vue";
 
 const themeStore = useThemeStore();
 const { openSearchModal } = useSearchModal();
