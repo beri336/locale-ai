@@ -597,13 +597,12 @@ onUnmounted(() => {
 }
 
 .page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.25rem;
-  max-width: 1100px;
-  margin-bottom: 2rem;
-}
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 0;
+    height: auto;
+    gap: 0.85rem;
+  }
 
 .page-header h1 {
   margin: 0;

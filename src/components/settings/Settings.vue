@@ -1591,12 +1591,7 @@ textarea.input.textarea {
   text-decoration: none;
 }
 
-/* iOS Safari: at least 16px prevents input auto-zoom */
-@media (pointer: coarse) {
-  .input {
-    font-size: 16px;
-  }
-}
+
 
 @media (max-width: 620px) {
   .settings-view {
@@ -1691,7 +1686,7 @@ textarea.input.textarea {
 
   .input {
     padding: 0.5rem 0.6rem;
-    font-size: 13px;
+    font-size: 16px;
   }
 
   .btn-primary,

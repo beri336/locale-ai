@@ -263,10 +263,6 @@ function goToChat(result) {
     font-size: 14px;
   }
 
-  .search-input {
-    font-size: 13px;
-  }
-
   .esc-hint {
     display: none;
   }

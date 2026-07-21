@@ -884,6 +884,13 @@ onUnmounted(() => {
   line-height: 0.8;
 }
 
+/* iOS Safari: at least 16px prevents input auto-zoom */
+@media (pointer: coarse) {
+  .search-input {
+    font-size: 16px;
+  }
+}
+
 @media (max-width: 620px) {
   .chat-view {
     position: relative;

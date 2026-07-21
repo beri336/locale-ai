@@ -1295,12 +1295,6 @@ onUnmounted(() => {
   border-top: 1px solid var(--color-border);
 }
 
-@keyframes status-pulse {
-  50% {
-    opacity: 0.45;
-  }
-}
-
 @media (max-width: 760px) {
   .prompts-view {
     padding: 0.85rem 0.75rem 1.5rem;
@@ -1552,6 +1546,15 @@ onUnmounted(() => {
 
   .ollama-status-description {
     display: none;
+  }
+}
+
+/* iOS Safari: at least 16px prevents input auto-zoom */
+@media (pointer: coarse) {
+  .ai-generate-row input,
+  .prompt-form input,
+  .prompt-form textarea {
+    font-size: 16px;
   }
 }
 </style>
