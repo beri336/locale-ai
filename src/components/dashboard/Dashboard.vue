@@ -34,6 +34,19 @@
       </div>
     </header>
 
+    <section v-if="isPwaMode" class="pwa-mode-banner" role="status">
+      <span class="pwa-mode-icon" aria-hidden="true">
+        <IconCheck :size="16" :stroke-width="2.4" />
+      </span>
+
+      <div class="pwa-mode-copy">
+        <strong>App mode active</strong>
+        <span>Running as an installed web app</span>
+      </div>
+
+      <span class="pwa-mode-badge">PWA</span>
+    </section>
+
     <section class="dashboard-section weather-section">
       <div class="section-header">
         <div>
@@ -440,11 +453,13 @@ import IconBox from "@/components/icons/IconBox.vue";
 import IconAlertTriangle from "@/components/icons/IconAlertTriangle.vue";
 import IconLoader from "@/components/icons/IconLoader.vue";
 import IconCloud from "@/components/icons/IconCloud.vue";
+import IconCheck from "@/components/icons/IconCheck.vue";
 
 const router = useRouter();
 const ollama = useOllamaStore();
 const projectsStore = useProjectsStore();
 const { openSearchModal } = useSearchModal({ enableShortcut: false });
+const isPwaMode = ref(false);
 
 const settingsStore = useSettingsStore();
 const {
@@ -500,6 +515,14 @@ function formatDate(isoString) {
   });
 }
 
+let pwaDisplayQuery = null;
+
+function updatePwaMode() {
+  isPwaMode.value =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+}
+
 let pollInterval = null;
 
 async function loadOllamaStatus() {
@@ -514,6 +537,10 @@ async function loadOllamaStatus() {
 }
 
 onMounted(async () => {
+  updatePwaMode();
+  pwaDisplayQuery = window.matchMedia("(display-mode: standalone)");
+  pwaDisplayQuery.addEventListener("change", updatePwaMode);
+
   fetchWeather(settingsStore.weatherCity);
   await loadOllamaStatus();
 
@@ -526,6 +553,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (pollInterval) clearInterval(pollInterval);
+  pwaDisplayQuery?.removeEventListener("change", updatePwaMode);
 });
 </script>
 
@@ -537,15 +565,8 @@ onUnmounted(() => {
 }
 
 .page-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-}
-
-.page-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  min-width: 0;
+  flex: 1 1 420px;
 }
 
 .header-icon {
@@ -575,6 +596,15 @@ onUnmounted(() => {
   text-transform: uppercase;
 }
 
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  max-width: 1100px;
+  margin-bottom: 2rem;
+}
+
 .page-header h1 {
   margin: 0;
   color: var(--color-text);
@@ -592,9 +622,16 @@ onUnmounted(() => {
 
 .header-actions {
   display: flex;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.6rem;
   margin-top: 0.2rem;
+}
+
+.header-actions .btn-primary,
+.header-actions .btn-secondary {
+  min-width: max-content;
 }
 
 .btn-primary,
@@ -747,6 +784,65 @@ onUnmounted(() => {
 
 .status-card.offline .stat-value {
   color: var(--color-error);
+}
+
+/* PWA mode banner */
+.pwa-mode-banner {
+  display: flex;
+  align-items: center;
+  max-width: 1100px;
+  gap: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  margin: -1rem 0 1.5rem;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
+  border-radius: var(--radius-lg);
+}
+
+.pwa-mode-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #fff;
+  background: var(--color-primary);
+  border-radius: 9px;
+}
+
+.pwa-mode-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.pwa-mode-copy strong {
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-weight: 650;
+}
+
+.pwa-mode-copy span {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pwa-mode-badge {
+  padding: 0.22rem 0.45rem;
+  margin-left: auto;
+  color: var(--color-primary);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  border-radius: var(--radius-full);
 }
 
 .dashboard-section {
@@ -1277,53 +1373,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 620px) {
-  .weather-card {
-    gap: 0.6rem;
-    padding: 0.75rem;
-    border-radius: var(--radius-md);
-  }
-
-  .weather-icon {
-    width: 34px;
-    height: 34px;
-    font-size: 1.25rem;
-    border-radius: 10px;
-  }
-
-  .weather-city {
-    font-size: 12px;
-  }
-
-  .weather-condition {
-    font-size: 11px;
-  }
-
-  .weather-temperature {
-    font-size: 1.7rem;
-  }
-
-  .weather-details {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.4rem 0.6rem;
-    padding-top: 0.6rem;
-    font-size: 9px;
-  }
-
-  .weather-details span:last-child {
-    grid-column: 1 / -1;
-    padding-top: 0.4rem;
-    text-align: left;
-    border-top: 1px solid var(--color-border);
-  }
-}
-
-@media (max-width: 900px) {
-  .overview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 620px) {
   .dashboard-view {
     padding: 0.85rem 0.75rem 1.5rem;
   }
@@ -1364,9 +1413,10 @@ onUnmounted(() => {
   }
 
   .header-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
     gap: 0.4rem;
-    margin-top: 0;
   }
 
   .header-actions .btn-primary,
@@ -1548,6 +1598,70 @@ onUnmounted(() => {
     padding: 0.45rem 0.6rem;
     margin-left: 0;
     font-size: 11px;
+  }
+
+  .pwa-mode-banner {
+    gap: 0.6rem;
+    padding: 0.65rem 0.7rem;
+    margin: -0.35rem 0 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .pwa-mode-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+  }
+
+  .pwa-mode-copy strong {
+    font-size: 11px;
+  }
+
+  .pwa-mode-copy span {
+    font-size: 9px;
+  }
+
+  .pwa-mode-badge {
+    font-size: 0.55rem;
+  }
+
+  .weather-card {
+    gap: 0.6rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+  }
+
+  .weather-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 1.25rem;
+    border-radius: 10px;
+  }
+
+  .weather-city {
+    font-size: 12px;
+  }
+
+  .weather-condition {
+    font-size: 11px;
+  }
+
+  .weather-temperature {
+    font-size: 1.7rem;
+  }
+
+  .weather-details {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem 0.6rem;
+    padding-top: 0.6rem;
+    font-size: 9px;
+  }
+
+  .weather-details span:last-child {
+    grid-column: 1 / -1;
+    padding-top: 0.4rem;
+    text-align: left;
+    border-top: 1px solid var(--color-border);
   }
 }
 </style>

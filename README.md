@@ -121,6 +121,7 @@ Open **Settings** in Locale AI to configure your Ollama endpoint.
 | ---------------- | ----------------------------- |
 | Frontend         | [Vue 3](https://vuejs.org/)   |
 | Build tool       | Vite                          |
+| PWA              | [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) |
 | Local AI runtime | [Ollama](https://ollama.com/) |
 | Persistence      | Browser LocalStorage          |
 | Deployment       | Vercel                        |
