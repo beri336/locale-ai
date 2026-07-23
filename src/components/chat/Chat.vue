@@ -142,9 +142,25 @@
         >
           <option value="" disabled>Select a model</option>
 
-          <option v-for="name in modelNames" :key="name" :value="name">
-            {{ name }}
-          </option>
+          <optgroup label="Ollama" v-if="modelNames.length">
+            <option
+              v-for="name in modelNames"
+              :key="`ollama:${name}`"
+              :value="`ollama:${name}`"
+            >
+              {{ name }}
+            </option>
+          </optgroup>
+
+          <optgroup label="LM Studio" v-if="lmstudio.models.length">
+            <option
+              v-for="model in lmstudio.models"
+              :key="`lmstudio:${model.id}`"
+              :value="`lmstudio:${model.id}`"
+            >
+              {{ model.displayName || model.id }}
+            </option>
+          </optgroup>
         </select>
       </header>
 
@@ -170,6 +186,7 @@
         v-else
         :chat="activeChat"
         :model-names="modelNames"
+        :lmstudio-models="lmstudio.models"
         empty-hint="Select a model and write your first message."
         @message-sent="saveChats"
       />
@@ -181,13 +198,16 @@
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useOllamaStore } from "@/stores/useOllamaStore";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { useLmStudioStore } from "@/stores/useLmStudioStore";
+
 import ChatListItem from "@/components/chat/ChatListItem.vue";
 import ChatThread from "@/components/chat/ChatThread.vue";
-import { useSettingsStore } from "@/stores/settingsStore";
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconTemp from "@/components/icons/IconTemp.vue";
 
 const ollama = useOllamaStore();
+const lmstudio = useLmStudioStore();
 const settingsStore = useSettingsStore();
 const route = useRoute();
 
@@ -224,10 +244,16 @@ const visibleChats = computed(() =>
 
 const selectedModel = computed({
   get: () => activeChat.value?.model ?? "",
-  set: (name) => {
+  set: (value) => {
     if (activeChat.value) {
-      activeChat.value.model = name;
-      ollama.setSelectedModel(name);
+      activeChat.value.model = value;
+
+      const [source, name] = value.split(/:(.+)/); // erstes ":" als Trenner
+      if (source === "ollama") {
+        ollama.setSelectedModel(name);
+      } else if (source === "lmstudio") {
+        lmstudio.setSelectedModel(name);
+      }
     }
   },
 });
@@ -427,8 +453,17 @@ onMounted(async () => {
   try {
     modelNames.value = await ollama.getListOfModelsName();
   } catch (error) {
-    console.error("Failed to load models in Chat.vue:", error);
+    console.error("Failed to load Ollama models in Chat.vue:", error);
     modelNames.value = [];
+  }
+
+  try {
+    await lmstudio.testConnection();
+    if (lmstudio.isOnline) {
+      await lmstudio.fetchModels();
+    }
+  } catch (error) {
+    console.error("Failed to load LM Studio models in Chat.vue:", error);
   }
 
   const hasStoredChats = localStorage.getItem(STORAGE_KEY) !== null;
@@ -882,6 +917,10 @@ onUnmounted(() => {
 .extend-temporary-chat-btn span {
   font-size: 0.9rem;
   line-height: 0.8;
+}
+
+.temporary-chat-hint {
+  font-size: 10px;
 }
 
 /* iOS Safari: at least 16px prevents input auto-zoom */

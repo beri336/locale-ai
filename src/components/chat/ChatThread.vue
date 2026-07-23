@@ -312,15 +312,12 @@
 <script setup>
 import { ref, computed, nextTick, watch, onMounted, onUnmounted } from "vue";
 import { useOllamaStore } from "@/stores/useOllamaStore";
+import { useLmStudioStore } from "@/stores/useLmStudioStore";
 import { renderMarkdown } from "@/utils/markdown";
 import { copyToClipboard } from "@/utils/clipboard";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { IconSettings } from "@tabler/icons-vue";
-import {
-  buildChatMarkdown,
-  downloadMarkdownFile,
-  sanitizeFilename,
-} from "@/utils/export";
+
 import IconSparkles from "@/components/icons/IconSparkles.vue";
 import IconCheck from "@/components/icons/IconCheck.vue";
 import IconCopy from "@/components/icons/IconCopy.vue";
@@ -328,27 +325,29 @@ import IconDownload from "@/components/icons/IconDownload.vue";
 import IconEdit from "@/components/icons/IconEdit.vue";
 import IconRefresh from "@/components/icons/IconRefresh.vue";
 
+import {
+  buildChatMarkdown,
+  downloadMarkdownFile,
+  sanitizeFilename,
+} from "@/utils/export";
+
 // const copiedCodeButton = ref(null);
 
 const props = defineProps({
-  chat: {
-    type: Object,
-    default: null,
-  },
-  emptyHint: {
-    type: String,
-    default: "Start a conversation.",
-  },
-  modelNames: {
-    type: Array,
-    default: () => [],
-  },
+  chat: { type: Object, default: null },
+  emptyHint: { type: String, default: "Start a conversation." },
+  modelNames: { type: Array, default: () => [] },
+  lmstudioModels: { type: Array, default: () => [] },
 });
 
 const hasValidModel = computed(() => {
   if (!props.chat?.model) return false;
+  const { source, name } = parseModelValue(props.chat.model);
 
-  return props.modelNames.includes(props.chat.model);
+  if (source === "lmstudio") {
+    return props.lmstudioModels.some((m) => m.id === name);
+  }
+  return props.modelNames.includes(name);
 });
 
 const unavailableModelMessage = computed(() => {
@@ -362,6 +361,7 @@ const unavailableModelMessage = computed(() => {
 const emit = defineEmits(["message-sent"]);
 
 const ollama = useOllamaStore();
+const lmstudio = useLmStudioStore();
 const settingsStore = useSettingsStore();
 
 const prompt = ref("");
@@ -401,6 +401,19 @@ watch(
     chatSystemPromptInput.value = props.chat?.systemPrompt ?? "";
   },
 );
+
+function parseModelValue(value) {
+  if (!value) return { source: "ollama", name: "" };
+  const [source, name] = value.includes(":")
+    ? value.split(/:(.+)/)
+    : ["ollama", value]; // Fallback für alte Chats ohne Präfix
+  return { source, name };
+}
+
+function getStoreForModel(value) {
+  const { source } = parseModelValue(value);
+  return source === "lmstudio" ? lmstudio : ollama;
+}
 
 function applyChatSystemPrompt() {
   if (!props.chat) return;
@@ -529,6 +542,8 @@ async function handleSend() {
   prompt.value = "";
   emit("message-sent");
   scrollToBottom(true);
+  const { name: modelName } = parseModelValue(chat.model);
+  const store = getStoreForModel(chat.model);
 
   isGenerating.value = true;
   streamingText.value = "";
@@ -549,8 +564,8 @@ async function handleSend() {
       ...chat.messages.map((m) => ({ role: m.role, content: m.content })),
     );
 
-    const result = await ollama.generateStreamingChatAnswer(
-      chat.model,
+    const result = await store.generateStreamingChatAnswer(
+      modelName,
       messagesPayload,
       {
         temperature: effectiveTemperature.value,
@@ -679,6 +694,8 @@ function handleCancelEdit() {
 async function handleSaveEdit(index) {
   const chat = props.chat;
   const originalMessage = chat.messages[index];
+  const { name: modelName } = parseModelValue(chat.model);
+  const store = getStoreForModel(chat.model);
 
   if (!editText.value.trim() || editText.value === originalMessage.content) {
     handleCancelEdit();
@@ -702,8 +719,8 @@ async function handleSaveEdit(index) {
       content: m.content,
     }));
 
-    const result = await ollama.generateStreamingChatAnswer(
-      chat.model,
+    const result = await store.generateStreamingChatAnswer(
+      modelName,
       messagesPayload,
       {},
       (chunk) => {
@@ -752,6 +769,8 @@ async function handleRegenerate(index) {
   if (isGenerating.value) return;
 
   const chat = props.chat;
+  const { name: modelName } = parseModelValue(chat.model);
+  const store = getStoreForModel(chat.model);
   chat.messages.splice(index);
   emit("message-sent");
   scrollToBottom(true);
@@ -775,13 +794,10 @@ async function handleRegenerate(index) {
       ...chat.messages.map((m) => ({ role: m.role, content: m.content })),
     );
 
-    const result = await ollama.generateStreamingChatAnswer(
-      chat.model,
+    const result = await store.generateStreamingChatAnswer(
+      modelName,
       messagesPayload,
-      {
-        temperature: settingsStore.temperature,
-        num_ctx: settingsStore.numCtx,
-      },
+      { temperature: settingsStore.temperature, num_ctx: settingsStore.numCtx },
       (chunk) => {
         streamingText.value += chunk.response || "";
         scrollToBottom();
@@ -883,9 +899,11 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
         content: `User: ${userMessage}\n\nAssistant: ${assistantMessage}`,
       },
     ];
+    const { name: modelName } = parseModelValue(chat.model);
+    const store = getStoreForModel(chat.model);
 
-    const result = await ollama.generateStreamingChatAnswer(
-      chat.model,
+    const result = await store.generateStreamingChatAnswer(
+      modelName,
       titlePrompt,
       { temperature: 0.3, num_ctx: 1024 },
       () => {},

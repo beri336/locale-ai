@@ -27,9 +27,9 @@
         {{ chat.title }}
       </span>
 
-      <span v-if="showModel && chat.model" class="chat-model-tag">{{
-        chat.model
-      }}</span>
+      <span v-if="showModel && chat.model" class="chat-model-tag">
+        {{ formatModelLabel(chat.model) }}
+      </span>
       <span v-if="isEditing" class="char-count"
         >{{ editingTitle.length }}/40</span
       >
@@ -122,6 +122,16 @@ function togglePin() {
 
 function archiveChat() {
   emit("archive");
+}
+
+function formatModelLabel(value) {
+  if (!value) return "";
+  const [source, name] = value.includes(":")
+    ? value.split(/:(.+)/)
+    : ["ollama", value];
+
+  const label = source === "lmstudio" ? "LM Studio" : "Ollama";
+  return `${name} (${label})`;
 }
 </script>
 
