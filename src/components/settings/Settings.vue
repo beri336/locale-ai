@@ -19,7 +19,7 @@
     </header>
 
     <div class="settings-content">
-      <!-- Connection -->
+      <!-- Connection Ollama -->
       <section class="settings-card connection-card">
         <div class="section-heading">
           <div>
@@ -91,6 +91,18 @@
               <code class="info-value">{{ settingsStore.ollamaPort }}</code>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Connection LMS -->
+      <section class="settings-card connection-card">
+        <div class="field-group">
+          <label class="field-label">LM Studio API URL</label>
+          <input
+            v-model="lmStudioApiUrl"
+            class="input"
+            placeholder="http://localhost:1234"
+          />
         </div>
       </section>
 
@@ -1590,8 +1602,6 @@ textarea.input.textarea {
   opacity: 0.55;
   text-decoration: none;
 }
-
-
 
 @media (max-width: 620px) {
   .settings-view {

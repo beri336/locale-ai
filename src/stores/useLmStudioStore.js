@@ -1,0 +1,191 @@
+// src/stores/useLmStudioStore.js
+
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import { isValidLmStudioModelId } from "@/utils/validation";
+
+const DEFAULT_BASE_URL = "http://localhost:1234";
+
+export const useLmStudioStore = defineStore("lmstudio", () => {
+    const isOnline = ref(false);
+    const models = ref([]);
+    const loadedModels = ref([]);
+    const isLoading = ref(false);
+    const selectedModel = ref(localStorage.getItem("lmstudio-selected-model") || "");
+
+    const loadedInstanceIds = ref({}); // speichert die instance_id für jedes geladene Modell
+
+    function getBaseUrl() {
+        const stored = localStorage.getItem("lmstudio-api-url");
+        return (stored || DEFAULT_BASE_URL).replace(/\/+$/, "");
+    }
+
+    async function testConnection() {
+        try {
+            const response = await fetch(`${getBaseUrl()}/api/v1/models`, {
+                signal: AbortSignal.timeout(5000),
+            });
+            isOnline.value = response.ok;
+            return response.ok;
+        } catch (error) {
+            isOnline.value = false;
+            return false;
+        }
+    }
+
+    async function fetchModels() {
+        isLoading.value = true;
+        try {
+            const response = await fetch(`${getBaseUrl()}/api/v1/models`, {
+                signal: AbortSignal.timeout(5000),
+            });
+            if (!response.ok) throw new Error("Failed to fetch models");
+
+            const data = await response.json();
+            const rawModels = data.data || data.models || [];
+
+            models.value = rawModels.map((m) => ({
+                id: m.key,
+                displayName: m.display_name,
+                type: m.type,
+                publisher: m.publisher,
+                architecture: m.architecture,
+                quantization: m.quantization?.name,
+                paramsString: m.params_string,
+                maxContextLength: m.max_context_length,
+                sizeBytes: m.size_bytes,
+                format: m.format,
+                capabilities: m.capabilities,
+                loadedInstances: m.loaded_instances || [],
+                isLoaded: (m.loaded_instances || []).length > 0,
+                instanceId: m.loaded_instances?.[0]?.id ?? null,
+            }));
+
+            loadedModels.value = models.value.filter((m) => m.isLoaded);
+            isOnline.value = true;
+        } catch (error) {
+            console.error("LM Studio fetchModels failed:", error);
+            isOnline.value = false;
+            models.value = [];
+            loadedModels.value = [];
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
+    async function loadModel(modelId) {
+        if (!isValidLmStudioModelId(modelId)) throw new Error("Invalid model name");
+
+        const response = await fetch(`${getBaseUrl()}/api/v1/models/load`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ model: modelId }),
+        });
+
+        if (!response.ok) throw new Error("Failed to load model");
+
+        const data = await response.json();
+        // instance_id zwischenspeichern, um später unloaden zu können
+        loadedInstanceIds.value[modelId] = data.instance_id;
+
+        await fetchModels();
+    }
+
+    async function unloadModel(modelId) {
+        const model = models.value.find((m) => m.id === modelId);
+        const instanceId = model?.instanceId;
+        if (!instanceId) throw new Error("No active instance found for this model");
+
+        const response = await fetch(`${getBaseUrl()}/api/v1/models/unload`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ instance_id: instanceId }),
+        });
+
+        if (!response.ok) throw new Error("Failed to unload model");
+        await fetchModels();
+    }
+
+    async function generateStreamingChatAnswer(model, messages, options = {}, onChunk, signal) {
+        const response = await fetch(`${getBaseUrl()}/api/v1/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model,
+                messages,
+                stream: true,
+                temperature: options.temperature,
+                max_tokens: options.num_ctx,
+            }),
+            signal,
+        });
+
+        if (!response.ok || !response.body) {
+            throw new Error("LM Studio chat request failed");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = "";
+        let buffer = "";
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop();
+
+            for (const line of lines) {
+                if (!line.startsWith("data: ")) continue;
+                const payload = line.slice(6).trim();
+                if (payload === "[DONE]") continue;
+
+                try {
+                    const parsed = JSON.parse(payload);
+                    const delta = parsed.choices?.[0]?.delta?.content || parsed.delta?.content || "";
+                    fullText += delta;
+                    onChunk({ response: delta });
+                } catch {
+                    // Skip malformed chunks
+                }
+            }
+        }
+
+        return {
+            text: fullText,
+            stats: { evalCount: Math.ceil(fullText.length / 4) },
+        };
+    }
+
+    function setSelectedModel(modelId) {
+        selectedModel.value = modelId;
+        localStorage.setItem("lmstudio-selected-model", modelId);
+    }
+
+    function getSelectedModel() {
+        return selectedModel.value;
+    }
+
+    function isModelInstalled(modelId) {
+        return models.value.some((m) => m.id === modelId);
+    }
+
+    return {
+        isOnline,
+        models,
+        loadedModels,
+        isLoading,
+        selectedModel,
+        getBaseUrl,
+        testConnection,
+        fetchModels,
+        loadModel,
+        unloadModel,
+        generateStreamingChatAnswer,
+        setSelectedModel,
+        getSelectedModel,
+        isModelInstalled,
+    };
+})

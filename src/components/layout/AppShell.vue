@@ -61,12 +61,21 @@
         </RouterLink>
 
         <RouterLink
-          to="/models"
+          to="/ollama-models"
           class="nav-item"
-          :title="isCollapsed ? 'Models' : ''"
+          :title="isCollapsed ? 'Ollama Models' : ''"
         >
           <span class="nav-icon"><IconPackage /></span>
-          <span v-if="!isCollapsed" class="nav-label">Models</span>
+          <span v-if="!isCollapsed" class="nav-label">Ollama Models</span>
+        </RouterLink>
+
+        <RouterLink
+          to="/lms-models"
+          class="nav-item"
+          :title="isCollapsed ? 'LM Studio Models' : ''"
+        >
+          <span class="nav-icon"><IconPackage /></span>
+          <span v-if="!isCollapsed" class="nav-label">LM Studio Models</span>
         </RouterLink>
 
         <RouterLink
@@ -182,12 +191,22 @@
         <div class="sheet-divider"></div>
 
         <RouterLink
-          to="/models"
+          to="/ollama-models"
           class="sheet-nav-item"
           @click="closeMobileMenu"
         >
           <span class="sheet-item-icon"><IconPackage /></span>
-          <span>Models</span>
+          <span>Ollama Models</span>
+          <span class="sheet-arrow" aria-hidden="true">›</span>
+        </RouterLink>
+
+        <RouterLink
+          to="/lms-models"
+          class="sheet-nav-item"
+          @click="closeMobileMenu"
+        >
+          <span class="sheet-item-icon"><IconPackage /></span>
+          <span>LM Studio Models</span>
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
