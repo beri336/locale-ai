@@ -106,58 +106,70 @@ export const useLmStudioStore = defineStore("lmstudio", () => {
         await fetchModels();
     }
 
-    async function generateStreamingChatAnswer(model, messages, options = {}, onChunk, signal) {
-        const response = await fetch(`${getBaseUrl()}/api/v1/chat`, {
+    async function generateStreamingChatAnswer(
+        model,
+        messages,
+        options = {},
+        onChunk = () => { },
+        signal,
+    ) {
+        const response = await fetch(`${getBaseUrl()}/v1/chat/completions`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+            },
             body: JSON.stringify({
                 model,
                 messages,
+                temperature: options.temperature ?? 0.7,
                 stream: true,
-                temperature: options.temperature,
-                max_tokens: options.num_ctx,
             }),
             signal,
         });
 
-        if (!response.ok || !response.body) {
-            throw new Error("LM Studio chat request failed");
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`LM Studio chat request failed: ${errorText}`);
         }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullText = "";
-        let buffer = "";
 
         while (true) {
-            const { done, value } = await reader.read();
+            const { value, done } = await reader.read();
             if (done) break;
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop();
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split("\n").filter((line) => line.startsWith("data: "));
 
             for (const line of lines) {
-                if (!line.startsWith("data: ")) continue;
-                const payload = line.slice(6).trim();
-                if (payload === "[DONE]") continue;
+                const data = line.slice(6).trim();
+
+                if (data === "[DONE]") continue;
 
                 try {
-                    const parsed = JSON.parse(payload);
-                    const delta = parsed.choices?.[0]?.delta?.content || parsed.delta?.content || "";
-                    fullText += delta;
-                    onChunk({ response: delta });
+                    const parsed = JSON.parse(data);
+                    const token = parsed.choices?.[0]?.delta?.content || "";
+
+                    if (token) {
+                        fullText += token;
+                        onChunk({ response: token });
+                    }
                 } catch {
-                    // Skip malformed chunks
+                    // ignore malformed partial SSE chunks
                 }
             }
         }
 
         return {
             text: fullText,
-            stats: { evalCount: Math.ceil(fullText.length / 4) },
+            stats: {
+                evalCount: Math.max(1, Math.ceil(fullText.length / 4)),
+            },
         };
     }
+
 
     function setSelectedModel(modelId) {
         selectedModel.value = modelId;
