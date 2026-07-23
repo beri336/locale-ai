@@ -129,7 +129,6 @@
             aria-hidden="true"
           />
         </div>
-
         <strong class="stat-value">{{ totalChats }}</strong>
         <span class="stat-description">
           {{
@@ -150,7 +149,6 @@
             aria-hidden="true"
           />
         </div>
-
         <strong class="stat-value">{{ totalProjects }}</strong>
         <span class="stat-description">
           {{ totalProjects === 1 ? "Workspace created" : "Workspaces created" }}
@@ -167,11 +165,12 @@
             aria-hidden="true"
           />
         </div>
-
         <strong class="stat-value">{{ totalMessages }}</strong>
         <span class="stat-description">Across all saved conversations</span>
       </article>
+    </section>
 
+    <section class="status-grid" aria-label="Server status">
       <article
         class="stat-card status-card"
         :class="{ online: ollamaOnline, offline: !ollamaOnline }"
@@ -180,16 +179,38 @@
           <span class="stat-label">Ollama server</span>
           <span class="server-status-dot"></span>
         </div>
-
         <strong class="stat-value">
           {{ ollamaOnline ? "Online" : "Offline" }}
         </strong>
-
         <span class="stat-description">
           {{
-            ollamaOnline
-              ? "Ready for local inference"
-              : "Check your connection settings"
+            !ollamaOnline
+              ? "Check your connection settings"
+              : runningModels.length
+                ? `${runningModels.length} model${runningModels.length === 1 ? "" : "s"} loaded`
+                : "Ready for local inference"
+          }}
+        </span>
+      </article>
+
+      <article
+        class="stat-card status-card"
+        :class="{ online: lmstudio.isOnline, offline: !lmstudio.isOnline }"
+      >
+        <div class="stat-card-header">
+          <span class="stat-label">LMS server</span>
+          <span class="server-status-dot"></span>
+        </div>
+        <strong class="stat-value">
+          {{ lmstudio.isOnline ? "Online" : "Offline" }}
+        </strong>
+        <span class="stat-description">
+          {{
+            !lmstudio.isOnline
+              ? "Check your connection settings"
+              : lmstudio.loadedModels.length
+                ? `${lmstudio.loadedModels.length} model${lmstudio.loadedModels.length === 1 ? "" : "s"} loaded`
+                : "Ready for local inference"
           }}
         </span>
       </article>
@@ -355,7 +376,7 @@
       <div class="section-header">
         <div>
           <p class="section-kicker">Local inference</p>
-          <h2>Model status</h2>
+          <h2>Ollama models</h2>
         </div>
 
         <button class="link-btn" type="button" @click="$router.push('/models')">
@@ -426,6 +447,86 @@
         </button>
       </div>
     </section>
+
+    <section class="dashboard-section model-section">
+      <div class="section-header">
+        <div>
+          <p class="section-kicker">Local inference</p>
+          <h2>LM Studio models</h2>
+        </div>
+
+        <button
+          class="link-btn"
+          type="button"
+          @click="$router.push('/lms-models')"
+        >
+          Manage
+          <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
+        </button>
+      </div>
+
+      <div v-if="lmstudio.models.length" class="model-list">
+        <div
+          v-for="model in lmstudio.models"
+          :key="model.id"
+          class="model-item"
+        >
+          <span class="model-dot" :class="{ running: model.isLoaded }"></span>
+
+          <span class="model-name">{{ model.displayName || model.id }}</span>
+
+          <span class="model-status-label" :class="{ running: model.isLoaded }">
+            {{ model.isLoaded ? "Running" : "Idle" }}
+          </span>
+        </div>
+      </div>
+
+      <div v-else class="inline-empty-state">
+        <div
+          class="inline-empty-icon"
+          :class="{ offline: !lmstudio.isOnline }"
+          aria-hidden="true"
+        >
+          <IconBox
+            v-if="lmstudio.isOnline"
+            :size="32"
+            :stroke-width="1.5"
+            aria-hidden="true"
+          />
+          <IconAlertTriangle
+            v-else
+            :size="32"
+            :stroke-width="1.5"
+            aria-hidden="true"
+          />
+        </div>
+
+        <div>
+          <h3>
+            {{
+              lmstudio.isOnline
+                ? "No models installed"
+                : "LM Studio is not reachable"
+            }}
+          </h3>
+          <p>
+            {{
+              lmstudio.isOnline
+                ? "Download a model directly in the LM Studio app."
+                : "Check the LM Studio API address and connection in Settings."
+            }}
+          </p>
+        </div>
+
+        <button
+          class="btn-secondary"
+          type="button"
+          @click="$router.push(lmstudio.isOnline ? '/lms-models' : '/settings')"
+        >
+          {{ lmstudio.isOnline ? "Manage models" : "Open settings" }}
+        </button>
+      </div>
+    </section>
   </main>
 </template>
 
@@ -433,6 +534,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useOllamaStore } from "@/stores/useOllamaStore";
+import { useLmStudioStore } from "@/stores/useLmStudioStore";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 import { useSearchModal } from "@/composables/useSearchModal";
 import { useChatSearch } from "@/composables/useChatSearch";
@@ -457,6 +559,7 @@ import IconCheck from "@/components/icons/IconCheck.vue";
 
 const router = useRouter();
 const ollama = useOllamaStore();
+const lmstudio = useLmStudioStore();
 const projectsStore = useProjectsStore();
 const { openSearchModal } = useSearchModal({ enableShortcut: false });
 const isPwaMode = ref(false);
@@ -536,17 +639,33 @@ async function loadOllamaStatus() {
   }
 }
 
+async function loadLmStudioStatus() {
+  try {
+    await lmstudio.testConnection();
+    if (lmstudio.isOnline) {
+      await lmstudio.fetchModels();
+    }
+  } catch (error) {
+    console.error("LM Studio server not reachable:", error);
+  }
+}
+
 onMounted(async () => {
   updatePwaMode();
   pwaDisplayQuery = window.matchMedia("(display-mode: standalone)");
   pwaDisplayQuery.addEventListener("change", updatePwaMode);
 
   fetchWeather(settingsStore.weatherCity);
-  await loadOllamaStatus();
+  await Promise.all([loadOllamaStatus(), loadLmStudioStatus()]);
 
   pollInterval = setInterval(async () => {
     if (ollamaOnline.value) {
       runningModels.value = await ollama.refreshRunningModelNames();
+    }
+    if (lmstudio.isOnline) {
+      await lmstudio.fetchModels();
+    } else {
+      await lmstudio.testConnection();
     }
   }, 5000);
 });
@@ -597,12 +716,12 @@ onUnmounted(() => {
 }
 
 .page-header {
-    flex-direction: column;
-    justify-content: flex-start;
-    min-height: 0;
-    height: auto;
-    gap: 0.85rem;
-  }
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+  height: auto;
+  gap: 0.85rem;
+}
 
 .page-header h1 {
   margin: 0;
@@ -686,14 +805,6 @@ onUnmounted(() => {
   );
 }
 
-.overview-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  max-width: 1100px;
-  gap: 0.85rem;
-  margin-bottom: 2.25rem;
-}
-
 .stat-card {
   display: grid;
   min-width: 0;
@@ -761,6 +872,10 @@ onUnmounted(() => {
   color: var(--color-text-muted);
   font-size: 10px;
   line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
 }
 
 .server-status-dot {
@@ -1359,6 +1474,20 @@ onUnmounted(() => {
   color: var(--color-text-faint);
 }
 
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -1661,6 +1790,11 @@ onUnmounted(() => {
     padding-top: 0.4rem;
     text-align: left;
     border-top: 1px solid var(--color-border);
+  }
+
+  .overview-grid,
+  .status-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
