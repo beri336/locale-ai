@@ -168,8 +168,147 @@ export const useLmStudioStore = defineStore("lmstudio", () => {
         return selectedModel.value;
     }
 
+    function normalizeModelValue(value = "") {
+        return String(value).trim().toLowerCase();
+    }
+
     function isModelInstalled(modelId) {
-        return models.value.some((m) => m.id === modelId);
+        const normalized = normalizeModelValue(modelId);
+
+        return models.value.some((model) => {
+            const id = normalizeModelValue(model.id);
+            const displayName = normalizeModelValue(model.displayName);
+            const path = normalizeModelValue(model.path);
+
+            return (
+                id === normalized ||
+                displayName === normalized ||
+                path.includes(normalized)
+            );
+        });
+    }
+
+    function getRecommendedModels() {
+        return [
+            {
+                name: "openai/gpt-oss-20b",
+                label: "GPT-OSS 20B",
+                aliases: [
+                    "openai/gpt-oss-20b",
+                    "gpt-oss-20b",
+                    "gpt oss 20b",
+                    "gpt-oss",
+                    "openai gpt-oss-20b",
+                ],
+                description: "Strong general-purpose local model.",
+                size: "Large",
+                link: "https://lmstudio.ai/models/openai/gpt-oss-20b",
+            },
+            {
+                name: "qoogle/gemma-4-12b-qat",
+                label: "Gemma 4 12B QAT",
+                aliases: [
+                    "qoogle/gemma-4-12b-qat",
+                    "gemma-4-12b-qat",
+                    "gemma 4 12b qat",
+                    "qoogle gemma-4-12b-qat",
+                    "gemma-4-12b",
+                ],
+                description: "Strong general-purpose local model.",
+                size: "Large",
+                link: "https://lmstudio.ai/models/qoogle/gemma-4-12b-qat",
+            },
+            {
+                name: "google/gemma-3-12b",
+                label: "Gemma 3 12B",
+                aliases: [
+                    "google/gemma-3-12b",
+                    "gemma-3-12b",
+                    "gemma 3 12b",
+                    "google gemma-3-12b",
+                    "gemma-3",
+                ],
+                description: "Balanced instruction model with strong quality for its size.",
+                size: "Medium",
+                link: "https://lmstudio.ai/models/google/gemma-3-12b",
+            },
+            {
+                name: "qwen/qwen3-8b",
+                label: "Qwen 3 8B",
+                aliases: [
+                    "qwen/qwen3-8b",
+                    "qwen3-8b",
+                    "qwen 3 8b",
+                    "qwen/qwen-3-8b",
+                    "qwen3",
+                ],
+                description: "Compact multilingual assistant model.",
+                size: "Medium",
+                link: "https://lmstudio.ai/models/qwen/qwen3-8b",
+            },
+            {
+                name: "nomic-ai/text-embedding-nomic-embed-text-v1.5",
+                label: "Nomic Embed Text v1.5",
+                aliases: [
+                    "nomic-ai/text-embedding-nomic-embed-text-v1.5",
+                    "text-embedding-nomic-embed-text-v1.5",
+                    "nomic-embed-text-v1.5",
+                    "nomic embed text v1.5",
+                    "embed-text-v1.5",
+                    "nomic embed",
+                ],
+                description: "Embedding model for search and retrieval tasks.",
+                size: "Small",
+                link: "https://lmstudio.ai/models/nomic-ai/text-embedding-nomic-embed-text-v1-5",
+            },
+        ];
+    }
+
+    async function downloadModel(modelId) {
+        const response = await fetch(`${getBaseUrl()}/api/v1/models/download`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ model: modelId }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to start model download");
+        }
+
+        return await response.json();
+    }
+
+    async function getDownloadStatus(jobId) {
+        const response = await fetch(
+            `${getBaseUrl()}/api/v1/models/download/status?job_id=${encodeURIComponent(jobId)}`
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch download status");
+        }
+
+        return await response.json();
+    }
+
+    function isRecommendedModelInstalled(model) {
+        const candidates = [
+            model.name,
+            ...(model.aliases || []),
+        ].map(normalizeModelValue);
+
+        return models.value.some((installed) => {
+            const values = [
+                installed.id,
+                installed.displayName,
+                installed.path,
+            ].map(normalizeModelValue);
+
+            return candidates.some((candidate) =>
+                values.some(
+                    (value) => value === candidate || value.includes(candidate),
+                ),
+            );
+        });
     }
 
     return {
@@ -187,5 +326,9 @@ export const useLmStudioStore = defineStore("lmstudio", () => {
         setSelectedModel,
         getSelectedModel,
         isModelInstalled,
+        getRecommendedModels,
+        downloadModel,
+        getDownloadStatus,
+        isRecommendedModelInstalled,
     };
 })

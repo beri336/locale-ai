@@ -45,6 +45,90 @@
         </div>
       </div>
 
+      <!-- LM Studio Status -->
+      <section class="card">
+        <h2>LM Studio Status</h2>
+
+        <div class="ollama-info">
+          <p class="card-hint">
+            All information about your local LM Studio server.
+          </p>
+          <div class="link-row">
+            <a
+              href="https://lmstudio.ai/docs"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Documentation
+            </a>
+            <a
+              href="https://lmstudio.ai/docs/developer/rest"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              REST API
+            </a>
+            <a
+              href="https://lmstudio.ai/models"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Model Catalog
+            </a>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-row">
+            <span class="info-label">Server Status</span>
+            <span class="info-value">
+              <span
+                class="status-dot"
+                :class="lmstudio.isOnline ? 'connected' : 'disconnected'"
+              ></span>
+              {{ lmstudio.isOnline ? "Connected" : "Disconnected" }}
+            </span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Base URL</span>
+            <span class="info-value mono">{{ lmstudio.getBaseUrl() }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Models Available</span>
+            <span class="info-value mono">{{ lmstudio.models.length }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Loaded Models</span>
+            <span class="info-value">
+              {{
+                lmstudio.loadedModels.length
+                  ? lmstudio.loadedModels
+                      .map((m) => m.displayName || m.id)
+                      .join(", ")
+                  : "None"
+              }}
+            </span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Selected Model</span>
+            <span class="info-value mono">
+              {{ lmstudio.selectedModel || "None" }}
+            </span>
+          </div>
+        </div>
+
+        <div class="refresh-row">
+          <button class="btn-ghost small" type="button" @click="handleRefresh">
+            Refresh Models
+          </button>
+        </div>
+      </section>
+
+      <!-- Installed Models -->
       <section class="card">
         <div class="card-header-row">
           <h2>Installed Models</h2>
@@ -152,6 +236,57 @@
         </div>
       </section>
 
+      <section class="card">
+        <h2>Recommended Models</h2>
+
+        <div class="recommended-models">
+          <div
+            v-for="model in recommendedModels"
+            :key="model.name"
+            class="model-recommend-item"
+          >
+            <div class="model-recommend-info">
+              <p class="model-recommend-name">{{ model.label }}</p>
+              <p class="model-recommend-desc">
+                {{ model.description }} · {{ model.size }} · 
+                <a :href="model.link" target="_blank" rel="noopener noreferrer">
+                  Details
+                </a>
+              </p>
+            </div>
+
+            <button
+              v-if="lmstudio.isRecommendedModelInstalled(model)"
+              class="btn-installed"
+              type="button"
+              disabled
+            >
+              <IconCheck :size="10" :stroke-width="2" aria-hidden="true" />
+              Installed
+            </button>
+
+            <button
+              v-else-if="downloadingModel === model.name"
+              class="btn-ghost small"
+              type="button"
+              disabled
+            >
+              {{ downloadProgress || "Downloading…" }}
+            </button>
+
+            <button
+              v-else
+              class="btn-primary small"
+              type="button"
+              @click="handleInstallRecommendedModel(model.name)"
+            >
+              Install
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Detailed Model Information -->
       <section class="card">
         <h2>Detailed Model Information</h2>
         <div v-if="lmstudio.models.length" class="model-cards">
@@ -268,6 +403,9 @@ const searchQuery = ref("");
 const statusFilter = ref("all");
 const isRefreshing = ref(false);
 const pendingModelId = ref(null);
+const recommendedModels = ref(lmstudio.getRecommendedModels());
+const downloadingModel = ref(null);
+const downloadProgress = ref("");
 
 let pollInterval = null;
 
@@ -334,6 +472,44 @@ function formatBytes(bytes, decimals = 1) {
   return (
     parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + " " + sizes[i]
   );
+}
+
+async function handleInstallRecommendedModel(modelId) {
+  if (downloadingModel.value) return;
+
+  downloadingModel.value = modelId;
+  downloadProgress.value = "Starting download…";
+
+  try {
+    const result = await lmstudio.downloadModel(modelId);
+    const jobId = result.job_id;
+
+    if (!jobId) {
+      throw new Error("No download job id returned");
+    }
+
+    let finished = false;
+
+    while (!finished) {
+      const status = await lmstudio.getDownloadStatus(jobId);
+      downloadProgress.value = status.status || "Downloading…";
+
+      if (status.status === "completed" || status.status === "success") {
+        finished = true;
+      } else if (status.status === "error" || status.status === "failed") {
+        throw new Error("Model download failed");
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+    }
+
+    await lmstudio.fetchModels();
+  } catch (error) {
+    console.error("LM Studio model download failed:", error);
+  } finally {
+    downloadingModel.value = null;
+    downloadProgress.value = "";
+  }
 }
 
 onMounted(async () => {
@@ -731,6 +907,152 @@ onUnmounted(() => {
   color: var(--color-text-faint);
 }
 
+.card-hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.link-row a {
+  font-size: var(--text-xs);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.link-row a:hover {
+  text-decoration: underline;
+}
+
+.info-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-divider);
+  gap: var(--space-3);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.info-value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: right;
+}
+
+.info-value.mono {
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-dot.connected {
+  background: #6daa45;
+  box-shadow: 0 0 0 3px oklch(from #6daa45 l c h / 0.15);
+}
+
+.status-dot.disconnected {
+  background: var(--color-error);
+  box-shadow: 0 0 0 3px oklch(from var(--color-error) l c h / 0.15);
+}
+
+.refresh-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.recommended-models {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.model-recommend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.model-recommend-item:last-child {
+  border-bottom: none;
+}
+
+.model-recommend-info {
+  min-width: 0;
+}
+
+.model-recommend-name {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.model-recommend-desc {
+  margin: 0.2rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.model-recommend-desc a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.model-recommend-desc a:hover {
+  text-decoration: underline;
+}
+
+.btn-installed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 4px var(--space-3);
+  color: #6daa45;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  background: color-mix(in srgb, #6daa45 12%, var(--color-surface-2));
+  border: 1px solid color-mix(in srgb, #6daa45 30%, var(--color-border));
+  border-radius: var(--radius-md);
+  cursor: default;
+}
+
 @media (max-width: 620px) {
   .models-view {
     padding: 0.85rem 0.75rem 1.5rem;
@@ -817,6 +1139,18 @@ onUnmounted(() => {
   .empty-state {
     padding: 1.5rem 0;
     font-size: 12px;
+  }
+
+  .model-recommend-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .btn-installed,
+  .btn-primary.small,
+  .btn-ghost.small {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

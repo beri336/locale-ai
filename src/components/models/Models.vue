@@ -136,6 +136,7 @@
         </div>
       </section>
 
+      <!-- Recommended Models -->
       <section class="card">
         <h2>Recommended Models</h2>
         <div class="recommended-models">
