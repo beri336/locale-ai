@@ -1,4 +1,4 @@
-<!-- src/components/icons/IconLmStudio.vue -->
+<!-- src/components/icons/IconOllama.vue -->
 
 <template>
   <svg
@@ -26,11 +26,13 @@
     />
 
     <path
-      d="M9.2 7.8V16H15"
+      d="M12 7.6
+         C9.45 7.6 8 9.35 8 12
+         C8 14.65 9.45 16.4 12 16.4
+         C14.55 16.4 16 14.65 16 12
+         C16 9.35 14.55 7.6 12 7.6Z"
       stroke="currentColor"
       stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
     />
   </svg>
 </template>

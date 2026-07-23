@@ -65,7 +65,7 @@
           class="nav-item"
           :title="isCollapsed ? 'Ollama Models' : ''"
         >
-          <span class="nav-icon"><IconPackage /></span>
+          <span class="nav-icon"><IconOllama /></span>
           <span v-if="!isCollapsed" class="nav-label">Ollama Models</span>
         </RouterLink>
 
@@ -74,7 +74,7 @@
           class="nav-item"
           :title="isCollapsed ? 'LM Studio Models' : ''"
         >
-          <span class="nav-icon"><IconPackage /></span>
+          <span class="nav-icon"><IconLmStudio /></span>
           <span v-if="!isCollapsed" class="nav-label">LM Studio Models</span>
         </RouterLink>
 
@@ -195,7 +195,7 @@
           class="sheet-nav-item"
           @click="closeMobileMenu"
         >
-          <span class="sheet-item-icon"><IconPackage /></span>
+          <span class="sheet-item-icon"><IconOllama /></span>
           <span>Ollama Models</span>
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
@@ -205,7 +205,7 @@
           class="sheet-nav-item"
           @click="closeMobileMenu"
         >
-          <span class="sheet-item-icon"><IconPackage /></span>
+          <span class="sheet-item-icon"><IconLmStudio /></span>
           <span>LM Studio Models</span>
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
@@ -314,7 +314,6 @@ import SearchModal from "@/components/search/SearchModal.vue";
 import IconHome from "@/components/icons/IconHome.vue";
 import IconChat from "@/components/icons/IconChat.vue";
 import IconFolder from "@/components/icons/IconFolder.vue";
-import IconPackage from "@/components/icons/IconPackage.vue";
 import IconSettings from "@/components/icons/IconSettings.vue";
 import IconMoon from "@/components/icons/IconMoon.vue";
 import IconSun from "@/components/icons/IconSun.vue";
@@ -323,6 +322,8 @@ import IconSearch from "@/components/icons/IconSearch.vue";
 import IconX from "@/components/icons/IconX.vue";
 import IconArchive from "@/components/icons/IconArchive.vue";
 import IconPrompt from "@/components/icons/IconPrompt.vue";
+import IconLmStudio from "@/components/icons/IconLmStudio.vue";
+import IconOllama from "@/components/icons/IconOllama.vue";
 
 const themeStore = useThemeStore();
 const { openSearchModal } = useSearchModal();

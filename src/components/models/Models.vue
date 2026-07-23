@@ -5,7 +5,7 @@
     <header class="page-header">
       <div class="page-heading">
         <div class="header-icon" aria-hidden="true">
-          <IconPackage />
+          <IconOllama />
         </div>
 
         <div>
@@ -371,8 +371,8 @@
 import { ref, computed, onMounted } from "vue";
 import { useOllamaStore } from "@/stores/useOllamaStore";
 import { isValidModelName } from "@/utils/validation";
-import IconPackage from "@/components/icons/IconPackage.vue";
 import IconCheck from "@/components/icons/IconCheck.vue";
+import IconOllama from "@/components/icons/IconOllama.vue";
 
 const ollama = useOllamaStore();
 
