@@ -142,7 +142,13 @@ Locale AI is designed to work locally:
 
 ## License
 
-This project is licensed under the [MIT License](docs/LICENSE).
+Copyright © 2026 beri336. All rights reserved.
+
+This repository is publicly available solely for portfolio and evaluation purposes.
+Use, copying, modification, redistribution, or commercial use of this project is
+not permitted without prior written permission.
+
+See [LICENSE](./LICENSE) for the full terms.
 
 ---
 
