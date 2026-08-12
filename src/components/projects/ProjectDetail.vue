@@ -182,7 +182,7 @@
 import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useProjectsStore } from "@/stores/useProjectsStore";
-import { useOllamaStore } from "@/stores/useOllamaStore";
+import { useOllamaApi } from "@/services/ollamaApiService";
 import ChatThread from "@/components/chat/ChatThread.vue";
 import ChatListItem from "@/components/chat/ChatListItem.vue";
 import { useSettingsStore } from "@/stores/settingsStore";
@@ -195,7 +195,7 @@ import IconChat from "@/components/icons/IconChat.vue";
 const route = useRoute();
 const router = useRouter();
 const projectsStore = useProjectsStore();
-const ollama = useOllamaStore();
+const ollama = useOllamaApi();
 const settingsStore = useSettingsStore();
 
 const modelNames = ref([]);
@@ -284,7 +284,7 @@ function updateChatTitle(chat, firstMessage) {
 }
 
 onMounted(async () => {
-  modelNames.value = await ollama.getListOfModelsName();
+  modelNames.value = await ollama.getAllModelsNames();
   if (project.value?.chats.length > 0) {
     const requestedChatId = route.query.chat;
 
