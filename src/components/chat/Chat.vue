@@ -197,7 +197,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
-import { useOllamaStore } from "@/stores/useOllamaStore";
+import { useOllamaApi } from "@/services/ollamaApiService";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useLmStudioStore } from "@/stores/useLmStudioStore";
 
@@ -206,7 +206,7 @@ import ChatThread from "@/components/chat/ChatThread.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconTemp from "@/components/icons/IconTemp.vue";
 
-const ollama = useOllamaStore();
+const ollama = useOllamaApi();
 const lmstudio = useLmStudioStore();
 const settingsStore = useSettingsStore();
 const route = useRoute();
@@ -451,7 +451,7 @@ onMounted(async () => {
   removeExpiredChats();
 
   try {
-    modelNames.value = await ollama.getListOfModelsName();
+    modelNames.value = await ollama.getAllModelsNames();
   } catch (error) {
     console.error("Failed to load Ollama models in Chat.vue:", error);
     modelNames.value = [];

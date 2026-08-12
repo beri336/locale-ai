@@ -330,7 +330,7 @@ function toggle(key) {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  max-width: 1100px;
+  max-width: var(--max-width);
   margin-bottom: 2rem;
 }
 
@@ -382,7 +382,7 @@ function toggle(key) {
 
 .faq-content {
   display: grid;
-  max-width: 880px;
+  max-width: var(--max-width);
   gap: 0.75rem;
 }
 

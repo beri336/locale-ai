@@ -539,7 +539,7 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  max-width: 1100px;
+  max-width: var(--max-width);
   margin-bottom: 2rem;
   gap: var(--space-4);
   flex-wrap: wrap;
@@ -653,7 +653,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  max-width: 1100px;
+  max-width: var(--max-width);
 }
 
 .card {

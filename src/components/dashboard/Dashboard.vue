@@ -23,11 +23,7 @@
           Search chats
         </button>
 
-        <button
-          class="btn-primary"
-          type="button"
-          @click="router.push({ path: '/chat', query: { new: 'true' } })"
-        >
+        <button class="btn-primary" type="button" @click="router.push({ path: '/chat', query: { new: 'true' } })">
           <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
           New chat
         </button>
@@ -54,12 +50,8 @@
           <h2>Weather</h2>
         </div>
 
-        <button
-          class="link-btn"
-          type="button"
-          :disabled="isWeatherLoading"
-          @click="fetchWeather(settingsStore.weatherCity)"
-        >
+        <button class="link-btn" type="button" :disabled="isWeatherLoading"
+          @click="fetchWeather(settingsStore.weatherCity)">
           Refresh
           <IconRefresh :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
@@ -78,16 +70,13 @@
             <p class="weather-condition">{{ weather.label }}</p>
           </div>
 
-          <strong class="weather-temperature"
-            >{{ weather.temperature }}°</strong
-          >
+          <strong class="weather-temperature">{{ weather.temperature }}°</strong>
         </div>
 
         <div class="weather-details">
-          <span
-            >Feels like {{ weather.apparentTemperature }}
-            <IconThermometer :size="12" :stroke-width="2" aria-hidden="true"
-          /></span>
+          <span>Feels like {{ weather.apparentTemperature }}
+            <IconThermometer :size="12" :stroke-width="2" aria-hidden="true" />
+          </span>
           <span>Wind {{ weather.windSpeed }} km/h</span>
           <span>Updated {{ formatWeatherTime(weather.updatedAt) }}</span>
         </div>
@@ -95,12 +84,7 @@
 
       <div v-else class="inline-empty-state">
         <div class="inline-empty-icon" aria-hidden="true">
-          <IconLoader
-            v-if="isWeatherLoading"
-            :size="32"
-            :stroke-width="1.5"
-            aria-hidden="true"
-          />
+          <IconLoader v-if="isWeatherLoading" :size="32" :stroke-width="1.5" aria-hidden="true" />
           <IconCloud v-else :size="32" :stroke-width="1.5" aria-hidden="true" />
         </div>
 
@@ -122,12 +106,7 @@
       <article class="stat-card">
         <div class="stat-card-header">
           <span class="stat-label">All chats</span>
-          <IconChat
-            class="stat-icon"
-            :size="20"
-            :stroke-width="2"
-            aria-hidden="true"
-          />
+          <IconChat class="stat-icon" :size="20" :stroke-width="2" aria-hidden="true" />
         </div>
         <strong class="stat-value">{{ totalChats }}</strong>
         <span class="stat-description">
@@ -142,12 +121,7 @@
       <article class="stat-card">
         <div class="stat-card-header">
           <span class="stat-label">Projects</span>
-          <IconFolder
-            class="stat-icon"
-            :size="20"
-            :stroke-width="2"
-            aria-hidden="true"
-          />
+          <IconFolder class="stat-icon" :size="20" :stroke-width="2" aria-hidden="true" />
         </div>
         <strong class="stat-value">{{ totalProjects }}</strong>
         <span class="stat-description">
@@ -158,12 +132,7 @@
       <article class="stat-card">
         <div class="stat-card-header">
           <span class="stat-label">Messages</span>
-          <IconMessages
-            class="stat-icon"
-            :size="20"
-            :stroke-width="2"
-            aria-hidden="true"
-          />
+          <IconMessages class="stat-icon" :size="20" :stroke-width="2" aria-hidden="true" />
         </div>
         <strong class="stat-value">{{ totalMessages }}</strong>
         <span class="stat-description">Across all saved conversations</span>
@@ -171,10 +140,7 @@
     </section>
 
     <section class="status-grid" aria-label="Server status">
-      <article
-        class="stat-card status-card"
-        :class="{ online: ollamaOnline, offline: !ollamaOnline }"
-      >
+      <article class="stat-card status-card" :class="{ online: ollamaOnline, offline: !ollamaOnline }">
         <div class="stat-card-header">
           <span class="stat-label">Ollama server</span>
           <span class="server-status-dot"></span>
@@ -193,10 +159,7 @@
         </span>
       </article>
 
-      <article
-        class="stat-card status-card"
-        :class="{ online: lmstudio.isOnline, offline: !lmstudio.isOnline }"
-      >
+      <article class="stat-card status-card" :class="{ online: lmstudio.isOnline, offline: !lmstudio.isOnline }">
         <div class="stat-card-header">
           <span class="stat-label">LMS server</span>
           <span class="server-status-dot"></span>
@@ -223,30 +186,17 @@
           <h2>Recent chats</h2>
         </div>
 
-        <button
-          class="link-btn"
-          type="button"
-          @click="router.push({ path: '/chat', query: { new: 'true' } })"
-        >
+        <button class="link-btn" type="button" @click="router.push({ path: '/chat', query: { new: 'true' } })">
           View all
           <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
       </div>
 
       <div v-if="recentChats.length" class="recent-chat-list">
-        <button
-          v-for="chat in recentChats"
-          :key="`${chat.source}-${chat.id}`"
-          class="recent-chat-item"
-          type="button"
-          @click="goToChat(chat)"
-        >
+        <button v-for="chat in recentChats" :key="`${chat.source}-${chat.id}`" class="recent-chat-item" type="button"
+          @click="goToChat(chat)">
           <span class="recent-chat-icon" aria-hidden="true">
-            <component
-              :is="chat.source === 'project' ? IconFolder : IconMessages"
-              :size="18"
-              :stroke-width="2"
-            />
+            <component :is="chat.source === 'project' ? IconFolder : IconMessages" :size="18" :stroke-width="2" />
           </span>
 
           <span class="recent-chat-info">
@@ -261,9 +211,9 @@
             {{ chat.source === "project" ? chat.projectName : "Quick chat" }}
           </span>
 
-          <span class="row-arrow" aria-hidden="true"
-            ><IconArrowRight :size="12" :stroke-width="2" aria-hidden="true"
-          /></span>
+          <span class="row-arrow" aria-hidden="true">
+            <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
+          </span>
         </button>
       </div>
 
@@ -275,11 +225,7 @@
           <h3>No conversations yet</h3>
           <p>Start a new chat to begin working with your local models.</p>
         </div>
-        <button
-          class="btn-primary"
-          type="button"
-          @click="router.push({ path: '/chat', query: { new: 'true' } })"
-        >
+        <button class="btn-primary" type="button" @click="router.push({ path: '/chat', query: { new: 'true' } })">
           <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
           New chat
         </button>
@@ -293,62 +239,45 @@
           <h2>Active projects</h2>
         </div>
 
-        <button
-          class="link-btn"
-          type="button"
-          @click="$router.push('/projects')"
-        >
+        <button class="link-btn" type="button" @click="$router.push('/projects')">
           View all
           <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
       </div>
 
       <div v-if="recentProjects.length" class="project-grid-compact">
-        <button
-          v-for="project in recentProjects"
-          :key="project.id"
-          class="project-card-compact"
-          type="button"
-          @click="$router.push(`/projects/${project.id}`)"
-        >
+        <button v-for="project in recentProjects" :key="project.id" class="project-card-compact" type="button"
+          @click="$router.push(`/projects/${project.id}`)">
           <div class="project-card-header">
-            <span class="project-icon" aria-hidden="true"
-              ><IconFolder :size="20" :stroke-width="1.5"
-            /></span>
-            <span class="project-arrow" aria-hidden="true"
-              ><IconArrowUpRight :size="15" :stroke-width="1.5"
-            /></span>
+            <span class="project-icon" aria-hidden="true">
+              <IconFolder :size="20" :stroke-width="1.5" />
+            </span>
+            <span class="project-arrow" aria-hidden="true">
+              <IconArrowUpRight :size="15" :stroke-width="1.5" />
+            </span>
           </div>
 
           <span class="project-name">{{ project.name }}</span>
 
           <span v-if="project.tags.length" class="project-tags">
-            <span
-              v-for="tag in project.tags.slice(0, 3)"
-              :key="tag"
-              class="tag-chip"
-            >
+            <span v-for="tag in project.tags.slice(0, 3)" :key="tag" class="tag-chip">
               {{ tag }}
             </span>
           </span>
 
           <span class="project-chat-count">
-            <span aria-hidden="true"
-              ><IconMessages :size="12" :stroke-width="1.5"
-            /></span>
+            <span aria-hidden="true">
+              <IconMessages :size="12" :stroke-width="1.5" />
+            </span>
             {{ project.chats.length }}
             {{ project.chats.length === 1 ? "chat" : "chats" }}
           </span>
         </button>
 
-        <button
-          class="new-project-card"
-          type="button"
-          @click="$router.push('/projects')"
-        >
-          <span class="new-project-icon" aria-hidden="true"
-            ><IconPlus :size="12" :stroke-width="2" aria-hidden="true"
-          /></span>
+        <button class="new-project-card" type="button" @click="$router.push('/projects')">
+          <span class="new-project-icon" aria-hidden="true">
+            <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
+          </span>
           <span>Create project</span>
         </button>
       </div>
@@ -361,11 +290,7 @@
           <h3>No projects yet</h3>
           <p>Group related chats, prompts and experiments in one workspace.</p>
         </div>
-        <button
-          class="btn-secondary"
-          type="button"
-          @click="$router.push('/projects')"
-        >
+        <button class="btn-secondary" type="button" @click="$router.push('/projects')">
           <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
           Create project
         </button>
@@ -379,7 +304,7 @@
           <h2>Ollama models</h2>
         </div>
 
-        <button class="link-btn" type="button" @click="$router.push('/models')">
+        <button class="link-btn" type="button" @click="$router.push('/ollama-models')">
           Manage
           <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
@@ -387,40 +312,20 @@
 
       <div v-if="modelNames.length" class="model-list">
         <div v-for="name in modelNames" :key="name" class="model-item">
-          <span
-            class="model-dot"
-            :class="{ running: runningModels.includes(name) }"
-          ></span>
+          <span class="model-dot" :class="{ running: runningModels.includes(name) }"></span>
 
           <span class="model-name">{{ name }}</span>
 
-          <span
-            class="model-status-label"
-            :class="{ running: runningModels.includes(name) }"
-          >
+          <span class="model-status-label" :class="{ running: runningModels.includes(name) }">
             {{ runningModels.includes(name) ? "Running" : "Idle" }}
           </span>
         </div>
       </div>
 
       <div v-else class="inline-empty-state">
-        <div
-          class="inline-empty-icon"
-          :class="{ offline: !ollamaOnline }"
-          aria-hidden="true"
-        >
-          <IconBox
-            v-if="ollamaOnline"
-            :size="32"
-            :stroke-width="1.5"
-            aria-hidden="true"
-          />
-          <IconAlertTriangle
-            v-else
-            :size="32"
-            :stroke-width="1.5"
-            aria-hidden="true"
-          />
+        <div class="inline-empty-icon" :class="{ offline: !ollamaOnline }" aria-hidden="true">
+          <IconBox v-if="ollamaOnline" :size="32" :stroke-width="1.5" aria-hidden="true" />
+          <IconAlertTriangle v-else :size="32" :stroke-width="1.5" aria-hidden="true" />
         </div>
 
         <div>
@@ -438,11 +343,7 @@
           </p>
         </div>
 
-        <button
-          class="btn-secondary"
-          type="button"
-          @click="$router.push(ollamaOnline ? '/models' : '/settings')"
-        >
+        <button class="btn-secondary" type="button" @click="$router.push(ollamaOnline ? '/ollama-models' : '/settings')">
           {{ ollamaOnline ? "Manage models" : "Open settings" }}
         </button>
       </div>
@@ -455,22 +356,14 @@
           <h2>LM Studio models</h2>
         </div>
 
-        <button
-          class="link-btn"
-          type="button"
-          @click="$router.push('/lms-models')"
-        >
+        <button class="link-btn" type="button" @click="$router.push('/lms-models')">
           Manage
           <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
       </div>
 
       <div v-if="lmstudio.models.length" class="model-list">
-        <div
-          v-for="model in lmstudio.models"
-          :key="model.id"
-          class="model-item"
-        >
+        <div v-for="model in lmstudio.models" :key="model.id" class="model-item">
           <span class="model-dot" :class="{ running: model.isLoaded }"></span>
 
           <span class="model-name">{{ model.displayName || model.id }}</span>
@@ -482,23 +375,9 @@
       </div>
 
       <div v-else class="inline-empty-state">
-        <div
-          class="inline-empty-icon"
-          :class="{ offline: !lmstudio.isOnline }"
-          aria-hidden="true"
-        >
-          <IconBox
-            v-if="lmstudio.isOnline"
-            :size="32"
-            :stroke-width="1.5"
-            aria-hidden="true"
-          />
-          <IconAlertTriangle
-            v-else
-            :size="32"
-            :stroke-width="1.5"
-            aria-hidden="true"
-          />
+        <div class="inline-empty-icon" :class="{ offline: !lmstudio.isOnline }" aria-hidden="true">
+          <IconBox v-if="lmstudio.isOnline" :size="32" :stroke-width="1.5" aria-hidden="true" />
+          <IconAlertTriangle v-else :size="32" :stroke-width="1.5" aria-hidden="true" />
         </div>
 
         <div>
@@ -518,11 +397,8 @@
           </p>
         </div>
 
-        <button
-          class="btn-secondary"
-          type="button"
-          @click="$router.push(lmstudio.isOnline ? '/lms-models' : '/settings')"
-        >
+        <button class="btn-secondary" type="button"
+          @click="$router.push(lmstudio.isOnline ? '/lms-models' : '/settings')">
           {{ lmstudio.isOnline ? "Manage models" : "Open settings" }}
         </button>
       </div>
@@ -533,7 +409,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import { useOllamaStore } from "@/stores/useOllamaStore";
+import { useOllamaApi } from "@/services/ollamaApiService";
 import { useLmStudioStore } from "@/stores/useLmStudioStore";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 import { useSearchModal } from "@/composables/useSearchModal";
@@ -558,7 +434,7 @@ import IconCloud from "@/components/icons/IconCloud.vue";
 import IconCheck from "@/components/icons/IconCheck.vue";
 
 const router = useRouter();
-const ollama = useOllamaStore();
+const ollama = useOllamaApi();
 const lmstudio = useLmStudioStore();
 const projectsStore = useProjectsStore();
 const { openSearchModal } = useSearchModal({ enableShortcut: false });
@@ -630,9 +506,9 @@ let pollInterval = null;
 
 async function loadOllamaStatus() {
   try {
-    modelNames.value = await ollama.getListOfModelsName();
-    ollamaOnline.value = await ollama.checkConnection();
-    runningModels.value = await ollama.refreshRunningModelNames();
+    modelNames.value = await ollama.getAllModelsNames();
+    ollamaOnline.value = await ollama.statusBool();
+    runningModels.value = await ollama.refreshRunningModelsCache();
   } catch (error) {
     console.error("Ollama server not reachable:", error);
     ollamaOnline.value = false;
@@ -678,14 +554,18 @@ onUnmounted(() => {
 
 <style scoped>
 .dashboard-view {
+  min-height: 0;
   height: 100%;
   overflow-y: auto;
   padding: var(--space-8) var(--space-6);
 }
 
 .page-heading {
+  display: flex;
+  align-items: flex-start;
   min-width: 0;
-  flex: 1 1 420px;
+  max-width: var(--max-width);
+  gap: 0.65rem;
 }
 
 .header-icon {
@@ -716,11 +596,12 @@ onUnmounted(() => {
 }
 
 .page-header {
-  flex-direction: column;
-  justify-content: flex-start;
-  min-height: 0;
-  height: auto;
-  gap: 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: var(--max-width);
+  margin-bottom: 2rem;
 }
 
 .page-header h1 {
@@ -740,7 +621,7 @@ onUnmounted(() => {
 
 .header-actions {
   display: flex;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.6rem;
@@ -798,11 +679,9 @@ onUnmounted(() => {
 
 .btn-secondary:hover {
   background: var(--color-surface-2);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
 .stat-card {
@@ -820,11 +699,9 @@ onUnmounted(() => {
 }
 
 .stat-card:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 28%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 28%,
+      var(--color-border));
   box-shadow: 0 10px 24px rgb(0 0 0 / 0.045);
   transform: translateY(-1px);
 }
@@ -888,8 +765,7 @@ onUnmounted(() => {
 
 .status-card.online .server-status-dot {
   background: var(--color-success, #22c55e);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-success, #22c55e) 13%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success, #22c55e) 13%, transparent);
 }
 
 .status-card.online .stat-value {
@@ -904,14 +780,13 @@ onUnmounted(() => {
 .pwa-mode-banner {
   display: flex;
   align-items: center;
-  max-width: 1100px;
+  max-width: var(--max-width);
   gap: 0.75rem;
   padding: 0.8rem 0.9rem;
   margin: -1rem 0 1.5rem;
   color: var(--color-text);
   background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
-  border: 1px solid
-    color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
   border-radius: var(--radius-lg);
 }
 
@@ -954,13 +829,12 @@ onUnmounted(() => {
   font-weight: 700;
   letter-spacing: 0.07em;
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border: 1px solid
-    color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
   border-radius: var(--radius-full);
 }
 
 .dashboard-section {
-  max-width: 1100px;
+  max-width: var(--max-width);
   margin-bottom: 2.25rem;
 }
 
@@ -1096,11 +970,9 @@ onUnmounted(() => {
 .source-badge.project {
   color: var(--color-primary);
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 24%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 24%,
+      var(--color-border));
 }
 
 .row-arrow {
@@ -1145,11 +1017,9 @@ onUnmounted(() => {
 
 .project-card-compact:hover,
 .new-project-card:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 30%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 30%,
+      var(--color-border));
   box-shadow: 0 10px 24px rgb(0 0 0 / 0.055);
   transform: translateY(-2px);
 }
@@ -1282,8 +1152,7 @@ onUnmounted(() => {
 
 .model-dot.running {
   background: var(--color-success, #22c55e);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-success, #22c55e) 13%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success, #22c55e) 13%, transparent);
 }
 
 .model-name {
@@ -1307,11 +1176,9 @@ onUnmounted(() => {
 
 .model-status-label.running {
   color: var(--color-success, #22c55e);
-  background: color-mix(
-    in srgb,
-    var(--color-success, #22c55e) 10%,
-    transparent
-  );
+  background: color-mix(in srgb,
+      var(--color-success, #22c55e) 10%,
+      transparent);
 }
 
 .inline-empty-state {
@@ -1342,7 +1209,7 @@ onUnmounted(() => {
   background: color-mix(in srgb, var(--color-error) 10%, transparent);
 }
 
-.inline-empty-state > div:nth-child(2) {
+.inline-empty-state>div:nth-child(2) {
   min-width: 0;
 }
 
@@ -1368,7 +1235,10 @@ onUnmounted(() => {
 
 /* Weather section */
 .weather-section {
-  max-width: 1100px;
+  display: grid;
+  max-width: var(--max-width);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
 }
 
 .weather-section .link-btn:disabled {
@@ -1385,14 +1255,11 @@ onUnmounted(() => {
   padding: 1.1rem 1.15rem;
   overflow: hidden;
   background:
-    radial-gradient(
-      circle at 100% 0,
+    radial-gradient(circle at 100% 0,
       color-mix(in srgb, var(--color-primary) 12%, transparent),
-      transparent 42%
-    ),
+      transparent 42%),
     var(--color-surface);
-  border: 1px solid
-    color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   border-radius: var(--radius-lg);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.025);
 }
@@ -1413,8 +1280,7 @@ onUnmounted(() => {
   font-size: 1.8rem;
   line-height: 1;
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border: 1px solid
-    color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
   border-radius: 14px;
 }
 
@@ -1476,6 +1342,7 @@ onUnmounted(() => {
 
 .overview-grid {
   display: grid;
+  max-width: var(--max-width);
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
   margin-bottom: var(--space-4);
@@ -1483,6 +1350,7 @@ onUnmounted(() => {
 
 .status-grid {
   display: grid;
+  max-width: var(--max-width);
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-4);
   margin-bottom: var(--space-6);
@@ -1492,10 +1360,12 @@ onUnmounted(() => {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
+
 .icon-spin {
   animation: spin 1s linear infinite;
 }
@@ -1506,13 +1376,13 @@ onUnmounted(() => {
   }
 
   .page-header {
-    flex-direction: column;
-    gap: 0.85rem;
+    align-items: flex-start;
+    gap: 0.55rem;
     margin-bottom: 1rem;
   }
 
   .page-heading {
-    gap: 0.6rem;
+    gap: 0.5rem;
   }
 
   .header-icon {

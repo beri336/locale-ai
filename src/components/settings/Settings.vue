@@ -39,19 +39,10 @@
         <label class="field-label" for="api-url">API URL</label>
 
         <div class="input-row">
-          <input
-            id="api-url"
-            v-model="settingsStore.apiUrl"
-            class="input"
-            placeholder="http://localhost:11434"
-            spellcheck="false"
-          />
+          <input id="api-url" v-model="settingsStore.apiUrl" class="input" placeholder="http://localhost:11434"
+            spellcheck="false" />
 
-          <button
-            class="btn-primary"
-            :disabled="isChecking"
-            @click="handleTest"
-          >
+          <button class="btn-primary" :disabled="isChecking" @click="handleTest">
             {{ isChecking ? "Checking…" : "Test connection" }}
           </button>
         </div>
@@ -98,11 +89,7 @@
       <section class="settings-card connection-card">
         <div class="field-group">
           <label class="field-label">LM Studio API URL</label>
-          <input
-            v-model="lmStudioApiUrl"
-            class="input"
-            placeholder="http://localhost:1234"
-          />
+          <input class="input" placeholder="http://localhost:1234" />
         </div>
       </section>
 
@@ -121,17 +108,10 @@
         <div class="setting-row">
           <div class="setting-copy">
             <span class="setting-label">Color theme</span>
-            <span class="setting-hint"
-              >Switch between light and dark mode.</span
-            >
+            <span class="setting-hint">Switch between light and dark mode.</span>
           </div>
 
-          <button
-            class="theme-switch"
-            type="button"
-            aria-label="Toggle app theme"
-            @click="themeStore.toggle()"
-          >
+          <button class="theme-switch" type="button" aria-label="Toggle app theme" @click="themeStore.toggle()">
             <span :class="{ active: themeStore.theme === 'light' }">Light</span>
             <span :class="{ active: themeStore.theme === 'dark' }">Dark</span>
           </button>
@@ -149,11 +129,7 @@
             </p>
           </div>
 
-          <button
-            class="btn-reset"
-            type="button"
-            @click="settingsStore.resetModelDefaults()"
-          >
+          <button class="btn-reset" type="button" @click="settingsStore.resetModelDefaults()">
             Reset
           </button>
         </div>
@@ -161,11 +137,7 @@
         <div class="settings-fields">
           <div class="field-group">
             <label class="field-label" for="default-model">Default model</label>
-            <select
-              id="default-model"
-              v-model="settingsStore.defaultModel"
-              class="input"
-            >
+            <select id="default-model" v-model="settingsStore.defaultModel" class="input">
               <option value="">No default model</option>
               <option v-for="name in modelNames" :key="name" :value="name">
                 {{ name }}
@@ -178,18 +150,11 @@
               <label class="field-label" for="default-temp">Temperature</label>
               <output class="range-value">{{
                 settingsStore.temperature
-              }}</output>
+                }}</output>
             </div>
 
-            <input
-              id="default-temp"
-              v-model.number="settingsStore.temperature"
-              class="slider"
-              type="range"
-              min="0"
-              max="2"
-              step="0.1"
-            />
+            <input id="default-temp" v-model.number="settingsStore.temperature" class="slider" type="range" min="0"
+              max="2" step="0.1" />
 
             <p class="field-hint">
               Lower values are more predictable; higher values are more
@@ -202,11 +167,7 @@
               Context window
             </label>
 
-            <select
-              id="context-length"
-              v-model.number="settingsStore.numCtx"
-              class="input"
-            >
+            <select id="context-length" v-model.number="settingsStore.numCtx" class="input">
               <option :value="2048">2,048 tokens</option>
               <option :value="4096">4,096 tokens</option>
               <option :value="8192">8,192 tokens</option>
@@ -232,11 +193,7 @@
             </p>
           </div>
 
-          <button
-            class="btn-reset"
-            type="button"
-            @click="settingsStore.resetModelBehavior()"
-          >
+          <button class="btn-reset" type="button" @click="settingsStore.resetModelBehavior()">
             Reset
           </button>
         </div>
@@ -264,21 +221,13 @@
             </p>
           </div>
 
-          <button
-            class="btn-reset"
-            type="button"
-            @click="settingsStore.resetSystemPrompt()"
-          >
+          <button class="btn-reset" type="button" @click="settingsStore.resetSystemPrompt()">
             Reset
           </button>
         </div>
 
-        <textarea
-          v-model="settingsStore.defaultSystemPrompt"
-          class="input textarea"
-          placeholder="For example: You are a senior developer. Always answer in German."
-          rows="4"
-        ></textarea>
+        <textarea v-model="settingsStore.defaultSystemPrompt" class="input textarea"
+          placeholder="For example: You are a senior developer. Always answer in German." rows="4"></textarea>
 
         <p class="field-hint">
           The active prompt is shown in the chat toolbar.
@@ -301,15 +250,8 @@
           <label class="field-label" for="weather-city">Current city</label>
 
           <div class="input-row weather-city-row">
-            <input
-              id="weather-city"
-              v-model="weatherCityInput"
-              class="input"
-              type="text"
-              placeholder="e.g. Stuttgart"
-              autocomplete="address-level2"
-              @keyup.enter="saveWeatherCity"
-            />
+            <input id="weather-city" v-model="weatherCityInput" class="input" type="text" placeholder="e.g. Stuttgart"
+              autocomplete="address-level2" @keyup.enter="saveWeatherCity" />
 
             <button class="btn-primary" type="button" @click="saveWeatherCity">
               Save
@@ -333,12 +275,8 @@
             </p>
           </div>
 
-          <button
-            class="btn-reset"
-            type="button"
-            :disabled="settingsStore.temporaryChatDurationHours === 4"
-            @click="resetTemporaryChatDuration"
-          >
+          <button class="btn-reset" type="button" :disabled="settingsStore.temporaryChatDurationHours === 4"
+            @click="resetTemporaryChatDuration">
             Reset
           </button>
         </div>
@@ -348,16 +286,8 @@
             Default duration
           </label>
 
-          <select
-            id="temporary-chat-duration"
-            v-model="temporaryChatDuration"
-            class="input temporary-duration-select"
-          >
-            <option
-              v-for="duration in temporaryChatDurations"
-              :key="duration"
-              :value="duration"
-            >
+          <select id="temporary-chat-duration" v-model="temporaryChatDuration" class="input temporary-duration-select">
+            <option v-for="duration in temporaryChatDurations" :key="duration" :value="duration">
               {{ duration }} {{ duration === 1 ? "hour" : "hours" }}
             </option>
           </select>
@@ -388,11 +318,7 @@
               <p>Save chats, projects and settings as one JSON file.</p>
             </div>
 
-            <button
-              class="btn-secondary"
-              type="button"
-              @click="handleExportBackup"
-            >
+            <button class="btn-secondary" type="button" @click="handleExportBackup">
               Export JSON
             </button>
           </div>
@@ -403,21 +329,12 @@
               <p>Restore a LocalAI JSON backup on this browser.</p>
             </div>
 
-            <button
-              class="btn-secondary"
-              type="button"
-              @click="triggerImportBackup"
-            >
+            <button class="btn-secondary" type="button" @click="triggerImportBackup">
               Import JSON
             </button>
 
-            <input
-              ref="backupFileInput"
-              class="visually-hidden"
-              type="file"
-              accept="application/json,.json"
-              @change="handleImportBackup"
-            />
+            <input ref="backupFileInput" class="visually-hidden" type="file" accept="application/json,.json"
+              @change="handleImportBackup" />
           </div>
         </div>
 
@@ -452,11 +369,7 @@
               </p>
             </div>
 
-            <button
-              class="btn-danger-outline"
-              type="button"
-              @click="handleDeleteQuickChats"
-            >
+            <button class="btn-danger-outline" type="button" @click="handleDeleteQuickChats">
               Delete chats
             </button>
           </div>
@@ -470,11 +383,7 @@
               </p>
             </div>
 
-            <button
-              class="btn-danger-outline"
-              type="button"
-              @click="handleDeleteProjects"
-            >
+            <button class="btn-danger-outline" type="button" @click="handleDeleteProjects">
               Delete projects
             </button>
           </div>
@@ -488,11 +397,7 @@
               </p>
             </div>
 
-            <button
-              class="btn-danger"
-              type="button"
-              @click="handleDeleteAllData"
-            >
+            <button class="btn-danger" type="button" @click="handleDeleteAllData">
               Delete everything
             </button>
           </div>
@@ -511,25 +416,42 @@
         <div class="about-list">
           <div class="about-row">
             <span>Version</span>
-            <code>1.0.0</code>
+            <code>v{{ APP_VERSION }}</code>
           </div>
 
           <div class="about-row">
             <span>Built with</span>
-            <span>Vue 3 · Ollama API</span>
+            <span>Vue 3 · Ollama API · LM Studio API</span>
+          </div>
+
+          <div class="about-row">
+            <span>Data Storage Location</span>
+            <span>Browsers local storage</span>
+          </div>
+
+          <div class="about-row">
+            <span>Privacy Policy</span>
+            <span>All chat data stays on your (this) device.</span>
+          </div>
+
+          <div class="about-row">
+            <span>Documentation</span>
+            <span>See <a href="https://github.com/beri336/locale-ai/blob/main/README.md" target="_blank"
+                rel="noreferrer">README on GitHub</a></span>
+          </div>
+
+          <div class="about-row">
+            <span>License</span>
+            <span>See <a href="https://github.com/beri336/locale-ai/blob/main/docs/LICENSE" target="_blank"
+                rel="noreferrer">LICENSE on GitHub</a></span>
           </div>
         </div>
 
-        <a
-          class="github-link"
-          href="https://github.com/beri336/locale-ai"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <a class="github-link" href="https://github.com/beri336/locale-ai" target="_blank" rel="noreferrer">
           View source code
-          <span aria-hidden="true"
-            ><IconArrowUpRight :size="12" :stroke-width="2"></IconArrowUpRight
-          ></span>
+          <span aria-hidden="true">
+            <IconArrowUpRight :size="12" :stroke-width="2"></IconArrowUpRight>
+          </span>
         </a>
       </section>
     </div>
@@ -540,7 +462,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useThemeStore } from "@/stores/themeStore";
-import { useOllamaStore } from "@/stores/useOllamaStore";
+import { useOllamaApi } from "@/services/ollamaApiService";
 import IconSettings from "@/components/icons/IconSettings.vue";
 import {
   exportAppBackup,
@@ -549,9 +471,11 @@ import {
 } from "@/utils/appBackup";
 import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
 
+const APP_VERSION = __APP_VERSION__;
+
 const settingsStore = useSettingsStore();
 const themeStore = useThemeStore();
-const ollama = useOllamaStore();
+const ollama = useOllamaApi();
 
 const modelNames = ref([]);
 
@@ -559,7 +483,7 @@ const localIp = ref(null);
 const hostIp = ref(window.location.hostname);
 const hostPort = ref(
   window.location.port ||
-    (window.location.protocol === "https:" ? "443" : "80"),
+  (window.location.protocol === "https:" ? "443" : "80"),
 );
 
 const backupFileInput = ref(null);
@@ -571,7 +495,7 @@ const PROJECTS_KEY = "ollama-projects";
 
 const weatherCityInput = ref(settingsStore.weatherCity);
 
-const temporaryChatDurations = [1, 2, 4, 8, 12, 24, 48]; // TODO durch settingsstore ersetzen
+const temporaryChatDurations = settingsStore.ALLOWED_TEMPORARY_DURATIONS;
 
 const temporaryChatDuration = computed({
   get: () => settingsStore.temporaryChatDurationHours,
@@ -620,7 +544,7 @@ async function handleTest() {
 
 onMounted(async () => {
   settingsStore.startPolling();
-  modelNames.value = await ollama.getListOfModelsName();
+  modelNames.value = await ollama.getAllModelsNames();
   if (hostIp.value === "localhost") detectLocalIp();
 });
 
@@ -811,7 +735,7 @@ function handleDeleteProjects() {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  max-width: 1100px;
+  max-width: var(--max-width);
   margin-bottom: 2rem;
 }
 
@@ -875,7 +799,7 @@ function handleDeleteProjects() {
 
 .settings-content {
   display: grid;
-  max-width: 760px;
+  max-width: var(--max-width);
   gap: 0.85rem;
   padding-bottom: 2rem;
 }
@@ -892,11 +816,9 @@ function handleDeleteProjects() {
 }
 
 .settings-card:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 26%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 26%,
+      var(--color-border));
   box-shadow: 0 8px 26px rgb(0 0 0 / 0.035);
 }
 
@@ -921,15 +843,16 @@ function handleDeleteProjects() {
 }
 
 .section-description {
-  max-width: 540px;
+  max-width: var(--max-width);
   margin: 0.35rem 0 0;
   color: var(--color-text-muted);
   font-size: var(--text-xs);
   line-height: 1.5;
 }
 
-.field-group + .field-group {
+.field-group+.field-group {
   margin-top: 1.25rem;
+  max-width: var(--max-width);
 }
 
 .field-label {
@@ -994,17 +917,14 @@ function handleDeleteProjects() {
 }
 
 .input:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-text-faint) 40%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-text-faint) 40%,
+      var(--color-border));
 }
 
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-primary) 15%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 select.input {
@@ -1078,18 +998,15 @@ textarea.input.textarea {
 
 .btn-secondary:hover {
   background: var(--color-bg);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
 .btn-danger {
   color: var(--color-error);
   background: transparent;
-  border: 1px solid
-    color-mix(in srgb, var(--color-error) 60%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-error) 60%, var(--color-border));
 }
 
 .btn-danger:hover {
@@ -1385,7 +1302,7 @@ textarea.input.textarea {
 }
 
 .backup-action-copy,
-.danger-row > div {
+.danger-row>div {
   min-width: 0;
 }
 
@@ -1420,20 +1337,16 @@ textarea.input.textarea {
 
 .backup-feedback.success {
   color: var(--color-success, #22c55e);
-  background: color-mix(
-    in srgb,
-    var(--color-success, #22c55e) 10%,
-    transparent
-  );
-  border: 1px solid
-    color-mix(in srgb, var(--color-success, #22c55e) 25%, transparent);
+  background: color-mix(in srgb,
+      var(--color-success, #22c55e) 10%,
+      transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success, #22c55e) 25%, transparent);
 }
 
 .backup-feedback.error {
   color: var(--color-error, #ef4444);
   background: color-mix(in srgb, var(--color-error, #ef4444) 10%, transparent);
-  border: 1px solid
-    color-mix(in srgb, var(--color-error, #ef4444) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error, #ef4444) 25%, transparent);
 }
 
 .data-divider {
@@ -1443,16 +1356,12 @@ textarea.input.textarea {
 }
 
 .danger-row {
-  background: color-mix(
-    in srgb,
-    var(--color-error, #ef4444) 5%,
-    var(--color-surface)
-  );
-  border-color: color-mix(
-    in srgb,
-    var(--color-error, #ef4444) 22%,
-    var(--color-border)
-  );
+  background: color-mix(in srgb,
+      var(--color-error, #ef4444) 5%,
+      var(--color-surface));
+  border-color: color-mix(in srgb,
+      var(--color-error, #ef4444) 22%,
+      var(--color-border));
 }
 
 .data-danger-heading {
@@ -1494,16 +1403,12 @@ textarea.input.textarea {
 }
 
 .delete-action-critical {
-  background: color-mix(
-    in srgb,
-    var(--color-error, #ef4444) 5%,
-    var(--color-surface)
-  );
-  border-color: color-mix(
-    in srgb,
-    var(--color-error, #ef4444) 26%,
-    var(--color-border)
-  );
+  background: color-mix(in srgb,
+      var(--color-error, #ef4444) 5%,
+      var(--color-surface));
+  border-color: color-mix(in srgb,
+      var(--color-error, #ef4444) 26%,
+      var(--color-border));
 }
 
 .delete-action-copy {
@@ -1547,8 +1452,7 @@ textarea.input.textarea {
 .btn-danger-outline {
   color: var(--color-error, #ef4444);
   background: transparent;
-  border: 1px solid
-    color-mix(in srgb, var(--color-error, #ef4444) 42%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-error, #ef4444) 42%, var(--color-border));
 }
 
 .btn-danger-outline:hover {
@@ -1581,7 +1485,7 @@ textarea.input.textarea {
 
 /* Weather city input row */
 .weather-city-row {
-  max-width: 480px;
+  max-width: var(--max-width);
 }
 
 .weather-city-row .input {
@@ -1593,7 +1497,8 @@ textarea.input.textarea {
 }
 
 .temporary-duration-select {
-  width: min(100%, 320px);
+  width: 100%;
+  max-width: var(--max-width);
 }
 
 .btn-reset:disabled {
@@ -1669,7 +1574,7 @@ textarea.input.textarea {
     font-size: 11px;
   }
 
-  .field-group + .field-group {
+  .field-group+.field-group {
     margin-top: 0.85rem;
   }
 

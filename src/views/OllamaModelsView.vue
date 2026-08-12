@@ -1,9 +1,9 @@
-<!-- src/views/ModelsView.vue -->
+<!-- src/views/OllamaModelsView.vue -->
 
 <template>
-  <Models />
+  <OllamaModels />
 </template>
 
 <script setup>
-import Models from "@/components/models/Models.vue";
+import OllamaModels from "@/components/models/OllamaModels.vue";
 </script>

@@ -142,6 +142,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 1.5rem;
   padding: clamp(1rem, 3vw, 2rem);
+  max-width: var(--max-width);
 }
 
 .page-header {
@@ -149,6 +150,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  max-width: var(--max-width);
 }
 
 .page-heading {

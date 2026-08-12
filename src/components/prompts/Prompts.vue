@@ -284,7 +284,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useOllamaStore } from "@/stores/useOllamaStore";
+import { useOllamaApi } from "@/services/ollamaApiService";
 
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconEdit from "@/components/icons/IconEdit.vue";
@@ -295,7 +295,7 @@ import IconSparkles from "@/components/icons/IconSparkles.vue";
 import IconLoader from "@/components/icons/IconLoader.vue";
 import IconPrompt from "@/components/icons/IconPrompt.vue";
 
-const ollamaStore = useOllamaStore();
+const ollama = useOllamaApi();
 
 const STORAGE_KEY = "app.prompts.v1";
 
@@ -312,7 +312,7 @@ const ollamaOnline = ref(false);
 const isCheckingOllama = ref(true);
 let ollamaStatusInterval = null;
 const availableModels = ref([]);
-const selectedModel = ref(ollamaStore.getSelectedModel() || "");
+const selectedModel = ref(ollama.getSelectedModel() || "");
 
 const selectedPrompt = computed(
   () => prompts.value.find((p) => p.id === selectedId.value) ?? null,
@@ -322,7 +322,7 @@ async function refreshOllamaStatus() {
   isCheckingOllama.value = true;
 
   try {
-    ollamaOnline.value = await ollamaStore.checkConnection();
+    ollamaOnline.value = await ollama.statusBool();
 
     if (ollamaOnline.value) {
       await loadAvailableModels();
@@ -344,7 +344,7 @@ async function loadAvailableModels() {
   }
 
   try {
-    availableModels.value = await ollamaStore.getListOfModelsName();
+    availableModels.value = await ollama.getAllModelsNames();
 
     if (
       !selectedModel.value ||
@@ -471,7 +471,7 @@ async function generatePromptWithAI() {
   aiError.value = "";
 
   try {
-    const result = await ollamaStore.generateOneTimeAnswer(
+    const result = await ollama.generateResponse(
       model,
       META_PROMPT + topic,
     );
@@ -516,7 +516,7 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  max-width: 1100px;
+  max-width: var(--max-width);
   gap: 1rem;
   margin-bottom: 2rem;
 }
@@ -646,7 +646,7 @@ onUnmounted(() => {
 .prompts-layout {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
-  max-width: 1100px;
+  max-width: var(--max-width);
   min-height: 530px;
   gap: 0.85rem;
 }
@@ -991,7 +991,7 @@ onUnmounted(() => {
 
 .ollama-status {
   display: grid;
-  width: min(100%, 1100px);
+  max-width: var(--max-width);
   gap: 0.6rem;
   padding: 0.65rem 0.75rem;
   margin: -1rem 0 1rem;

@@ -315,7 +315,7 @@ function formatDate(isoString) {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  max-width: 1100px;
+  max-width: var(--max-width);
   margin-bottom: 2rem;
 }
 
@@ -324,7 +324,7 @@ function formatDate(isoString) {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  max-width: 1100px;
+  max-width: var(--max-width);
   margin-bottom: 2rem;
 }
 
@@ -441,7 +441,7 @@ function formatDate(isoString) {
 }
 
 .filter-section {
-  max-width: 1100px;
+  max-width: var(--max-width);
   padding: 0.85rem 0 1.25rem;
   margin-bottom: 0.5rem;
   border-bottom: 1px solid var(--color-border);
@@ -527,7 +527,7 @@ function formatDate(isoString) {
 .project-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
-  max-width: 1100px;
+  max-width: var(--max-width);
   gap: 0.85rem;
   padding-bottom: 2rem;
 }
@@ -736,7 +736,7 @@ function formatDate(isoString) {
 .empty-state {
   display: grid;
   justify-items: center;
-  max-width: 560px;
+  max-width: var(--max-width);
   padding: clamp(2.5rem, 8vw, 5rem) 1.5rem;
   margin: 2rem auto;
   text-align: center;
@@ -765,7 +765,7 @@ function formatDate(isoString) {
 }
 
 .empty-state p {
-  max-width: 350px;
+  max-width: var(--max-width);
   margin: 0.5rem 0 1.1rem;
   color: var(--color-text-muted);
   font-size: var(--text-sm);

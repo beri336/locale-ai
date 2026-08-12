@@ -1,5 +1,5 @@
 :root {
-    /* Farben – Light */
+    /* Colors – Light */
     --color-bg: #eee5e5;
     --color-surface: #f5ebeb;
     --color-surface-2: #f0f0f2;
@@ -32,6 +32,9 @@
     --text-md: 16px;
     --text-lg: 20px;
     --text-xl: 28px;
+
+    /* Variables */
+    --max-width: 1100px;
 }
 
 [data-theme="dark"] {

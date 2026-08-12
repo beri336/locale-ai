@@ -2,7 +2,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, watch, computed } from 'vue'
-import { useOllamaStore } from "@/stores/useOllamaStore"
+import { useOllamaApi } from "@/services/ollamaApiService";
 
 const STORAGE_KEY = 'settings'
 
@@ -17,7 +17,7 @@ export const SETTINGS_DEFAULTS = {
 }
 
 export const useSettingsStore = defineStore('settings', () => {
-    const ollama = useOllamaStore()
+    const ollama = useOllamaApi();
 
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
 
@@ -54,7 +54,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
     // const DEFAULT_TEMPORARY_CHAT_DURATION = 4;
     // const TEMPORARY_CHAT_DURATION_KEY = "temporary-chat-duration-hours";
-    // const ALLOWED_TEMPORARY_DURATIONS = [1, 2, 4, 8, 12, 24, 48];
+    const ALLOWED_TEMPORARY_DURATIONS = [1, 2, 4, 8, 12, 24, 48];
 
     const connectionStatus = ref('unknown')
     const ollamaVersion = ref(null)
@@ -251,6 +251,7 @@ export const useSettingsStore = defineStore('settings', () => {
         temporaryChatDurationHours,
         setTemporaryChatDurationHours,
         resetTemporaryChatDurationHours,
+        ALLOWED_TEMPORARY_DURATIONS,
 
         connectionStatus,
         ollamaVersion,

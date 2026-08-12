@@ -4,12 +4,8 @@
   <div class="chat-thread">
     <div v-if="chat" class="chat-window" ref="chatWindow">
       <div class="chat-settings-row">
-        <button
-          class="copy-btn toolbar-copy-btn chat-settings-toggle-btn"
-          type="button"
-          title="Chat settings"
-          @click.stop="showChatSettings = !showChatSettings"
-        >
+        <button class="copy-btn toolbar-copy-btn chat-settings-toggle-btn" type="button" title="Chat settings"
+          @click.stop="showChatSettings = !showChatSettings">
           <IconSettings :size="16" :stroke-width="1.8" />
           Chat settings
         </button>
@@ -18,22 +14,11 @@
       <div v-if="showChatSettings" class="chat-settings-panel">
         <div class="field-group">
           <label class="field-label">System prompt override</label>
-          <textarea
-            v-model="chatSystemPromptInput"
-            class="input textarea"
-            rows="3"
-            :placeholder="
-              settingsStore.defaultSystemPrompt ||
-              'No default system prompt set'
-            "
-            @blur="applyChatSystemPrompt"
-          ></textarea>
-          <button
-            v-if="props.chat.systemPrompt !== null"
-            class="btn-reset"
-            type="button"
-            @click="resetChatSystemPrompt"
-          >
+          <textarea v-model="chatSystemPromptInput" class="input textarea" rows="3" :placeholder="settingsStore.defaultSystemPrompt ||
+            'No default system prompt set'
+            " @blur="applyChatSystemPrompt"></textarea>
+          <button v-if="props.chat.systemPrompt !== null" class="btn-reset" type="button"
+            @click="resetChatSystemPrompt">
             Reset to global default
           </button>
         </div>
@@ -45,43 +30,23 @@
               {{ chat.temperature ?? settingsStore.temperature }}
             </output>
           </div>
-          <input
-            type="range"
-            min="0"
-            max="2"
-            step="0.1"
-            :value="chat.temperature ?? settingsStore.temperature"
-            class="slider"
-            @input="setChatTemperature($event.target.valueAsNumber)"
-          />
-          <button
-            v-if="props.chat.temperature !== null"
-            class="btn-reset"
-            type="button"
-            @click="resetChatTemperature"
-          >
+          <input type="range" min="0" max="2" step="0.1" :value="chat.temperature ?? settingsStore.temperature"
+            class="slider" @input="setChatTemperature($event.target.valueAsNumber)" />
+          <button v-if="props.chat.temperature !== null" class="btn-reset" type="button" @click="resetChatTemperature">
             Reset to global default
           </button>
         </div>
 
         <div class="field-group">
           <label class="field-label">Context window override</label>
-          <select
-            class="input"
-            :value="chat.numCtx ?? settingsStore.numCtx"
-            @change="setChatNumCtx(Number($event.target.value))"
-          >
+          <select class="input" :value="chat.numCtx ?? settingsStore.numCtx"
+            @change="setChatNumCtx(Number($event.target.value))">
             <option :value="2048">2,048 tokens</option>
             <option :value="4096">4,096 tokens</option>
             <option :value="8192">8,192 tokens</option>
             <option :value="16384">16,384 tokens</option>
           </select>
-          <button
-            v-if="props.chat.numCtx !== null"
-            class="btn-reset"
-            type="button"
-            @click="resetChatNumCtx"
-          >
+          <button v-if="props.chat.numCtx !== null" class="btn-reset" type="button" @click="resetChatNumCtx">
             Reset to global default
           </button>
         </div>
@@ -101,15 +66,8 @@
             </span>
           </div>
 
-          <div
-            class="context-progress"
-            :title="`${contextPercent}% of the configured context window used`"
-          >
-            <span
-              class="context-progress-fill"
-              :class="contextStatus"
-              :style="{ width: `${contextPercent}%` }"
-            ></span>
+          <div class="context-progress" :title="`${contextPercent}% of the configured context window used`">
+            <span class="context-progress-fill" :class="contextStatus" :style="{ width: `${contextPercent}%` }"></span>
           </div>
 
           <div class="context-footer">
@@ -117,81 +75,49 @@
               {{ contextPercent }}% used · {{ chat.messages.length }} messages
             </p>
 
-            <span
-              v-if="settingsStore.defaultSystemPrompt?.trim()"
-              class="system-prompt-badge"
-              title="A default system prompt is included in this chat"
-            >
-              <span class="system-prompt-badge-icon" aria-hidden="true"
-                ><IconSparkles :size="10" :stroke-width="2" aria-hidden="true"
-              /></span>
+            <span v-if="settingsStore.defaultSystemPrompt?.trim()" class="system-prompt-badge"
+              title="A default system prompt is included in this chat">
+              <span class="system-prompt-badge-icon" aria-hidden="true">
+                <IconSparkles :size="10" :stroke-width="2" aria-hidden="true" />
+              </span>
               System prompt active
             </span>
           </div>
         </div>
 
         <div class="toolbar-actions">
-          <button
-            class="copy-btn toolbar-copy-btn"
-            @click="handleCopyFullChat"
-            :title="copiedAll ? 'Copied!' : 'Copy entire chat'"
-          >
-            <IconCheck
-              v-if="copiedAll"
-              :size="14"
-              :stroke-width="2"
-              aria-hidden="true"
-            />
+          <button class="copy-btn toolbar-copy-btn" @click="handleCopyFullChat"
+            :title="copiedAll ? 'Copied!' : 'Copy entire chat'">
+            <IconCheck v-if="copiedAll" :size="14" :stroke-width="2" aria-hidden="true" />
             <IconCopy v-else :size="14" :stroke-width="2" aria-hidden="true" />
             {{ copiedAll ? "Copied" : "Copy chat" }}
           </button>
 
-          <button
-            class="copy-btn toolbar-copy-btn"
-            @click="handleExportChat"
-            title="Export chat as Markdown"
-          >
+          <button class="copy-btn toolbar-copy-btn" @click="handleExportChat" title="Export chat as Markdown">
             <IconDownload :size="14" :stroke-width="2" aria-hidden="true" />
             Export .md
           </button>
         </div>
       </div>
 
-      <div
-        v-for="(message, index) in chat.messages"
-        :key="index"
-        class="message"
-        :class="message.role"
-      >
+      <div v-for="(message, index) in chat.messages" :key="index" class="message" :class="message.role">
         <div v-if="editingIndex === index" class="message-edit">
-          <textarea
-            v-model="editText"
-            class="edit-textarea"
-            ref="editTextarea"
-            @keydown.enter.exact.prevent="handleSaveEdit(index)"
-            @keydown.esc.prevent="handleCancelEdit"
-          ></textarea>
+          <textarea v-model="editText" class="edit-textarea" ref="editTextarea"
+            @keydown.enter.exact.prevent="handleSaveEdit(index)" @keydown.esc.prevent="handleCancelEdit"></textarea>
           <div class="edit-actions">
             <button class="btn-secondary" @click="handleCancelEdit">
               Cancel
             </button>
-            <button
-              class="btn-primary"
-              :disabled="!editText.trim() || editText === message.content"
-              @click="handleSaveEdit(index)"
-            >
+            <button class="btn-primary" :disabled="!editText.trim() || editText === message.content"
+              @click="handleSaveEdit(index)">
               Save & Submit
             </button>
           </div>
         </div>
 
         <template v-else>
-          <div
-            v-if="message.role === 'assistant'"
-            class="message-bubble markdown-body"
-            v-html="renderMarkdown(message.content)"
-            @click="handleMarkdownClick"
-          ></div>
+          <div v-if="message.role === 'assistant'" class="message-bubble markdown-body"
+            v-html="renderMarkdown(message.content)" @click="handleMarkdownClick"></div>
           <div v-else class="message-bubble">{{ message.content }}</div>
 
           <div class="message-footer">
@@ -199,63 +125,36 @@
               <template v-if="message.role === 'assistant' && message.model">
                 {{ message.model }} · {{ message.tokenCount }} tokens
               </template>
-              <template
-                v-else-if="message.role === 'user' && message.tokenCount"
-              >
+              <template v-else-if="message.role === 'user' && message.tokenCount">
                 {{ message.tokenCount }} tokens
               </template>
             </span>
 
-            <button
-              v-if="message.role === 'user' && !isGenerating"
-              class="copy-btn"
-              @click="handleStartEdit(index, message.content)"
-              title="Edit message"
-            >
+            <button v-if="message.role === 'user' && !isGenerating" class="copy-btn"
+              @click="handleStartEdit(index, message.content)" title="Edit message">
               <IconEdit :size="10" :stroke-width="2" aria-hidden="true" />
             </button>
 
-            <button
-              v-if="
-                message.role === 'assistant' &&
-                isLastAssistantMessage(index) &&
-                !isGenerating
-              "
-              class="copy-btn"
-              @click="handleRegenerate(index)"
-              title="Regenerate response"
-            >
+            <button v-if="
+              message.role === 'assistant' &&
+              isLastAssistantMessage(index) &&
+              !isGenerating
+            " class="copy-btn" @click="handleRegenerate(index)" title="Regenerate response">
               <IconRefresh :size="10" :stroke-width="2" aria-hidden="true" />
             </button>
 
-            <button
-              class="copy-btn"
-              @click="handleCopyMessage(message.content, index)"
-              :title="copiedIndex === index ? 'Copied!' : 'Copy message'"
-            >
-              <IconCheck
-                v-if="copiedIndex === index"
-                :size="10"
-                :stroke-width="2"
-                aria-hidden="true"
-              />
-              <IconCopy
-                v-else
-                :size="10"
-                :stroke-width="2"
-                aria-hidden="true"
-              />
+            <button class="copy-btn" @click="handleCopyMessage(message.content, index)"
+              :title="copiedIndex === index ? 'Copied!' : 'Copy message'">
+              <IconCheck v-if="copiedIndex === index" :size="10" :stroke-width="2" aria-hidden="true" />
+              <IconCopy v-else :size="10" :stroke-width="2" aria-hidden="true" />
             </button>
           </div>
         </template>
       </div>
 
       <div v-if="isGenerating" class="message assistant">
-        <div
-          class="message-bubble markdown-body streaming"
-          v-html="renderMarkdown(streamingText || '…')"
-          @click="handleMarkdownClick"
-        ></div>
+        <div class="message-bubble markdown-body streaming" v-html="renderMarkdown(streamingText || '…')"
+          @click="handleMarkdownClick"></div>
       </div>
     </div>
 
@@ -274,34 +173,17 @@
       </div>
 
       <div class="chat-input-row">
-        <textarea
-          v-model="prompt"
-          class="chat-input"
-          :placeholder="
-            hasValidModel
-              ? 'Type a message...'
-              : 'Select an installed model to continue'
-          "
-          :disabled="!hasValidModel || isGenerating"
-          @keydown.enter.exact.prevent="handleSend"
-        ></textarea>
+        <textarea v-model="prompt" class="chat-input" :placeholder="hasValidModel
+          ? 'Type a message...'
+          : 'Select an installed model to continue'
+          " :disabled="!hasValidModel || isGenerating" @keydown.enter.exact.prevent="handleSend"></textarea>
 
-        <button
-          v-if="isGenerating"
-          class="btn-stop"
-          type="button"
-          @click="handleStop"
-        >
+        <button v-if="isGenerating" class="btn-stop" type="button" @click="handleStop">
           Stop
         </button>
 
-        <button
-          v-else
-          class="btn-primary"
-          type="button"
-          :disabled="!prompt.trim() || !hasValidModel"
-          @click="handleSend"
-        >
+        <button v-else class="btn-primary" type="button" :disabled="!prompt.trim() || !hasValidModel"
+          @click="handleSend">
           Send
         </button>
       </div>
@@ -311,7 +193,7 @@
 
 <script setup>
 import { ref, computed, nextTick, watch, onMounted, onUnmounted } from "vue";
-import { useOllamaStore } from "@/stores/useOllamaStore";
+import { useOllamaApi } from "@/services/ollamaApiService";
 import { useLmStudioStore } from "@/stores/useLmStudioStore";
 import { renderMarkdown } from "@/utils/markdown";
 import { copyToClipboard } from "@/utils/clipboard";
@@ -360,7 +242,7 @@ const unavailableModelMessage = computed(() => {
 
 const emit = defineEmits(["message-sent"]);
 
-const ollama = useOllamaStore();
+const ollama = useOllamaApi();
 const lmstudio = useLmStudioStore();
 const settingsStore = useSettingsStore();
 
@@ -529,6 +411,36 @@ function updateChatTitle(chat, firstMessage) {
   }
 }
 
+async function sendWithSession(
+  modelValue,
+  messages,
+  options = {},
+  signal = undefined,
+) {
+  const { name: modelName } = parseModelValue(modelValue);
+  const store = getStoreForModel(modelValue);
+
+  const lastMessage = messages.at(-1);
+
+  if (!lastMessage || lastMessage.role !== "user") {
+    throw new Error("Last message must have role 'user'.");
+  }
+
+  const session = store.createChatSession(modelName, {
+    initialMessages: messages.slice(0, -1),
+    options,
+  });
+
+  return session.send(
+    lastMessage.content,
+    (chunk) => {
+      streamingText.value += chunk.response ?? "";
+      scrollToBottom();
+    },
+    signal,
+  );
+}
+
 async function handleSend() {
   if (!prompt.value.trim() || !hasValidModel.value || isGenerating.value) {
     return;
@@ -564,16 +476,12 @@ async function handleSend() {
       ...chat.messages.map((m) => ({ role: m.role, content: m.content })),
     );
 
-    const result = await store.generateStreamingChatAnswer(
-      modelName,
+    const result = await sendWithSession(
+      chat.model,
       messagesPayload,
       {
         temperature: effectiveTemperature.value,
         num_ctx: effectiveNumCtx.value,
-      },
-      (chunk) => {
-        streamingText.value += chunk.response || "";
-        scrollToBottom();
       },
       abortController.value.signal,
     );
@@ -719,14 +627,14 @@ async function handleSaveEdit(index) {
       content: m.content,
     }));
 
-    const result = await store.generateStreamingChatAnswer(
-      modelName,
+    const result = await sendWithSession(
+      chat.model,
       messagesPayload,
-      {},
-      (chunk) => {
-        streamingText.value += chunk.response || "";
-        scrollToBottom();
+      {
+        temperature: effectiveTemperature.value,
+        num_ctx: effectiveNumCtx.value,
       },
+      abortController.value.signal,
     );
 
     chat.messages[index].tokenCount = estimateTokenCount(
@@ -794,13 +702,11 @@ async function handleRegenerate(index) {
       ...chat.messages.map((m) => ({ role: m.role, content: m.content })),
     );
 
-    const result = await store.generateStreamingChatAnswer(
-      modelName,
+    const result = await sendWithSession(
       messagesPayload,
-      { temperature: settingsStore.temperature, num_ctx: settingsStore.numCtx },
-      (chunk) => {
-        streamingText.value += chunk.response || "";
-        scrollToBottom();
+      {
+        temperature: effectiveTemperature.value,
+        num_ctx: effectiveNumCtx.value,
       },
       abortController.value.signal,
     );
@@ -902,11 +808,14 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
     const { name: modelName } = parseModelValue(chat.model);
     const store = getStoreForModel(chat.model);
 
-    const result = await store.generateStreamingChatAnswer(
-      modelName,
-      titlePrompt,
-      { temperature: 0.3, num_ctx: 1024 },
-      () => {},
+    const result = await sendWithSession(
+      chat.model,
+      messagesPayload,
+      {
+        temperature: effectiveTemperature.value,
+        num_ctx: effectiveNumCtx.value,
+      },
+      abortController.value.signal,
     );
 
     const generatedTitle = result.text
@@ -1062,18 +971,15 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 
 .btn-primary {
   color: #fff;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-primary-hover)
-  );
+  background: linear-gradient(135deg,
+      var(--color-primary),
+      var(--color-primary-hover));
   border-color: var(--color-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
   border-color: var(--color-primary-hover);
-  box-shadow: 0 5px 14px
-    color-mix(in srgb, var(--color-primary) 30%, transparent);
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--color-primary) 30%, transparent);
   transform: translateY(-1px);
 }
 
@@ -1101,11 +1007,9 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 .btn-secondary:hover:not(:disabled) {
   color: var(--color-text);
   background: var(--color-surface);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 30%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 30%,
+      var(--color-border));
 }
 
 .btn-stop {
@@ -1395,11 +1299,9 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 .toolbar-copy-btn:hover {
   color: var(--color-text);
   background: var(--color-surface-2);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
 /* Edit message styles */
@@ -1440,8 +1342,7 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 .edit-textarea:focus,
 .chat-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-primary) 15%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 .edit-actions {
@@ -1489,8 +1390,7 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   height: 7px;
   background: var(--color-success, #22c55e);
   border-radius: 50%;
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-success, #22c55e) 14%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success, #22c55e) 14%, transparent);
 }
 
 .context-dot.warning {
@@ -1500,8 +1400,7 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 
 .context-dot.critical {
   background: var(--color-error, #ef4444);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-error, #ef4444) 14%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error, #ef4444) 14%, transparent);
 }
 
 .context-value {
@@ -1562,11 +1461,9 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 .toolbar-copy-btn:hover {
   color: var(--color-text);
   background: var(--color-surface-2);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
 .context-footer {
@@ -1591,13 +1488,10 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   font-weight: 600;
   line-height: 1.3;
   white-space: nowrap;
-  background: color-mix(
-    in srgb,
-    var(--color-primary) 10%,
-    var(--color-surface-2)
-  );
-  border: 1px solid
-    color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  background: color-mix(in srgb,
+      var(--color-primary) 10%,
+      var(--color-surface-2));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   border-radius: var(--radius-full);
 }
 
@@ -1617,13 +1511,10 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   gap: 0.65rem;
   padding: 0.7rem 0.8rem;
   color: var(--color-warning, #a16207);
-  background: color-mix(
-    in srgb,
-    var(--color-warning, #f59e0b) 12%,
-    var(--color-surface)
-  );
-  border: 1px solid
-    color-mix(in srgb, var(--color-warning, #f59e0b) 30%, var(--color-border));
+  background: color-mix(in srgb,
+      var(--color-warning, #f59e0b) 12%,
+      var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-warning, #f59e0b) 30%, var(--color-border));
   border-radius: var(--radius-md);
 }
 
@@ -1688,6 +1579,7 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 
 /* iOS Safari: at least 16px prevents input auto-zoom */
 @media (pointer: coarse) {
+
   .chat-input,
   .edit-textarea {
     font-size: 16px;
