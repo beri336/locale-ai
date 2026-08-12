@@ -2,17 +2,19 @@
 
 <template>
   <svg
+    :width="size"
+    :height="size"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
+    :stroke-width="strokeWidth"
     stroke-linecap="round"
     stroke-linejoin="round"
   >
-    <!-- Sonne -->
+    <!-- Sun -->
     <circle cx="12" cy="12" r="5" />
 
-    <!-- Strahlen -->
+    <!-- Sunbeams -->
     <line x1="12" y1="1" x2="12" y2="4" />
     <line x1="12" y1="20" x2="12" y2="23" />
 
@@ -26,3 +28,17 @@
     <line x1="17.5" y1="6.5" x2="19.5" y2="4.5" />
   </svg>
 </template>
+
+<script setup>
+defineProps({
+  size: {
+    type: [Number, String],
+    default: 16,
+  },
+
+  strokeWidth: {
+    type: [Number, String],
+    default: 2,
+  },
+});
+</script>

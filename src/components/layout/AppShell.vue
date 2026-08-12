@@ -10,125 +10,94 @@
           <span>LocalAI</span>
         </div>
 
-        <button
-          class="collapse-toggle"
-          type="button"
-          :title="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-          :aria-label="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-          @click="toggleSidebar"
-        >
+        <button class="collapse-toggle" type="button" :title="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          :aria-label="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'" @click="toggleSidebar">
           {{ isCollapsed ? "»" : "«" }}
         </button>
       </div>
 
-      <button
-        class="global-search-btn"
-        type="button"
-        :title="isCollapsed ? 'Search chats' : ''"
-        @click="openSearchModal"
-      >
+      <button class="global-search-btn" type="button" :title="isCollapsed ? 'Search chats' : ''"
+        @click="openSearchModal">
         <span class="search-icon" aria-hidden="true">⌕</span>
         <span v-if="!isCollapsed">Search chats…</span>
         <kbd v-if="!isCollapsed">⌘ K</kbd>
       </button>
 
       <nav class="desktop-nav" aria-label="Main navigation">
-        <RouterLink
-          to="/"
-          class="nav-item"
-          :title="isCollapsed ? 'Dashboard' : ''"
-        >
-          <span class="nav-icon"><IconHome /></span>
+        <RouterLink to="/" class="nav-item" :title="isCollapsed ? 'Dashboard' : ''">
+          <span class="nav-icon">
+            <IconHome />
+          </span>
           <span v-if="!isCollapsed" class="nav-label">Dashboard</span>
         </RouterLink>
 
-        <RouterLink
-          to="/chat"
-          class="nav-item"
-          :title="isCollapsed ? 'Chat' : ''"
-        >
-          <span class="nav-icon"><IconChat /></span>
+        <RouterLink to="/chat" class="nav-item" :title="isCollapsed ? 'Chat' : ''">
+          <span class="nav-icon">
+            <IconChat />
+          </span>
           <span v-if="!isCollapsed" class="nav-label">Chat</span>
         </RouterLink>
 
-        <RouterLink
-          to="/projects"
-          class="nav-item"
-          :title="isCollapsed ? 'Projects' : ''"
-        >
-          <span class="nav-icon"><IconFolder /></span>
+        <RouterLink to="/projects" class="nav-item" :title="isCollapsed ? 'Projects' : ''">
+          <span class="nav-icon">
+            <IconFolder />
+          </span>
           <span v-if="!isCollapsed" class="nav-label">Projects</span>
         </RouterLink>
 
-        <RouterLink
-          to="/ollama-models"
-          class="nav-item"
-          :title="isCollapsed ? 'Ollama Models' : ''"
-        >
-          <span class="nav-icon"><IconOllama /></span>
+        <RouterLink to="/ollama-models" class="nav-item" :title="isCollapsed ? 'Ollama Models' : ''">
+          <span class="nav-icon">
+            <IconOllama />
+          </span>
           <span v-if="!isCollapsed" class="nav-label">Ollama Models</span>
         </RouterLink>
 
-        <RouterLink
-          to="/lms-models"
-          class="nav-item"
-          :title="isCollapsed ? 'LM Studio Models' : ''"
-        >
-          <span class="nav-icon"><IconLmStudio /></span>
+        <RouterLink to="/lms-models" class="nav-item" :title="isCollapsed ? 'LM Studio Models' : ''">
+          <span class="nav-icon">
+            <IconLmStudio />
+          </span>
           <span v-if="!isCollapsed" class="nav-label">LM Studio Models</span>
         </RouterLink>
 
-        <RouterLink
-          to="/prompts"
-          class="nav-item"
-          :title="isCollapsed ? 'Prompts' : ''"
-        >
-          <span class="nav-icon"><IconPrompt /></span>
+        <RouterLink to="/prompts" class="nav-item" :title="isCollapsed ? 'Prompts' : ''">
+          <span class="nav-icon">
+            <IconPrompt />
+          </span>
           <span v-if="!isCollapsed" class="nav-label">Prompts</span>
         </RouterLink>
 
         <div class="nav-spacer"></div>
 
-        <RouterLink
-          to="/faq"
-          class="nav-item"
-          :title="isCollapsed ? 'FAQ' : ''"
-        >
-          <span class="nav-icon"><IconFaq /></span>
+        <RouterLink to="/faq" class="nav-item" :title="isCollapsed ? 'FAQ' : ''">
+          <span class="nav-icon">
+            <IconFaq />
+          </span>
           <span v-if="!isCollapsed" class="nav-label">FAQ</span>
         </RouterLink>
 
-        <RouterLink
-          to="/archive"
-          class="nav-item"
-          :title="isCollapsed ? 'Archive' : ''"
-        >
-          <span class="nav-icon"><IconArchive /></span>
+        <RouterLink to="/archive" class="nav-item" :title="isCollapsed ? 'Archive' : ''">
+          <span class="nav-icon">
+            <IconArchive />
+          </span>
           <span v-if="!isCollapsed" class="nav-label">Archive</span>
         </RouterLink>
 
-        <RouterLink
-          to="/settings"
-          class="nav-item"
-          :title="isCollapsed ? 'Settings' : ''"
-        >
-          <span class="nav-icon"><IconSettings /></span>
+        <RouterLink to="/settings" class="nav-item" :title="isCollapsed ? 'Settings' : ''">
+          <span class="nav-icon">
+            <IconSettings />
+          </span>
           <span v-if="!isCollapsed" class="nav-label">Settings</span>
         </RouterLink>
       </nav>
 
-      <button
-        class="theme-toggle"
-        type="button"
-        :title="
-          themeStore.theme === 'light'
-            ? 'Enable dark mode'
-            : 'Enable light mode'
-        "
-        @click="themeStore.toggle()"
-      >
-        <IconMoon v-if="themeStore.theme === 'light'" />
-        <IconSun v-else class="sun-icon" />
+      <button class="theme-toggle" type="button" :title="themeStore.theme === 'light'
+        ? 'Enable dark mode'
+        : 'Enable light mode'
+        " @click="themeStore.toggle()">
+        <IconMoon v-if="themeStore.theme === 'light'" :size="16" :stroke-width="2" aria-hidden="true" />
+
+        <IconSun v-else class="sun-icon" :size="16" :stroke-width="2" aria-hidden="true" />
+
         <span v-if="!isCollapsed">
           {{ themeStore.theme === "light" ? "Dark mode" : "Light mode" }}
         </span>
@@ -142,22 +111,13 @@
 
     <!-- Mobile: backdrop for More sheet -->
     <Transition name="fade">
-      <button
-        v-if="isMobileMenuOpen"
-        class="mobile-menu-backdrop"
-        type="button"
-        aria-label="Close navigation menu"
-        @click="closeMobileMenu"
-      ></button>
+      <button v-if="isMobileMenuOpen" class="mobile-menu-backdrop" type="button" aria-label="Close navigation menu"
+        @click="closeMobileMenu"></button>
     </Transition>
 
     <!-- Mobile: More bottom sheet -->
     <Transition name="sheet">
-      <section
-        v-if="isMobileMenuOpen"
-        class="mobile-more-sheet"
-        aria-label="More navigation options"
-      >
+      <section v-if="isMobileMenuOpen" class="mobile-more-sheet" aria-label="More navigation options">
         <div class="sheet-handle"></div>
 
         <div class="sheet-header">
@@ -166,21 +126,12 @@
             <h2>More</h2>
           </div>
 
-          <button
-            class="sheet-close-btn"
-            type="button"
-            aria-label="Close navigation menu"
-            @click="closeMobileMenu"
-          >
+          <button class="sheet-close-btn" type="button" aria-label="Close navigation menu" @click="closeMobileMenu">
             <IconX :size="12" :stroke-width="2" aria-hidden="true" />
           </button>
         </div>
 
-        <button
-          class="mobile-search-btn"
-          type="button"
-          @click="handleMobileSearch"
-        >
+        <button class="mobile-search-btn" type="button" @click="handleMobileSearch">
           <span class="sheet-item-icon" aria-hidden="true">
             <IconSearch :size="12" :stroke-width="2" aria-hidden="true" />
           </span>
@@ -190,72 +141,61 @@
 
         <div class="sheet-divider"></div>
 
-        <RouterLink
-          to="/ollama-models"
-          class="sheet-nav-item"
-          @click="closeMobileMenu"
-        >
-          <span class="sheet-item-icon"><IconOllama /></span>
+        <RouterLink to="/ollama-models" class="sheet-nav-item" @click="closeMobileMenu">
+          <span class="sheet-item-icon">
+            <IconOllama />
+          </span>
           <span>Ollama Models</span>
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
-        <RouterLink
-          to="/lms-models"
-          class="sheet-nav-item"
-          @click="closeMobileMenu"
-        >
-          <span class="sheet-item-icon"><IconLmStudio /></span>
+        <RouterLink to="/lms-models" class="sheet-nav-item" @click="closeMobileMenu">
+          <span class="sheet-item-icon">
+            <IconLmStudio />
+          </span>
           <span>LM Studio Models</span>
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
         <RouterLink to="/faq" class="sheet-nav-item" @click="closeMobileMenu">
-          <span class="sheet-item-icon"><IconFaq /></span>
+          <span class="sheet-item-icon">
+            <IconFaq />
+          </span>
           <span>FAQ & connection help</span>
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
-        <RouterLink
-          to="/archive"
-          class="sheet-nav-item"
-          @click="closeMobileMenu"
-        >
-          <span class="sheet-item-icon"><IconArchive /></span>
+        <RouterLink to="/archive" class="sheet-nav-item" @click="closeMobileMenu">
+          <span class="sheet-item-icon">
+            <IconArchive />
+          </span>
           <span>Archive</span>
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
-        <RouterLink
-          to="/prompts"
-          class="sheet-nav-item"
-          @click="closeMobileMenu"
-        >
-          <span class="sheet-item-icon"><IconPrompt /></span>
+        <RouterLink to="/prompts" class="sheet-nav-item" @click="closeMobileMenu">
+          <span class="sheet-item-icon">
+            <IconPrompt />
+          </span>
           <span>Prompts</span>
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
-        <RouterLink
-          to="/settings"
-          class="sheet-nav-item"
-          @click="closeMobileMenu"
-        >
-          <span class="sheet-item-icon"><IconSettings /></span>
+        <RouterLink to="/settings" class="sheet-nav-item" @click="closeMobileMenu">
+          <span class="sheet-item-icon">
+            <IconSettings />
+          </span>
           <span>Settings</span>
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
         <div class="sheet-divider"></div>
 
-        <button
-          class="sheet-theme-btn"
-          type="button"
-          @click="themeStore.toggle()"
-        >
-          <span class="sheet-item-icon">
-            <IconMoon v-if="themeStore.theme === 'light'" />
-            <IconSun v-else class="sun-icon" />
+        <button class="sheet-theme-btn" type="button" @click="themeStore.toggle()">
+          <span class="sheet-item-icon" aria-hidden="true">
+            <IconMoon v-if="themeStore.theme === 'light'" :size="16" :stroke-width="2" />
+
+            <IconSun v-else class="sun-icon" :size="16" :stroke-width="2" />
           </span>
 
           <span>
@@ -276,26 +216,27 @@
     <!-- Mobile bottom navigation -->
     <nav class="bottom-nav" aria-label="Mobile main navigation">
       <RouterLink to="/" class="bottom-nav-item">
-        <span class="bottom-nav-icon"><IconHome /></span>
+        <span class="bottom-nav-icon">
+          <IconHome />
+        </span>
         <span>Home</span>
       </RouterLink>
 
       <RouterLink to="/chat" class="bottom-nav-item">
-        <span class="bottom-nav-icon"><IconChat /></span>
+        <span class="bottom-nav-icon">
+          <IconChat />
+        </span>
         <span>Chat</span>
       </RouterLink>
 
       <RouterLink to="/projects" class="bottom-nav-item">
-        <span class="bottom-nav-icon"><IconFolder /></span>
+        <span class="bottom-nav-icon">
+          <IconFolder />
+        </span>
         <span>Projects</span>
       </RouterLink>
 
-      <button
-        class="bottom-nav-item"
-        :class="{ active: isMobileMenuOpen }"
-        type="button"
-        @click="toggleMobileMenu"
-      >
+      <button class="bottom-nav-item" :class="{ active: isMobileMenuOpen }" type="button" @click="toggleMobileMenu">
         <span class="bottom-nav-icon more-icon" aria-hidden="true">•••</span>
         <span>More</span>
       </button>
@@ -466,11 +407,9 @@ watch(isMobileMenuOpen, (isOpen) => {
 
 .global-search-btn:hover {
   color: var(--color-text);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 30%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 30%,
+      var(--color-border));
 }
 
 .search-icon {
@@ -591,15 +530,6 @@ watch(isMobileMenuOpen, (isOpen) => {
 }
 
 /* Shared icon sizing */
-.nav-icon :deep(svg),
-.theme-toggle :deep(svg),
-.sheet-item-icon :deep(svg),
-.bottom-nav-icon :deep(svg) {
-  width: 20px;
-  height: 20px;
-  display: block;
-}
-
 .sun-icon {
   stroke: currentColor;
   fill: none;
@@ -838,15 +768,6 @@ watch(isMobileMenuOpen, (isOpen) => {
     height: 1px;
     margin: 0.4rem 0;
     background: var(--color-border);
-  }
-
-  .nav-icon :deep(svg),
-  .theme-toggle :deep(svg),
-  .sheet-item-icon :deep(svg),
-  .bottom-nav-icon :deep(svg) {
-    width: 18px;
-    height: 18px;
-    display: block;
   }
 
   .fade-enter-active,

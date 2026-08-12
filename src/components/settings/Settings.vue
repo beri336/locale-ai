@@ -782,11 +782,6 @@ function handleDeleteProjects() {
   border-radius: 14px;
 }
 
-.header-icon :deep(svg) {
-  width: 22px;
-  height: 22px;
-}
-
 .eyebrow,
 .section-kicker {
   margin: 0 0 0.25rem;
@@ -1526,11 +1521,6 @@ textarea.input.textarea {
     width: 34px;
     height: 34px;
     border-radius: 11px;
-  }
-
-  .header-icon :deep(svg) {
-    width: 17px;
-    height: 17px;
   }
 
   .eyebrow,

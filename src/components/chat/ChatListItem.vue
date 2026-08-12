@@ -209,11 +209,6 @@ function formatModelLabel(value) {
   color: var(--color-error);
 }
 
-.chat-delete-btn :deep(svg),
-.chat-action-btn :deep(svg) {
-  display: block;
-}
-
 .chat-action-btn {
   display: inline-flex;
   align-items: center;

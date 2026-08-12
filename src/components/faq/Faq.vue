@@ -352,11 +352,6 @@ function toggle(key) {
   border-radius: 14px;
 }
 
-.header-icon :deep(svg) {
-  width: 22px;
-  height: 22px;
-}
-
 .eyebrow {
   margin: 0 0 0.25rem;
   color: var(--color-text-faint);
@@ -425,24 +420,6 @@ function toggle(key) {
 
 .faq-question:hover .question-title {
   color: var(--color-primary);
-}
-
-:deep(svg) {
-  width: 1em;
-  height: 1em;
-}
-
-.faq-question :deep(svg),
-.intro-box :deep(svg),
-.notice :deep(svg) {
-  width: 1em;
-  height: 1em;
-}
-
-.question-icon :deep(svg) {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
 }
 
 .question-icon {
@@ -697,10 +674,8 @@ function toggle(key) {
   line-height: 0;
 }
 
-.question-icon :deep(svg),
 .intro-icon,
-.notice-icon,
-.faq-icon :deep(svg) {
+.notice-icon {
   display: block;
   flex-shrink: 0;
 }
@@ -723,11 +698,6 @@ function toggle(key) {
     width: 34px;
     height: 34px;
     border-radius: 11px;
-  }
-
-  .header-icon :deep(svg) {
-    width: 17px;
-    height: 17px;
   }
 
   .eyebrow {
@@ -756,11 +726,6 @@ function toggle(key) {
     width: 30px;
     height: 30px;
     border-radius: 9px;
-  }
-
-  .question-icon :deep(svg) {
-    width: 16px;
-    height: 16px;
   }
 
   .question-title {

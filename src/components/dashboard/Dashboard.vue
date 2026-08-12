@@ -5,7 +5,7 @@
     <header class="page-header">
       <div class="page-heading">
         <div class="header-icon" aria-hidden="true">
-          <IconHome />
+          <IconHome :size="22" :stroke-width="2" />
         </div>
 
         <div>
@@ -578,11 +578,6 @@ onUnmounted(() => {
   background: color-mix(in srgb, var(--color-primary) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
   border-radius: 14px;
-}
-
-.header-icon :deep(svg) {
-  width: 22px;
-  height: 22px;
 }
 
 .eyebrow,
@@ -1391,11 +1386,6 @@ onUnmounted(() => {
     border-radius: 11px;
   }
 
-  .header-icon :deep(svg) {
-    width: 18px;
-    height: 18px;
-  }
-
   .eyebrow,
   .section-kicker {
     font-size: 0.62rem;
@@ -1446,11 +1436,6 @@ onUnmounted(() => {
     border-radius: 6px;
   }
 
-  .stat-icon :deep(svg) {
-    width: 12px;
-    height: 12px;
-  }
-
   .stat-value {
     margin-top: 0.5rem;
     font-size: 1.25rem;
@@ -1486,11 +1471,6 @@ onUnmounted(() => {
     width: 24px;
     height: 24px;
     border-radius: 7px;
-  }
-
-  .recent-chat-icon :deep(svg) {
-    width: 14px;
-    height: 14px;
   }
 
   .recent-chat-title {

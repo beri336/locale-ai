@@ -34,23 +34,19 @@ renderer.code = (token) => {
 
   const encodedCode = escapeHtmlAttribute(code);
 
-  return `
-    <pre class="code-block">
-      <div class="code-header">
-        <span class="code-language">${validLang}</span>
-        <button
-          class="code-copy-btn"
-          type="button"
-          data-code="${encodedCode}"
-          aria-label="Copy code"
-          title="Copy code"
-        >
-          Copy
-        </button>
-      </div>
-      <code class="hljs">${highlighted}</code>
-    </pre>
-  `;
+  return `<div class="code-block">
+    <div class="code-header">
+      <span class="code-language">${validLang}</span>
+      <button
+        class="code-copy-btn"
+        type="button"
+        data-code="${encodedCode}"
+        aria-label="Copy code"
+        title="Copy code"
+      >Copy</button>
+    </div>
+    <pre><code class="hljs">${highlighted}</code></pre>
+  </div>`;
 };
 
 marked.use({ renderer });

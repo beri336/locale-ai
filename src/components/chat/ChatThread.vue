@@ -207,6 +207,8 @@ import IconDownload from "@/components/icons/IconDownload.vue";
 import IconEdit from "@/components/icons/IconEdit.vue";
 import IconRefresh from "@/components/icons/IconRefresh.vue";
 
+import "@/assets/styles/markdown.css";
+
 import {
   buildChatMarkdown,
   downloadMarkdownFile,
@@ -1023,196 +1025,6 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   transform: translateY(-1px);
 }
 
-/* Markdown styles for assistant messages */
-.markdown-body {
-  line-height: 1.6;
-}
-
-.markdown-body :deep(p) {
-  margin: 0;
-}
-
-.markdown-body :deep(p + p) {
-  margin-top: 0.6rem;
-}
-
-.markdown-body :deep(h1),
-.markdown-body :deep(h2),
-.markdown-body :deep(h3) {
-  margin: 1.1rem 0 0.45rem;
-}
-
-.markdown-body :deep(h1:first-child),
-.markdown-body :deep(h2:first-child),
-.markdown-body :deep(h3:first-child) {
-  margin-top: 0;
-}
-
-.markdown-body :deep(h1),
-.markdown-body :deep(h2),
-.markdown-body :deep(h3) {
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.markdown-body :deep(h1) {
-  font-size: var(--text-lg);
-}
-
-.markdown-body :deep(h2) {
-  font-size: var(--text-md);
-}
-
-.markdown-body :deep(h3) {
-  font-size: var(--text-sm);
-}
-
-.markdown-body :deep(ul),
-.markdown-body :deep(ol) {
-  padding-left: 1.25rem;
-  margin: 0.7rem 0;
-}
-
-.markdown-body :deep(li) {
-  margin-bottom: 0.25rem;
-}
-
-.markdown-body :deep(a) {
-  color: var(--color-primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.markdown-body :deep(blockquote) {
-  padding-left: 0.75rem;
-  margin: 0.75rem 0;
-  color: var(--color-text-muted);
-  border-left: 3px solid var(--color-border);
-}
-
-.markdown-body :deep(code) {
-  padding: 0.12rem 0.3rem;
-  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
-  font-size: 0.85em;
-  background: color-mix(in srgb, var(--color-text) 7%, transparent);
-  border-radius: var(--radius-sm);
-}
-
-.markdown-body :deep(.code-block) {
-  max-width: 100%;
-  margin: 0.55rem 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  color: #c9d1d9;
-  font-size: var(--text-xs);
-  background: #0d1117;
-  border: 1px solid #21262d;
-  border-radius: var(--radius-md);
-}
-
-.markdown-body :deep(.code-header) {
-  position: sticky;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  min-width: max-content;
-  padding: 0.5rem 0.6rem 0.5rem 0.75rem;
-  color: #8b949e;
-  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: #0d1117;
-  border-bottom: 1px solid #21262d;
-}
-
-.markdown-body :deep(.code-language) {
-  padding-right: 1.5rem;
-}
-
-.markdown-body :deep(.code-copy-btn) {
-  display: inline-grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
-  place-items: center;
-  padding: 0;
-  color: #8b949e;
-  font-family: inherit;
-  font-size: 0;
-  line-height: 1;
-  cursor: pointer;
-  pointer-events: auto;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  transition:
-    color 0.16s ease,
-    background 0.16s ease,
-    border-color 0.16s ease,
-    transform 0.16s ease;
-}
-
-.markdown-body :deep(.code-copy-btn::before) {
-  content: "⧉";
-  font-size: 14px;
-  line-height: 1;
-}
-
-.markdown-body :deep(.code-copy-btn:hover) {
-  color: #fff;
-  background: #21262d;
-  border-color: #30363d;
-}
-
-.markdown-body :deep(.code-copy-btn:active) {
-  transform: translateY(1px);
-}
-
-.markdown-body :deep(.code-copy-btn.is-copied) {
-  color: #3fb950;
-}
-
-.markdown-body :deep(.code-copy-btn.is-copied::before) {
-  content: "✓";
-}
-
-.markdown-body :deep(.code-block code) {
-  display: block;
-  width: max-content;
-  min-width: 100%;
-  padding: 0.75rem;
-  white-space: pre;
-  background: transparent;
-  border-radius: 0;
-}
-
-.markdown-body :deep(table) {
-  display: block;
-  width: 100%;
-  margin: 0.75rem 0;
-  overflow-x: auto;
-  border-collapse: collapse;
-}
-
-.markdown-body :deep(th),
-.markdown-body :deep(td) {
-  padding: 0.45rem 0.6rem;
-  text-align: left;
-  border: 1px solid var(--color-border);
-}
-
-.message.assistant .message-bubble {
-  max-width: 85%;
-}
-
-.message-bubble.markdown-body :deep(pre) {
-  max-width: 100%;
-}
-
 /* Copy button styles */
 .message:hover .message-header {
   visibility: visible;
@@ -1699,54 +1511,11 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
     padding: 0.3rem 0.5rem;
   }
 
-  .markdown-body :deep(.code-copy-btn) {
-    min-width: 56px;
-    min-height: 28px;
-    padding: 0.3rem 0.5rem;
-    font-size: 10px;
-  }
-
   .message-bubble {
     max-width: 92%;
     padding: 0.55rem 0.7rem;
     font-size: 13px;
     line-height: 1.45;
-  }
-
-  .markdown-body :deep(p) {
-    margin-bottom: 0.4rem;
-  }
-
-  .markdown-body :deep(h1) {
-    font-size: 1rem;
-  }
-
-  .markdown-body :deep(h2) {
-    font-size: 0.92rem;
-  }
-
-  .markdown-body :deep(h3) {
-    font-size: 0.85rem;
-  }
-
-  .markdown-body :deep(ul),
-  .markdown-body :deep(ol) {
-    padding-left: 1rem;
-    margin: 0.4rem 0;
-  }
-
-  .markdown-body :deep(.code-block) {
-    font-size: 11px;
-    border-radius: 6px;
-  }
-
-  .markdown-body :deep(.code-block code) {
-    padding: 0.5rem;
-  }
-
-  .markdown-body :deep(.code-header) {
-    padding: 0.35rem 0.5rem;
-    font-size: 9px;
   }
 
   .model-warning {

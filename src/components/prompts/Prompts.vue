@@ -539,11 +539,6 @@ onUnmounted(() => {
   border-radius: 14px;
 }
 
-.header-icon :deep(svg) {
-  width: 22px;
-  height: 22px;
-}
-
 .eyebrow {
   margin: 0 0 0.25rem;
   color: var(--color-text-faint);
@@ -969,12 +964,6 @@ onUnmounted(() => {
   text-align: center;
 }
 
-.prompts-empty-state :deep(svg) {
-  justify-self: center;
-  margin-bottom: 0.4rem;
-  color: var(--color-primary);
-}
-
 .prompts-empty-state h3 {
   margin: 0;
   color: var(--color-text);
@@ -1314,11 +1303,6 @@ onUnmounted(() => {
     width: 34px;
     height: 34px;
     border-radius: 11px;
-  }
-
-  .header-icon :deep(svg) {
-    width: 18px;
-    height: 18px;
   }
 
   .eyebrow {

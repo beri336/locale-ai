@@ -563,11 +563,6 @@ onUnmounted(() => {
   border-radius: 13px;
 }
 
-.header-icon :deep(svg) {
-  width: 21px;
-  height: 21px;
-}
-
 .eyebrow {
   margin: 0 0 0.2rem;
   color: var(--color-text-faint);
@@ -1070,11 +1065,6 @@ onUnmounted(() => {
     width: 34px;
     height: 34px;
     border-radius: 11px;
-  }
-
-  .header-icon :deep(svg) {
-    width: 17px;
-    height: 17px;
   }
 
   .eyebrow {
