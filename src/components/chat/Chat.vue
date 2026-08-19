@@ -9,39 +9,25 @@
           <h2>Quick chats</h2>
         </div>
 
-        <button
-          class="sidebar-toggle-btn"
-          type="button"
-          :title="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-          :aria-label="
-            isSidebarCollapsed ? 'Expand chat sidebar' : 'Collapse chat sidebar'
-          "
-          @click="toggleSidebar"
-        >
+        <button class="sidebar-toggle-btn" type="button"
+          :title="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'" :aria-label="isSidebarCollapsed ? 'Expand chat sidebar' : 'Collapse chat sidebar'
+            " @click="toggleSidebar">
           <span aria-hidden="true">{{ isSidebarCollapsed ? "»" : "«" }}</span>
         </button>
       </div>
 
       <template v-if="!isSidebarCollapsed">
-        <button
-          class="btn-primary new-chat-btn"
-          type="button"
-          @click="handleNewChat"
-        >
-          <span aria-hidden="true"
-            ><IconPlus :size="12" :stroke-width="2" aria-hidden="true"
-          /></span>
+        <button class="btn-primary new-chat-btn" type="button" @click="handleNewChat">
+          <span aria-hidden="true">
+            <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
+          </span>
           New chat
         </button>
 
-        <button
-          class="btn-secondary temporary-chat-btn"
-          type="button"
-          @click="handleTemporaryChat"
-        >
-          <span aria-hidden="true"
-            ><IconTemp :size="12" :stroke-width="2" aria-hidden="true"
-          /></span>
+        <button class="btn-secondary temporary-chat-btn" type="button" @click="handleTemporaryChat">
+          <span aria-hidden="true">
+            <IconTemp :size="12" :stroke-width="2" aria-hidden="true" />
+          </span>
           Temporary chat
         </button>
 
@@ -55,17 +41,10 @@
         </div>
 
         <div class="chat-list">
-          <ChatListItem
-            v-for="chat in visibleChats"
-            :key="chat.id"
-            :chat="chat"
-            :is-active="chat.id === activeChatId"
-            @select="selectChat(chat.id)"
-            @delete="handleDeleteChat(chat.id)"
-            @rename="(newTitle) => renameChat(chat, newTitle)"
-            @toggle-pin="togglePin(chat.id)"
-            @archive="archiveChat(chat.id)"
-          />
+          <ChatListItem v-for="chat in visibleChats" :key="chat.id" :chat="chat" :is-active="chat.id === activeChatId"
+            @select="selectChat(chat.id)" @delete="handleDeleteChat(chat.id)"
+            @rename="(newTitle) => renameChat(chat, newTitle)" @toggle-pin="togglePin(chat.id)"
+            @archive="archiveChat(chat.id)" />
 
           <div v-if="visibleChats.length === 0" class="sidebar-empty-state">
             <span class="sidebar-empty-icon" aria-hidden="true">◌</span>
@@ -75,23 +54,13 @@
       </template>
 
       <template v-else>
-        <button
-          class="collapsed-new-chat-btn"
-          type="button"
-          title="New chat"
-          aria-label="Create new chat"
-          @click="handleNewChat"
-        >
+        <button class="collapsed-new-chat-btn" type="button" title="New chat" aria-label="Create new chat"
+          @click="handleNewChat">
           <IconPlus :size="14" :stroke-width="2" aria-hidden="true" />
         </button>
 
-        <button
-          class="collapsed-temporary-chat-btn"
-          type="button"
-          title="Temporary chat — deleted after 4 hours"
-          aria-label="Create temporary chat"
-          @click="handleTemporaryChat"
-        >
+        <button class="collapsed-temporary-chat-btn" type="button" title="Temporary chat — deleted after 4 hours"
+          aria-label="Create temporary chat" @click="handleTemporaryChat">
           <IconTemp :size="14" :stroke-width="2" aria-hidden="true" />
         </button>
       </template>
@@ -103,11 +72,7 @@
           <p class="chat-header-eyebrow">Quick chat</p>
           <h1>{{ activeChat?.title || "Start a conversation" }}</h1>
 
-          <div
-            v-if="activeChat?.isTemporary"
-            class="temporary-chat-notice"
-            role="status"
-          >
+          <div v-if="activeChat?.isTemporary" class="temporary-chat-notice" role="status">
             <span class="temporary-chat-notice-icon" aria-hidden="true">◷</span>
 
             <p>
@@ -119,45 +84,27 @@
               </span>
             </p>
 
-            <button
-              class="extend-temporary-chat-btn"
-              type="button"
-              title="Extend by one hour"
-              aria-label="Extend temporary chat by one hour"
-              @click="extendTemporaryChat"
-            >
-              <span aria-hidden="true"
-                ><IconPlus :size="12" :stroke-width="2" aria-hidden="true"
-              /></span>
+            <button class="extend-temporary-chat-btn" type="button" title="Extend by one hour"
+              aria-label="Extend temporary chat by one hour" @click="extendTemporaryChat">
+              <span aria-hidden="true">
+                <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
+              </span>
               1h
             </button>
           </div>
         </div>
 
-        <select
-          v-if="activeChat"
-          v-model="selectedModel"
-          class="model-select"
-          aria-label="Select chat model"
-        >
+        <select v-if="activeChat" v-model="selectedModel" class="model-select" aria-label="Select chat model">
           <option value="" disabled>Select a model</option>
 
           <optgroup label="Ollama" v-if="modelNames.length">
-            <option
-              v-for="name in modelNames"
-              :key="`ollama:${name}`"
-              :value="`ollama:${name}`"
-            >
+            <option v-for="name in modelNames" :key="`ollama:${name}`" :value="`ollama:${name}`">
               {{ name }}
             </option>
           </optgroup>
 
-          <optgroup label="LM Studio" v-if="lmstudio.models.length">
-            <option
-              v-for="model in lmstudio.models"
-              :key="`lmstudio:${model.id}`"
-              :value="`lmstudio:${model.id}`"
-            >
+          <optgroup label="LM Studio" v-if="installedModels.length > 0">
+            <option v-for="model in installedModels" :key="`lmstudio:${model.id}`" :value="`lmstudio:${model.id}`">
               {{ model.displayName || model.id }}
             </option>
           </optgroup>
@@ -175,21 +122,15 @@
         </p>
 
         <button class="btn-primary" type="button" @click="handleNewChat">
-          <span aria-hidden="true"
-            ><IconPlus :size="12" :stroke-width="2" aria-hidden="true"
-          /></span>
+          <span aria-hidden="true">
+            <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
+          </span>
           Start new chat
         </button>
       </div>
 
-      <ChatThread
-        v-else
-        :chat="activeChat"
-        :model-names="modelNames"
-        :lmstudio-models="lmstudio.models"
-        empty-hint="Select a model and write your first message."
-        @message-sent="saveChats"
-      />
+      <ChatThread v-else :chat="activeChat" :model-names="modelNames" :lmstudio-models="installedModels"
+        empty-hint="Select a model and write your first message." @message-sent="saveChats" />
     </section>
   </main>
 </template>
@@ -199,15 +140,15 @@ import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useOllamaApi } from "@/services/ollamaApiService";
 import { useSettingsStore } from "@/stores/settingsStore";
-import { useLmStudioStore } from "@/stores/useLmStudioStore";
+import { useLmStudioApi } from "@/services/lmsApiService";
 
 import ChatListItem from "@/components/chat/ChatListItem.vue";
 import ChatThread from "@/components/chat/ChatThread.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconTemp from "@/components/icons/IconTemp.vue";
 
-const ollama = useOllamaApi();
-const lmstudio = useLmStudioStore();
+const ollamaApi = useOllamaApi();
+const lmstudio = useLmStudioApi();
 const settingsStore = useSettingsStore();
 const route = useRoute();
 
@@ -216,6 +157,8 @@ const STORAGE_KEY = "ollama-chats";
 const modelNames = ref([]);
 const chats = ref([]);
 const activeChatId = ref(null);
+const modelsCounter = ref(0);
+const installedModels = ref([]);
 
 const currentTime = ref(Date.now());
 
@@ -250,7 +193,7 @@ const selectedModel = computed({
 
       const [source, name] = value.split(/:(.+)/); // erstes ":" als Trenner
       if (source === "ollama") {
-        ollama.setSelectedModel(name);
+        ollamaApi.setSelectedModel(name);
       } else if (source === "lmstudio") {
         lmstudio.setSelectedModel(name);
       }
@@ -450,21 +393,55 @@ onMounted(async () => {
   loadChats();
   removeExpiredChats();
 
-  try {
-    modelNames.value = await ollama.getAllModelsNames();
-  } catch (error) {
-    console.error("Failed to load Ollama models in Chat.vue:", error);
-    modelNames.value = [];
-  }
+  const loadOllamaModels = async () => {
+    try {
+      modelNames.value = await ollamaApi.getAllModelsNames();
 
-  try {
-    await lmstudio.testConnection();
-    if (lmstudio.isOnline) {
-      await lmstudio.fetchModels();
+      console.log("Ollama models:", modelNames.value);
+    } catch (error) {
+      console.error("Failed to load Ollama models in Chat.vue:", error);
+      modelNames.value = [];
     }
-  } catch (error) {
-    console.error("Failed to load LM Studio models in Chat.vue:", error);
-  }
+  };
+
+  const loadLmStudioModels = async () => {
+    try {
+      const isOnline = await lmstudio.statusBool();
+
+      console.log("LM Studio online:", isOnline);
+
+      if (!isOnline) {
+        installedModels.value = [];
+        modelsCounter.value = 0;
+        return;
+      }
+
+      await lmstudio.getAllInstalledModels();
+
+      installedModels.value =
+        await lmstudio.getAllModelsForSelection();
+
+      modelsCounter.value = installedModels.value.length;
+
+      console.log("Installed LM Studio models:", installedModels.value);
+      console.log("Installed LM Studio model count:", modelsCounter.value);
+    } catch (error) {
+      console.error("Failed to load LM Studio models in Chat.vue:", error);
+
+      installedModels.value = [];
+      modelsCounter.value = 0;
+    }
+  };
+
+  await Promise.all([
+    loadOllamaModels(),
+    loadLmStudioModels(),
+  ]);
+
+  console.log(
+    "LM Studio models available:",
+    installedModels.value.length > 0,
+  );
 
   const hasStoredChats = localStorage.getItem(STORAGE_KEY) !== null;
 
@@ -483,7 +460,11 @@ onMounted(async () => {
     activeChatId.value = requestedChatExists
       ? requestedChatId
       : chats.value[0].id;
-  } else if (!hasStoredChats) {
+
+    return;
+  }
+
+  if (!hasStoredChats) {
     createChat();
   }
 });
@@ -584,11 +565,9 @@ onUnmounted(() => {
 .sidebar-toggle-btn:hover {
   color: var(--color-text);
   background: var(--color-bg);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
 .btn-primary,
@@ -778,17 +757,14 @@ onUnmounted(() => {
 }
 
 .model-select:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
 .model-select:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-primary) 14%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
 .empty-chat-state {
@@ -845,8 +821,7 @@ onUnmounted(() => {
   margin-top: 0.65rem;
   color: var(--color-text-muted);
   background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
-  border: 1px solid
-    color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   border-radius: var(--radius-md);
 }
 
@@ -896,8 +871,7 @@ onUnmounted(() => {
   line-height: 1;
   cursor: pointer;
   background: var(--color-surface);
-  border: 1px solid
-    color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
   border-radius: 7px;
   transition:
     background 0.16s ease,
@@ -921,6 +895,10 @@ onUnmounted(() => {
 
 .temporary-chat-hint {
   font-size: 10px;
+}
+
+.temporary-chat-btn {
+  color: var(--color-text-muted);
 }
 
 /* iOS Safari: at least 16px prevents input auto-zoom */
@@ -1032,7 +1010,7 @@ onUnmounted(() => {
     font-size: 12px;
   }
 
-  .chat-sidebar:not(.collapsed) + .chat-main {
+  .chat-sidebar:not(.collapsed)+.chat-main {
     pointer-events: none;
     filter: brightness(0.82);
   }

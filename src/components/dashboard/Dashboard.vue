@@ -1,11 +1,12 @@
 <!-- src/components/dashboard/Dashboard.vue -->
 
 <template>
-  <main class="dashboard-view">
+  <main class="dashboard-view" data-refactor-only>
+    <!-- Page Header -->
     <header class="page-header">
       <div class="page-heading">
         <div class="header-icon" aria-hidden="true">
-          <IconHome :size="22" :stroke-width="2" />
+          <IconHome />
         </div>
 
         <div>
@@ -30,6 +31,7 @@
       </div>
     </header>
 
+    <!-- PWA Mode Banner -->
     <section v-if="isPwaMode" class="pwa-mode-banner" role="status">
       <span class="pwa-mode-icon" aria-hidden="true">
         <IconCheck :size="16" :stroke-width="2.4" />
@@ -43,6 +45,7 @@
       <span class="pwa-mode-badge">PWA</span>
     </section>
 
+    <!-- Weather -->
     <section class="dashboard-section weather-section">
       <div class="section-header">
         <div>
@@ -61,7 +64,7 @@
         <div class="weather-main">
           <span class="weather-icon" aria-hidden="true">{{
             weather.icon
-          }}</span>
+            }}</span>
 
           <div>
             <p class="weather-city">
@@ -102,6 +105,7 @@
       </div>
     </section>
 
+    <!-- Workspace overview -->
     <section class="overview-grid" aria-label="Workspace overview">
       <article class="stat-card">
         <div class="stat-card-header">
@@ -128,57 +132,50 @@
           {{ totalProjects === 1 ? "Workspace created" : "Workspaces created" }}
         </span>
       </article>
-
-      <article class="stat-card">
-        <div class="stat-card-header">
-          <span class="stat-label">Messages</span>
-          <IconMessages class="stat-icon" :size="20" :stroke-width="2" aria-hidden="true" />
-        </div>
-        <strong class="stat-value">{{ totalMessages }}</strong>
-        <span class="stat-description">Across all saved conversations</span>
-      </article>
     </section>
 
+    <!-- Server status -->
     <section class="status-grid" aria-label="Server status">
-      <article class="stat-card status-card" :class="{ online: ollamaOnline, offline: !ollamaOnline }">
+      <article class="stat-card status-card" :class="{ online: ollamaStatusBool, offline: !ollamaStatusBool }">
         <div class="stat-card-header">
           <span class="stat-label">Ollama server</span>
           <span class="server-status-dot"></span>
         </div>
-        <strong class="stat-value">
-          {{ ollamaOnline ? "Online" : "Offline" }}
+        <strong class="stat-value" :class="{ online: ollamaStatusBool, offline: !ollamaStatusBool }">
+          {{ ollamaStatusBool ? "Online" : "Offline" }}
         </strong>
         <span class="stat-description">
           {{
-            !ollamaOnline
+            !ollamaStatusBool
               ? "Check your connection settings"
-              : runningModels.length
-                ? `${runningModels.length} model${runningModels.length === 1 ? "" : "s"} loaded`
+              : ollamaModelsCounter
+                ? `${ollamaModelsCounter} model${ollamaModelsCounter === 1 ? "" : "s"} loaded`
                 : "Ready for local inference"
           }}
         </span>
       </article>
 
-      <article class="stat-card status-card" :class="{ online: lmstudio.isOnline, offline: !lmstudio.isOnline }">
+      <article class="stat-card status-card" :class="{ online: lmsStatusBool, offline: !lmsStatusBool }">
         <div class="stat-card-header">
           <span class="stat-label">LMS server</span>
           <span class="server-status-dot"></span>
         </div>
-        <strong class="stat-value">
-          {{ lmstudio.isOnline ? "Online" : "Offline" }}
+        <strong class="stat-value" :class="{ online: lmsStatusBool, offline: !lmsStatusBool }">
+          {{ lmsStatusBool ? "Online" : "Offline" }}
         </strong>
         <span class="stat-description">
           {{
-            !lmstudio.isOnline
+            !lmsStatusBool
               ? "Check your connection settings"
-              : lmstudio.loadedModels.length
-                ? `${lmstudio.loadedModels.length} model${lmstudio.loadedModels.length === 1 ? "" : "s"} loaded`
+              : lmsModelsCounter
+                ? `${lmsModelsCounter} model${lmsModelsCounter === 1 ? "" : "s"} loaded`
                 : "Ready for local inference"
           }}
         </span>
       </article>
     </section>
 
+    <!-- Recent Chats -->
     <section class="dashboard-section recent-section">
       <div class="section-header">
         <div>
@@ -230,9 +227,11 @@
           New chat
         </button>
       </div>
+
     </section>
 
-    <section class="dashboard-section">
+    <!-- Active Projects -->
+    <section class="dashboard-section active-section">
       <div class="section-header">
         <div>
           <p class="section-kicker">Organize work</p>
@@ -281,22 +280,9 @@
           <span>Create project</span>
         </button>
       </div>
-
-      <div v-else class="inline-empty-state">
-        <div class="inline-empty-icon" aria-hidden="true">
-          <IconFolder :size="40" :stroke-width="1.5" />
-        </div>
-        <div>
-          <h3>No projects yet</h3>
-          <p>Group related chats, prompts and experiments in one workspace.</p>
-        </div>
-        <button class="btn-secondary" type="button" @click="$router.push('/projects')">
-          <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
-          Create project
-        </button>
-      </div>
     </section>
 
+    <!-- Ollama Models -->
     <section class="dashboard-section model-section">
       <div class="section-header">
         <div>
@@ -323,32 +309,33 @@
       </div>
 
       <div v-else class="inline-empty-state">
-        <div class="inline-empty-icon" :class="{ offline: !ollamaOnline }" aria-hidden="true">
-          <IconBox v-if="ollamaOnline" :size="32" :stroke-width="1.5" aria-hidden="true" />
+        <div class="inline-empty-icon" :class="{ offline: !ollamaStatusBool }" aria-hidden="true">
+          <IconBox v-if="ollamaStatusBool" :size="32" :stroke-width="1.5" aria-hidden="true" />
           <IconAlertTriangle v-else :size="32" :stroke-width="1.5" aria-hidden="true" />
         </div>
 
         <div>
           <h3>
             {{
-              ollamaOnline ? "No models installed" : "Ollama is not reachable"
+              ollamaStatusBool ? "No models installed" : "Ollama is not reachable"
             }}
           </h3>
           <p>
             {{
-              ollamaOnline
+              ollamaStatusBool
                 ? "Download a model to start your first local conversation."
                 : "Check the Ollama API address and connection in Settings."
             }}
           </p>
         </div>
 
-        <button class="btn-secondary" type="button" @click="$router.push(ollamaOnline ? '/ollama-models' : '/settings')">
-          {{ ollamaOnline ? "Manage models" : "Open settings" }}
+        <button class="btn-secondary" type="button" @click="$router.push(ollamaStatusBool ? '/models' : '/settings')">
+          {{ ollamaStatusBool ? "Manage models" : "Open settings" }}
         </button>
       </div>
     </section>
 
+    <!-- LM Studio Models -->
     <section class="dashboard-section model-section">
       <div class="section-header">
         <div>
@@ -362,8 +349,8 @@
         </button>
       </div>
 
-      <div v-if="lmstudio.models.length" class="model-list">
-        <div v-for="model in lmstudio.models" :key="model.id" class="model-item">
+      <div v-if="lmsModelsCounter" class="model-list">
+        <div v-for="model in lmsModels" :key="model.id" class="model-item">
           <span class="model-dot" :class="{ running: model.isLoaded }"></span>
 
           <span class="model-name">{{ model.displayName || model.id }}</span>
@@ -375,72 +362,73 @@
       </div>
 
       <div v-else class="inline-empty-state">
-        <div class="inline-empty-icon" :class="{ offline: !lmstudio.isOnline }" aria-hidden="true">
-          <IconBox v-if="lmstudio.isOnline" :size="32" :stroke-width="1.5" aria-hidden="true" />
+        <div class="inline-empty-icon" :class="{ offline: !lmsStatusBool }" aria-hidden="true">
+          <IconBox v-if="lmsStatusBool" :size="32" :stroke-width="1.5" aria-hidden="true" />
           <IconAlertTriangle v-else :size="32" :stroke-width="1.5" aria-hidden="true" />
         </div>
 
         <div>
           <h3>
             {{
-              lmstudio.isOnline
+              lmsStatusBool
                 ? "No models installed"
                 : "LM Studio is not reachable"
             }}
           </h3>
           <p>
             {{
-              lmstudio.isOnline
+              lmsStatusBool
                 ? "Download a model directly in the LM Studio app."
                 : "Check the LM Studio API address and connection in Settings."
             }}
           </p>
         </div>
 
-        <button class="btn-secondary" type="button"
-          @click="$router.push(lmstudio.isOnline ? '/lms-models' : '/settings')">
-          {{ lmstudio.isOnline ? "Manage models" : "Open settings" }}
+        <button class="btn-secondary" type="button" @click="$router.push(lmsStatusBool ? '/lms-models' : '/settings')">
+          {{ lmsStatusBool ? "Manage models" : "Open settings" }}
         </button>
       </div>
     </section>
+
+
   </main>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import { useOllamaApi } from "@/services/ollamaApiService";
-import { useLmStudioStore } from "@/stores/useLmStudioStore";
-import { useProjectsStore } from "@/stores/useProjectsStore";
-import { useSearchModal } from "@/composables/useSearchModal";
-import { useChatSearch } from "@/composables/useChatSearch";
-import { useSettingsStore } from "@/stores/settingsStore";
+
 import { useWeather } from "@/composables/useWeather";
+import { useChatSearch } from "@/composables/useChatSearch";
+import { useSearchModal } from "@/composables/useSearchModal";
+
+import { useSettingsStore } from "@/stores/settingsStore";
+import { useProjectsStore } from "@/stores/useProjectsStore";
+
+import { useOllamaApi } from "@/services/ollamaApiService";
+import { useLmStudioApi } from "@/services/lmsApiService";
 
 import IconHome from "@/components/icons/IconHome.vue";
+import IconSearch from "@/components/icons/IconSearch.vue";
+import IconPlus from "@/components/icons/IconPlus.vue";
+import IconCheck from "@/components/icons/IconCheck.vue";
+import IconRefresh from "@/components/icons/IconRefresh.vue";
+import IconThermometer from "@/components/icons/IconThermometer.vue";
+import IconLoader from "@/components/icons/IconLoader.vue";
+import IconCloud from "@/components/icons/IconCloud.vue";
 import IconChat from "@/components/icons/IconChat.vue";
 import IconFolder from "@/components/icons/IconFolder.vue";
-import IconMessages from "@/components/icons/IconMessages.vue";
-import IconPlus from "@/components/icons/IconPlus.vue";
-import IconSearch from "@/components/icons/IconSearch.vue";
-import IconRefresh from "@/components/icons/IconRefresh.vue";
 import IconArrowRight from "@/components/icons/IconArrowRight.vue";
-import IconThermometer from "@/components/icons/IconThermometer.vue";
+import IconMessages from "@/components/icons/IconMessages.vue";
 import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
 import IconBox from "@/components/icons/IconBox.vue";
 import IconAlertTriangle from "@/components/icons/IconAlertTriangle.vue";
-import IconLoader from "@/components/icons/IconLoader.vue";
-import IconCloud from "@/components/icons/IconCloud.vue";
-import IconCheck from "@/components/icons/IconCheck.vue";
 
 const router = useRouter();
-const ollama = useOllamaApi();
-const lmstudio = useLmStudioStore();
-const projectsStore = useProjectsStore();
-const { openSearchModal } = useSearchModal({ enableShortcut: false });
-const isPwaMode = ref(false);
-
 const settingsStore = useSettingsStore();
+const projectsStore = useProjectsStore();
+const ollamaApi = useOllamaApi();
+const lmStudioApi = useLmStudioApi();
 const {
   weather,
   isLoading: isWeatherLoading,
@@ -449,6 +437,84 @@ const {
 } = useWeather();
 
 const { results: allChats } = useChatSearch();
+const { openSearchModal } = useSearchModal({ enableShortcut: false });
+
+const isPwaMode = ref(false);
+
+const ollamaStatusBool = ref(false);
+const ollamaModelsCounter = ref(0)
+
+const lmsStatusBool = ref(null);
+const lmsModelsCounter = ref(0)
+
+const lmsModels = ref([]);
+const modelNames = ref([]);
+const runningModels = ref([]);
+
+let pwaDisplayQuery = null;
+
+// async functions
+async function loadOllamaStatus() {
+  const isConnected = await ollamaApi.statusBool();
+
+  ollamaStatusBool.value = isConnected;
+
+  if (!isConnected) {
+    modelNames.value = [];
+    runningModels.value = [];
+    ollamaModelsCounter.value = 0;
+    return;
+  }
+
+  try {
+    await Promise.all([
+      ollamaApi.refreshModelsCache(),
+      ollamaApi.refreshRunningModelsCache(),
+    ]);
+
+    modelNames.value = await ollamaApi.getAllModelsNames();
+    runningModels.value = await ollamaApi.getRunningModelsWithDetails();
+    ollamaModelsCounter.value = await ollamaApi.getAllModelsTotalCount();
+  } catch (error) {
+    ollamaStatusBool.value = false;
+    modelNames.value = [];
+    runningModels.value = [];
+    ollamaModelsCounter.value = 0;
+
+    console.error("[loadOllamaStatus] Failed to load Ollama data:", error);
+  }
+}
+
+async function loadLmStudioStatus() {
+  const isConnected = await lmStudioApi.isConnected();
+
+  lmsStatusBool.value = isConnected;
+
+  if (!isConnected) {
+    lmsModelsCounter.value = 0;
+    return;
+  }
+
+  try {
+    lmsModels.value = await lmStudioApi.getAllModelsWithDetails();
+
+    lmsModelsCounter.value = await lmStudioApi.getAllModelsTotalCount();
+  } catch (error) {
+    lmsStatusBool.value = false;
+    lmsModelsCounter.value = 0;
+    lmsModels.value = [];
+
+    console.error("[loadLmStudioStatus] Failed to load LM Studio data:", error);
+  }
+}
+
+
+// functions
+function updatePwaMode() {
+  isPwaMode.value =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+}
 
 function formatWeatherTime(isoString) {
   if (!isoString) return "";
@@ -459,25 +525,12 @@ function formatWeatherTime(isoString) {
   });
 }
 
-const modelNames = ref([]);
-const ollamaOnline = ref(false);
-const allChatsData = ref([]);
-const runningModels = ref([]);
-
-const recentChats = computed(() => allChats.value.slice(0, 5));
-
-const recentProjects = computed(() =>
-  [...projectsStore.getAllProjects()]
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 4),
-);
-
-const totalChats = computed(() => allChats.value.length);
-const totalProjects = computed(() => projectsStore.getAllProjects().length);
-
-const totalMessages = computed(() =>
-  allChats.value.reduce((sum, chat) => sum + (chat.messages?.length ?? 0), 0),
-);
+function formatDate(isoString) {
+  if (!isoString) return "";
+  return new Date(isoString).toLocaleDateString("de-DE", {
+    dateStyle: "medium",
+  });
+}
 
 function goToChat(chat) {
   if (chat.source === "project") {
@@ -487,97 +540,63 @@ function goToChat(chat) {
   }
 }
 
-function formatDate(isoString) {
-  if (!isoString) return "";
-  return new Date(isoString).toLocaleDateString("de-DE", {
-    dateStyle: "medium",
-  });
-}
 
-let pwaDisplayQuery = null;
+// computed properties
+const totalChats = computed(() => allChats.value.length);
+const totalProjects = computed(() => projectsStore.getAllProjects().length);
+const recentChats = computed(() => allChats.value.slice(0, 5));
 
-function updatePwaMode() {
-  isPwaMode.value =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
-}
+const recentProjects = computed(() =>
+  [...projectsStore.getAllProjects()]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 4),
+);
 
-let pollInterval = null;
 
-async function loadOllamaStatus() {
-  try {
-    modelNames.value = await ollama.getAllModelsNames();
-    ollamaOnline.value = await ollama.statusBool();
-    runningModels.value = await ollama.refreshRunningModelsCache();
-  } catch (error) {
-    console.error("Ollama server not reachable:", error);
-    ollamaOnline.value = false;
-  }
-}
-
-async function loadLmStudioStatus() {
-  try {
-    await lmstudio.testConnection();
-    if (lmstudio.isOnline) {
-      await lmstudio.fetchModels();
-    }
-  } catch (error) {
-    console.error("LM Studio server not reachable:", error);
-  }
-}
-
+// Mount/unmount lifecycle hooks
 onMounted(async () => {
   updatePwaMode();
   pwaDisplayQuery = window.matchMedia("(display-mode: standalone)");
   pwaDisplayQuery.addEventListener("change", updatePwaMode);
 
   fetchWeather(settingsStore.weatherCity);
-  await Promise.all([loadOllamaStatus(), loadLmStudioStatus()]);
 
-  pollInterval = setInterval(async () => {
-    if (ollamaOnline.value) {
-      runningModels.value = await ollama.refreshRunningModelNames();
-    }
-    if (lmstudio.isOnline) {
-      await lmstudio.fetchModels();
-    } else {
-      await lmstudio.testConnection();
-    }
-  }, 5000);
-});
+  await Promise.all([loadOllamaStatus(), loadLmStudioStatus()]);
+})
 
 onUnmounted(() => {
-  if (pollInterval) clearInterval(pollInterval);
   pwaDisplayQuery?.removeEventListener("change", updatePwaMode);
 });
 </script>
 
 <style scoped>
+/* Main Styling */
 .dashboard-view {
-  min-height: 0;
   height: 100%;
   overflow-y: auto;
   padding: var(--space-8) var(--space-6);
 }
 
 .page-heading {
-  display: flex;
-  align-items: flex-start;
   min-width: 0;
-  max-width: var(--max-width);
-  gap: 0.65rem;
+  flex: 1 1 420px;
 }
 
-.header-icon {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 auto;
-  place-items: center;
-  color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
-  border-radius: 14px;
+.page-header {
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+  max-width: var(--max-width);
+  height: auto;
+  gap: 0.85rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
 }
 
 .eyebrow,
@@ -590,23 +609,87 @@ onUnmounted(() => {
   text-transform: uppercase;
 }
 
-.page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+.dashboard-section {
   max-width: var(--max-width);
-  margin-bottom: 2rem;
+  margin-bottom: 2.25rem;
 }
 
-.page-header h1 {
-  margin: 0;
+/* Icon Styling */
+.header-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
+  border-radius: 14px;
+}
+
+.header-icon :deep(svg) {
+  width: 22px;
+  height: 22px;
+}
+
+/* PWA mode banner */
+.pwa-mode-banner {
+  display: flex;
+  align-items: center;
+  max-width: var(--max-width);
+  gap: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  margin: -1rem 0 1.5rem;
   color: var(--color-text);
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
-  letter-spacing: -0.04em;
-  line-height: 1.1;
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
+  border-radius: var(--radius-lg);
 }
 
+.pwa-mode-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #fff;
+  background: var(--color-primary);
+  border-radius: 9px;
+}
+
+.pwa-mode-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.pwa-mode-copy strong {
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  font-weight: 650;
+}
+
+.pwa-mode-copy span {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pwa-mode-badge {
+  padding: 0.22rem 0.45rem;
+  margin-left: auto;
+  color: var(--color-primary);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  border-radius: var(--radius-full);
+}
+
+/* Header Styling */
 .header-description {
   margin: 0.5rem 0 0;
   color: var(--color-text-muted);
@@ -616,7 +699,7 @@ onUnmounted(() => {
 
 .header-actions {
   display: flex;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.6rem;
@@ -628,6 +711,13 @@ onUnmounted(() => {
   min-width: max-content;
 }
 
+
+.header-actions .btn-primary,
+.header-actions .btn-secondary {
+  min-width: max-content;
+}
+
+/* Header Buttons */
 .btn-primary,
 .btn-secondary {
   display: inline-flex;
@@ -677,6 +767,141 @@ onUnmounted(() => {
   border-color: color-mix(in srgb,
       var(--color-primary) 35%,
       var(--color-border));
+}
+
+/* Weather section */
+.weather-section {
+  max-width: var(--max-width);
+}
+
+.weather-section .link-btn:disabled {
+  color: var(--color-text-faint);
+  cursor: wait;
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+.weather-card {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.1rem 1.15rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0,
+      color-mix(in srgb, var(--color-primary) 12%, transparent),
+      transparent 42%),
+    var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.025);
+}
+
+.weather-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.weather-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  place-items: center;
+  font-size: 1.8rem;
+  line-height: 1;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
+  border-radius: 14px;
+}
+
+.weather-city,
+.weather-condition {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weather-city {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.weather-condition {
+  margin-top: 0.18rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.weather-temperature {
+  color: var(--color-text);
+  font-size: clamp(2rem, 5vw, 2.65rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+}
+
+.weather-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding-top: 0.85rem;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+.weather-details span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weather-details span:nth-child(2) {
+  text-align: center;
+}
+
+.weather-details span:last-child {
+  text-align: right;
+  color: var(--color-text-faint);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Workspace overview grid */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  max-width: var(--max-width);
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  max-width: var(--max-width);
 }
 
 .stat-card {
@@ -739,6 +964,38 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
+.stat-value {
+  display: inline-block;
+}
+
+.stat-value.online {
+  color: var(--color-success, #22c55e);
+  animation: status-text-fade 300ms ease-out;
+}
+
+.stat-value.offline {
+  color: var(--color-error, #ef4444);
+  animation: status-text-fade 300ms ease-out;
+}
+
+@keyframes status-text-fade {
+  from {
+    opacity: 0.45;
+    transform: translateY(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-value {
+    animation: none;
+  }
+}
+
 .stat-description {
   margin-top: 0.45rem;
   color: var(--color-text-muted);
@@ -750,89 +1007,50 @@ onUnmounted(() => {
   display: block;
 }
 
+/* Ollama and LMS server status cards */
 .server-status-dot {
   width: 8px;
   height: 8px;
-  background: var(--color-error);
   border-radius: 50%;
+  background: var(--color-error);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-error) 13%, transparent);
+
+  animation: status-dot-breathe 2s ease-in-out infinite;
 }
 
 .status-card.online .server-status-dot {
-  background: var(--color-success, #22c55e);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success, #22c55e) 13%, transparent);
-}
-
-.status-card.online .stat-value {
   color: var(--color-success, #22c55e);
+  background: currentColor;
+  animation: status-dot-breathe 2s ease-in-out infinite;
 }
 
-.status-card.offline .stat-value {
+.status-card.offline .server-status-dot {
   color: var(--color-error);
+  background: currentColor;
+  animation: status-dot-breathe 2s ease-in-out infinite;
 }
 
-/* PWA mode banner */
-.pwa-mode-banner {
-  display: flex;
-  align-items: center;
-  max-width: var(--max-width);
-  gap: 0.75rem;
-  padding: 0.8rem 0.9rem;
-  margin: -1rem 0 1.5rem;
-  color: var(--color-text);
-  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
-  border-radius: var(--radius-lg);
+@keyframes status-dot-breathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 13%, transparent);
+  }
+
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 7px color-mix(in srgb, currentColor 0%, transparent);
+  }
 }
 
-.pwa-mode-icon {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 auto;
-  place-items: center;
-  color: #fff;
-  background: var(--color-primary);
-  border-radius: 9px;
+@media (prefers-reduced-motion: reduce) {
+  .server-status-dot {
+    animation: none;
+  }
 }
 
-.pwa-mode-copy {
-  display: grid;
-  min-width: 0;
-  gap: 0.12rem;
-}
-
-.pwa-mode-copy strong {
-  color: var(--color-text);
-  font-size: var(--text-xs);
-  font-weight: 650;
-}
-
-.pwa-mode-copy span {
-  overflow: hidden;
-  color: var(--color-text-muted);
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pwa-mode-badge {
-  padding: 0.22rem 0.45rem;
-  margin-left: auto;
-  color: var(--color-primary);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
-  border-radius: var(--radius-full);
-}
-
-.dashboard-section {
-  max-width: var(--max-width);
-  margin-bottom: 2.25rem;
-}
-
+/* Recent chats section */
 .section-header {
   display: flex;
   align-items: flex-end;
@@ -945,7 +1163,7 @@ onUnmounted(() => {
 }
 
 .source-badge {
-  max-width: 180px;
+  max-width: var(--max-width);
   padding: 0.25rem 0.5rem;
   margin-left: auto;
   overflow: hidden;
@@ -975,14 +1193,56 @@ onUnmounted(() => {
   color: var(--color-text-faint);
   transition:
     color 0.16s ease,
-    transform 0.16s ease;
+    transform 0.5s ease;
 }
 
 .recent-chat-item:hover .row-arrow {
   color: var(--color-primary);
-  transform: translateX(2px);
+  transform: translateX(4px);
 }
 
+.inline-empty-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-radius: 10px;
+}
+
+.inline-empty-icon.offline {
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+}
+
+.inline-empty-state>div:nth-child(2) {
+  min-width: 0;
+}
+
+.inline-empty-state h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.inline-empty-state p {
+  margin: 0.2rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.inline-empty-state .btn-primary,
+.inline-empty-state .btn-secondary {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+/* Active projects section */
 .project-grid-compact {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -1075,7 +1335,7 @@ onUnmounted(() => {
 }
 
 .tag-chip {
-  max-width: 100%;
+  max-width: var(--max-width);
   padding: 0.2rem 0.45rem;
   overflow: hidden;
   color: var(--color-text-muted);
@@ -1120,6 +1380,7 @@ onUnmounted(() => {
   font-weight: 600;
 }
 
+/* Ollama Models section */
 .model-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -1228,162 +1489,31 @@ onUnmounted(() => {
   margin-left: auto;
 }
 
-/* Weather section */
-.weather-section {
-  display: grid;
-  max-width: var(--max-width);
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
-}
-
-.weather-section .link-btn:disabled {
-  color: var(--color-text-faint);
-  cursor: wait;
-  opacity: 0.7;
-  text-decoration: none;
-}
-
-.weather-card {
-  display: grid;
-  gap: 1rem;
-  min-width: 0;
-  padding: 1.1rem 1.15rem;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 100% 0,
-      color-mix(in srgb, var(--color-primary) 12%, transparent),
-      transparent 42%),
-    var(--color-surface);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.025);
-}
-
-.weather-main {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.weather-icon {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  flex: 0 0 auto;
-  place-items: center;
-  font-size: 1.8rem;
-  line-height: 1;
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
-  border-radius: 14px;
-}
-
-.weather-city,
-.weather-condition {
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.weather-city {
-  color: var(--color-text);
-  font-size: var(--text-sm);
-  font-weight: 650;
-  letter-spacing: -0.01em;
-}
-
-.weather-condition {
-  margin-top: 0.18rem;
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
-}
-
-.weather-temperature {
-  color: var(--color-text);
-  font-size: clamp(2rem, 5vw, 2.65rem);
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  letter-spacing: -0.06em;
-  line-height: 0.9;
-}
-
-.weather-details {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-  padding-top: 0.85rem;
-  color: var(--color-text-muted);
-  font-size: 10px;
-  border-top: 1px solid var(--color-border);
-}
-
-.weather-details span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.weather-details span:nth-child(2) {
-  text-align: center;
-}
-
-.weather-details span:last-child {
-  text-align: right;
-  color: var(--color-text-faint);
-}
-
-.overview-grid {
-  display: grid;
-  max-width: var(--max-width);
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
-}
-
-.status-grid {
-  display: grid;
-  max-width: var(--max-width);
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.icon-spin {
-  animation: spin 1s linear infinite;
-}
-
+/* Responsive adjustments */
 @media (max-width: 620px) {
   .dashboard-view {
     padding: 0.85rem 0.75rem 1.5rem;
   }
 
   .page-header {
-    align-items: flex-start;
-    gap: 0.55rem;
+    flex-direction: column;
+    gap: 0.85rem;
     margin-bottom: 1rem;
   }
 
   .page-heading {
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
 
   .header-icon {
     width: 34px;
     height: 34px;
     border-radius: 11px;
+  }
+
+  .header-icon :deep(svg) {
+    width: 18px;
+    height: 18px;
   }
 
   .eyebrow,
@@ -1436,6 +1566,11 @@ onUnmounted(() => {
     border-radius: 6px;
   }
 
+  .stat-icon :deep(svg) {
+    width: 12px;
+    height: 12px;
+  }
+
   .stat-value {
     margin-top: 0.5rem;
     font-size: 1.25rem;
@@ -1471,6 +1606,11 @@ onUnmounted(() => {
     width: 24px;
     height: 24px;
     border-radius: 7px;
+  }
+
+  .recent-chat-icon :deep(svg) {
+    width: 14px;
+    height: 14px;
   }
 
   .recent-chat-title {

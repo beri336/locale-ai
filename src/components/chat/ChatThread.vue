@@ -176,7 +176,7 @@
         <textarea v-model="prompt" class="chat-input" :placeholder="hasValidModel
           ? 'Type a message...'
           : 'Select an installed model to continue'
-          " :disabled="!hasValidModel || isGenerating" @keydown.enter.exact.prevent="handleSend"></textarea>
+          " @keydown.enter.exact.prevent="handleSend"></textarea><!--:disabled="!hasValidModel || isGenerating"-->
 
         <button v-if="isGenerating" class="btn-stop" type="button" @click="handleStop">
           Stop
@@ -194,7 +194,7 @@
 <script setup>
 import { ref, computed, nextTick, watch, onMounted, onUnmounted } from "vue";
 import { useOllamaApi } from "@/services/ollamaApiService";
-import { useLmStudioStore } from "@/stores/useLmStudioStore";
+import { useLmStudioApi } from "@/services/lmsApiService";
 import { renderMarkdown } from "@/utils/markdown";
 import { copyToClipboard } from "@/utils/clipboard";
 import { useSettingsStore } from "@/stores/settingsStore";
@@ -245,7 +245,7 @@ const unavailableModelMessage = computed(() => {
 const emit = defineEmits(["message-sent"]);
 
 const ollama = useOllamaApi();
-const lmstudio = useLmStudioStore();
+const lmstudio = useLmStudioApi();
 const settingsStore = useSettingsStore();
 
 const prompt = ref("");
@@ -413,11 +413,45 @@ function updateChatTitle(chat, firstMessage) {
   }
 }
 
+function updateStreamingText(chunk) {
+  const incomingText = chunk?.response ?? "";
+
+  if (!incomingText) {
+    return;
+  }
+
+  /*
+   * LM Studio can return the complete generated text on every stream event.
+   * Ollama usually returns only the new delta.
+   */
+  if (incomingText.startsWith(streamingText.value)) {
+    streamingText.value = incomingText;
+    return;
+  }
+
+  streamingText.value += incomingText;
+}
+
+function appendOrReplaceStreamText(currentText, chunk) {
+  const incomingText = chunk?.response ?? "";
+
+  if (!incomingText) {
+    return currentText;
+  }
+
+  if (incomingText.startsWith(currentText)) {
+    return incomingText;
+  }
+
+  return currentText + incomingText;
+}
+
 async function sendWithSession(
   modelValue,
   messages,
   options = {},
   signal = undefined,
+  onChunk,
 ) {
   const { name: modelName } = parseModelValue(modelValue);
   const store = getStoreForModel(modelValue);
@@ -436,8 +470,7 @@ async function sendWithSession(
   return session.send(
     lastMessage.content,
     (chunk) => {
-      streamingText.value += chunk.response ?? "";
-      scrollToBottom();
+      onChunk?.(chunk);
     },
     signal,
   );
@@ -449,33 +482,45 @@ async function handleSend() {
   }
 
   const chat = props.chat;
-  const userMessage = prompt.value;
-  const userMessageObj = { role: "user", content: userMessage };
+  const userMessage = prompt.value.trim();
+  const userMessageObj = {
+    role: "user",
+    content: userMessage,
+  };
+
   chat.messages.push(userMessageObj);
+
   updateChatTitle(chat, userMessage);
+
   prompt.value = "";
   emit("message-sent");
-  scrollToBottom(true);
-  const { name: modelName } = parseModelValue(chat.model);
-  const store = getStoreForModel(chat.model);
+
+  await scrollToBottom(true);
 
   isGenerating.value = true;
   streamingText.value = "";
   abortController.value = new AbortController();
 
+  let titleGenerationData = null;
+
   try {
     const messagesPayload = [];
+
     if (
       effectiveSystemPrompt.value &&
-      !chat.messages.some((m) => m.role === "system")
+      !chat.messages.some((message) => message.role === "system")
     ) {
       messagesPayload.push({
         role: "system",
         content: effectiveSystemPrompt.value,
       });
     }
+
     messagesPayload.push(
-      ...chat.messages.map((m) => ({ role: m.role, content: m.content })),
+      ...chat.messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      })),
     );
 
     const result = await sendWithSession(
@@ -486,45 +531,87 @@ async function handleSend() {
         num_ctx: effectiveNumCtx.value,
       },
       abortController.value.signal,
+      (chunk) => {
+        updateStreamingText(chunk);
+        scrollToBottom();
+      },
     );
+
+    const responseText = (
+      result?.text ||
+      streamingText.value ||
+      ""
+    ).trim();
 
     userMessageObj.tokenCount = estimateTokenCount(userMessage);
 
+    if (!responseText) {
+      throw new Error("The model returned an empty response.");
+    }
+
     chat.messages.push({
       role: "assistant",
-      content: result.text,
+      content: responseText,
       model: chat.model,
-      tokenCount: result.stats.evalCount,
+      tokenCount:
+        result?.stats?.evalCount ?? estimateTokenCount(responseText),
     });
+
+    chat.updatedAt = new Date().toISOString();
+
     emit("message-sent");
-    scrollToBottom(true);
+    await scrollToBottom(true);
+
     const isFirstExchange =
-      chat.messages.filter((m) => m.role === "assistant").length === 1;
+      chat.messages.filter((message) => message.role === "assistant")
+        .length === 1;
 
     if (isFirstExchange) {
-      generateChatTitle(chat, userMessage, result.text);
+      titleGenerationData = {
+        chat,
+        userMessage,
+        assistantMessage: responseText,
+      };
     }
   } catch (error) {
     if (error.name === "AbortError") {
+      const stoppedText = streamingText.value.trim();
+
       chat.messages.push({
         role: "assistant",
-        content: streamingText.value || "*Generation stopped.*",
+        content: stoppedText || "*Generation stopped.*",
         model: chat.model,
         stopped: true,
       });
+
+      chat.updatedAt = new Date().toISOString();
       emit("message-sent");
     } else {
       console.error("Chat generation failed:", error);
+
       chat.messages.push({
         role: "assistant",
         content: "Error: failed to generate a response.",
+        model: chat.model,
       });
+
+      chat.updatedAt = new Date().toISOString();
       emit("message-sent");
     }
   } finally {
     isGenerating.value = false;
     streamingText.value = "";
     abortController.value = null;
+  }
+
+  if (titleGenerationData) {
+    window.setTimeout(() => {
+      generateChatTitle(
+        titleGenerationData.chat,
+        titleGenerationData.userMessage,
+        titleGenerationData.assistantMessage,
+      );
+    }, 300);
   }
 }
 
@@ -604,8 +691,6 @@ function handleCancelEdit() {
 async function handleSaveEdit(index) {
   const chat = props.chat;
   const originalMessage = chat.messages[index];
-  const { name: modelName } = parseModelValue(chat.model);
-  const store = getStoreForModel(chat.model);
 
   if (!editText.value.trim() || editText.value === originalMessage.content) {
     handleCancelEdit();
@@ -622,6 +707,7 @@ async function handleSaveEdit(index) {
 
   isGenerating.value = true;
   streamingText.value = "";
+  abortController.value = new AbortController();
 
   try {
     const messagesPayload = chat.messages.map((m) => ({
@@ -637,17 +723,22 @@ async function handleSaveEdit(index) {
         num_ctx: effectiveNumCtx.value,
       },
       abortController.value.signal,
+      (chunk) => {
+        updateStreamingText(chunk);
+        scrollToBottom();
+      },
     );
 
     chat.messages[index].tokenCount = estimateTokenCount(
       chat.messages[index].content,
     );
 
+    const responseText = result?.text?.trim() || streamingText.value.trim();
     chat.messages.push({
       role: "assistant",
-      content: result.text,
+      content: responseText || "Error: empty model response.",
       model: chat.model,
-      tokenCount: result.stats.evalCount,
+      tokenCount: result?.stats?.evalCount ?? estimateTokenCount(responseText),
     });
     emit("message-sent");
     scrollToBottom(true);
@@ -679,8 +770,6 @@ async function handleRegenerate(index) {
   if (isGenerating.value) return;
 
   const chat = props.chat;
-  const { name: modelName } = parseModelValue(chat.model);
-  const store = getStoreForModel(chat.model);
   chat.messages.splice(index);
   emit("message-sent");
   scrollToBottom(true);
@@ -705,19 +794,25 @@ async function handleRegenerate(index) {
     );
 
     const result = await sendWithSession(
+      chat.model,
       messagesPayload,
       {
         temperature: effectiveTemperature.value,
         num_ctx: effectiveNumCtx.value,
       },
       abortController.value.signal,
+      (chunk) => {
+        streamingText.value += chunk.response ?? "";
+        scrollToBottom();
+      },
     );
 
+    const responseText = result?.text?.trim() || streamingText.value.trim();
     chat.messages.push({
       role: "assistant",
-      content: result.text,
+      content: responseText || "Error: empty model response.",
       model: chat.model,
-      tokenCount: result.stats.evalCount,
+      tokenCount: result?.stats?.evalCount ?? estimateTokenCount(responseText),
     });
     emit("message-sent");
     scrollToBottom(true);
@@ -795,42 +890,62 @@ function formatTokenCount(value) {
 }
 
 async function generateChatTitle(chat, userMessage, assistantMessage) {
+  if (!assistantMessage?.trim()) {
+    return;
+  }
+
   try {
     const titlePrompt = [
       {
         role: "system",
         content:
-          "Generate a short, concise chat title (max 6 words, no quotes, no punctuation at the end) that summarizes the following conversation. Reply with only the title, nothing else.",
+          "Generate a short concise chat title. Use a maximum of 6 words. Do not use quotation marks. Do not add punctuation at the end. Reply with only the title.",
       },
       {
         role: "user",
         content: `User: ${userMessage}\n\nAssistant: ${assistantMessage}`,
       },
     ];
-    const { name: modelName } = parseModelValue(chat.model);
-    const store = getStoreForModel(chat.model);
+
+    const titleAbortController = new AbortController();
+
+    // Must be declared before sendWithSession and inside this function.
+    let generatedTitleText = "";
 
     const result = await sendWithSession(
       chat.model,
-      messagesPayload,
+      titlePrompt,
       {
-        temperature: effectiveTemperature.value,
+        temperature: 0.2,
         num_ctx: effectiveNumCtx.value,
       },
-      abortController.value.signal,
+      titleAbortController.signal,
+      (chunk) => {
+        generatedTitleText = appendOrReplaceStreamText(
+          generatedTitleText,
+          chunk,
+        );
+      },
     );
 
-    const generatedTitle = result.text
+    const titleText = (result?.text || generatedTitleText || "")
       .replace(/^["'\s]+|["'\s]+$/g, "")
       .split("\n")[0]
       .trim();
 
-    if (generatedTitle && generatedTitle.length <= 80) {
-      chat.title = generatedTitle;
-      emit("message-sent");
+    if (!titleText || titleText.length > 80) {
+      return;
     }
+
+    chat.title = titleText;
+    chat.updatedAt = new Date().toISOString();
+
+    emit("message-sent");
   } catch (error) {
-    console.error("Title generation failed, keeping fallback title:", error);
+    console.error(
+      "Title generation failed, keeping fallback title:",
+      error,
+    );
   }
 }
 </script>

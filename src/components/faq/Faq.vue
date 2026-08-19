@@ -284,7 +284,9 @@
 
 <script setup>
 import { reactive } from "vue";
+
 import IconFaq from "@/components/icons/IconFaq.vue";
+import CodeBlock from "@/components/ui/CodeBlock.vue";
 import {
   IconInfoCircle,
   IconAlertTriangle,
