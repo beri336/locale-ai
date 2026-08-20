@@ -578,17 +578,23 @@ onUnmounted(() => {
 }
 
 .page-heading {
-  min-width: 0;
+  display: flex;
+  align-items: flex-start;
   flex: 1 1 420px;
+  min-width: 0;
+  gap: 1rem;
 }
 
 .page-header {
-  flex-direction: column;
-  justify-content: flex-start;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: min(100%, var(--max-width));
   min-height: 0;
-  max-width: var(--max-width);
   height: auto;
-  gap: 0.85rem;
+  gap: 1rem;
+  margin: 0 0 1.5rem;
 }
 
 .page-header h1 {
@@ -699,18 +705,13 @@ onUnmounted(() => {
 
 .header-actions {
   display: flex;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
-  gap: 0.6rem;
-  margin-top: 0.2rem;
+  gap: 0.5rem;
+  margin: 0;
 }
-
-.header-actions .btn-primary,
-.header-actions .btn-secondary {
-  min-width: max-content;
-}
-
 
 .header-actions .btn-primary,
 .header-actions .btn-secondary {
@@ -1497,11 +1498,13 @@ onUnmounted(() => {
 
   .page-header {
     flex-direction: column;
+    align-items: stretch;
     gap: 0.85rem;
     margin-bottom: 1rem;
   }
 
   .page-heading {
+    align-items: flex-start;
     gap: 0.6rem;
   }
 

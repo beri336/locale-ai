@@ -1352,14 +1352,13 @@ onMounted(async () => {
     height: 100%;
     overflow-y: auto;
     padding: var(--space-8) var(--space-6);
-    max-width: var(--max-width);
 }
 
 .page-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    max-width: 1100px;
+    max-width: var(--max-width);
     margin-bottom: 2rem;
 }
 
