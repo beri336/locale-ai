@@ -66,6 +66,13 @@
           <span v-if="!isCollapsed" class="nav-label">Prompts</span>
         </RouterLink>
 
+        <RouterLink to="/pseudocode" class="nav-item" :title="isCollapsed ? 'Pseudocode' : ''">
+          <span class="nav-icon">
+            <IconPseudocode />
+          </span>
+          <span v-if="!isCollapsed" class="nav-label">Pseudocode</span>
+        </RouterLink>
+
         <div class="nav-spacer"></div>
 
         <RouterLink to="/faq" class="nav-item" :title="isCollapsed ? 'FAQ' : ''">
@@ -181,6 +188,18 @@
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
+        <RouterLink
+          to="/pseudocode"
+          class="sheet-nav-item"
+          @click="closeMobileMenu"
+        >
+          <span class="sheet-item-icon">
+            <IconPseudocode />
+          </span>
+          <span>Pseudocode</span>
+          <span class="sheet-arrow" aria-hidden="true">›</span>
+        </RouterLink>
+
         <RouterLink to="/settings" class="sheet-nav-item" @click="closeMobileMenu">
           <span class="sheet-item-icon">
             <IconSettings />
@@ -265,6 +284,7 @@ import IconArchive from "@/components/icons/IconArchive.vue";
 import IconPrompt from "@/components/icons/IconPrompt.vue";
 import IconLmStudio from "@/components/icons/IconLmStudio.vue";
 import IconOllama from "@/components/icons/IconOllama.vue";
+import IconPseudocode from "@/components/icons/IconPseudocode.vue";
 
 const themeStore = useThemeStore();
 const { openSearchModal } = useSearchModal();

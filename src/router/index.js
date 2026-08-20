@@ -6,6 +6,7 @@ import ChatView from '@/views/ChatView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import FaqView from '@/views/FaqView.vue'
 import PromptsView from '@/views/PromptsView.vue'
+import PseudocodeView from '@/views/PseudoCodeView.vue'
 
 const routes = [
   { path: '/', name: 'Dashboard', component: DashboardView },
@@ -18,6 +19,7 @@ const routes = [
   { path: '/faq', name: 'FAQ', component: FaqView },
   { path: '/archive', name: 'Archive', component: () => import("@/views/ArchiveView.vue") },
   { path: '/prompts', name: 'Prompts', component: PromptsView },
+  { path: '/pseudocode', name: 'Pseudocode', component: PseudocodeView },
 ]
 
 export default createRouter({
