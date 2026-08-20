@@ -15,7 +15,7 @@ app.use(createPinia())
 app.use(router)
 
 router.isReady().then(() => {
-    registerSW({
+    const updateSW = registerSW({
         immediate: true,
 
         onOfflineReady() {
@@ -23,7 +23,17 @@ router.isReady().then(() => {
         },
 
         onNeedRefresh() {
-            console.info("Neue App-Version verfügbar.");
+            const shouldUpdate = window.confirm(
+                "Eine neue App-Version ist verfügbar. Jetzt aktualisieren?",
+            );
+
+            if (shouldUpdate) {
+                updateSW(true);
+            }
+        },
+
+        onRegisterError(error) {
+            console.error("Service Worker registration failed:", error);
         },
     });
 });
