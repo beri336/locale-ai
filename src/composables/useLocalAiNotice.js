@@ -12,8 +12,7 @@ import { aiConfig } from "@/config/ai";
  * @returns {{ showLocalAiNotice: import('vue').ComputedRef<boolean> }}
  */
 export function useLocalAiNotice() {
-    //const showLocalAiNotice = computed(() => !aiConfig.localAiEnabled);
-    const showLocalAiNotice = computed(() => true); // TEST
+    const showLocalAiNotice = computed(() => !aiConfig.localAiEnabled);
 
     return { showLocalAiNotice };
 }
