@@ -1,7 +1,8 @@
 <!-- src/components/chat/Chat.vue -->
 
 <template>
-  <main class="chat-view" <!-- Chat sidebar -->
+  <main class="chat-view">
+    <!-- Chat sidebar -->
     <aside class="chat-sidebar" :class="{ collapsed: isSidebarCollapsed }">
       <!-- Sidebar content -->
       <div class="sidebar-top">
