@@ -1,5 +1,7 @@
 <!-- src/views/ArchiveView.vue -->
 
+<!-- Renders the archive feature as a route-level view. -->
+
 <template>
   <Archive />
 </template>

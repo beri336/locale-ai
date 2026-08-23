@@ -1,5 +1,7 @@
 <!-- src/views/FaqView.vue -->
 
+<!-- Renders the FAQ feature as a route-level view. -->
+
 <template>
   <Faq />
 </template>

@@ -1,41 +1,66 @@
 // src/main.js
 
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import { registerSW } from 'virtual:pwa-register'
+/// Creates and configures the Vue application.
+/// Registers Pinia, client-side routing, global theme styles, and the PWA
+/// service worker before mounting the application to the root element.
 
-import App from './App.vue'
-import router from './router'
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import { registerSW } from "virtual:pwa-register";
 
-import './assets/theme.css'
+import App from "@/App.vue";
+import router from "@/router";
 
-const app = createApp(App)
+import "@/assets/theme.css";
 
-app.use(createPinia())
-app.use(router)
 
-router.isReady().then(() => {
-    const updateSW = registerSW({
+const APP_ROOT_SELECTOR = "#app";
+
+const app = createApp(App);
+
+app.use(createPinia());
+app.use(router);
+
+
+/**
+ * Registers the PWA service worker after Vue Router has resolved its initial route.
+ */
+function registerServiceWorker() {
+    registerSW({
         immediate: true,
 
+        /**
+         * Logs when all required PWA assets are cached for offline usage.
+         */
         onOfflineReady() {
-            console.info("App ist offline verfügbar.");
+            console.info("App is ready for offline use.");
         },
 
-        onNeedRefresh() {
+        /**
+         * Prompts the user to refresh when a new service-worker version is available.
+         *
+         * @param {() => void} updateServiceWorker Activates the waiting service worker
+         */
+        onNeedRefresh(updateServiceWorker) {
             const shouldUpdate = window.confirm(
-                "Eine neue App-Version ist verfügbar. Jetzt aktualisieren?",
+                "A new app version is available. Update now?",
             );
 
-            if (shouldUpdate) {
-                updateSW(true);
-            }
+            if (shouldUpdate)
+                updateServiceWorker(true);
         },
 
+        /**
+         * Logs service-worker registration failures.
+         *
+         * @param {unknown} error Registration error
+         */
         onRegisterError(error) {
-            console.error("Service Worker registration failed:", error);
+            console.error("Service worker registration failed:", error);
         },
     });
-});
+}
 
-app.mount('#app')
+router.isReady().then(registerServiceWorker);
+
+app.mount(APP_ROOT_SELECTOR);

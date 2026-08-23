@@ -2,12 +2,16 @@
 
 <template>
   <main class="projects-view">
+    <!-- Header -->
     <header class="page-header">
+      <!-- Page heading -->
       <div class="page-heading">
+        <!-- Page icon -->
         <div class="header-icon" aria-hidden="true">
           <IconFolder />
         </div>
 
+        <!-- Page title and description -->
         <div>
           <p class="eyebrow">Workspace</p>
           <h1>Projects</h1>
@@ -17,76 +21,66 @@
         </div>
       </div>
 
-      <button
-        class="btn-primary new-project-btn"
-        type="button"
-        @click="openCreateModal"
-      >
+      <!-- New project button -->
+      <button class="btn-primary new-project-btn" type="button" @click="openCreateModal">
         <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
         New project
       </button>
     </header>
 
+    <!-- Tag filter -->
     <div v-if="allTags.length" class="filter-section">
+      <!-- Filter header -->
       <div class="filter-header">
         <p class="filter-label">Filter by tag</p>
 
-        <button
-          v-if="activeTagFilter"
-          class="clear-filter-btn"
-          type="button"
-          @click="activeTagFilter = null"
-        >
+        <!-- Clear filter button -->
+        <button v-if="activeTagFilter" class="clear-filter-btn" type="button" @click="activeTagFilter = null">
           Clear filter
         </button>
       </div>
 
+      <!-- Filter options -->
       <div class="filter-row">
-        <button
-          v-for="tag in allTags"
-          :key="tag"
-          class="tag-filter"
-          :class="{ active: activeTagFilter === tag }"
-          type="button"
-          @click="toggleTagFilter(tag)"
-        >
+        <button v-for="tag in allTags" :key="tag" class="tag-filter" :class="{ active: activeTagFilter === tag }"
+          type="button" @click="toggleTagFilter(tag)">
           <span class="tag-filter-dot"></span>
           {{ tag }}
         </button>
       </div>
     </div>
 
+    <!-- Project grid -->
     <div v-if="filteredProjects.length" class="project-grid">
-      <article
-        v-for="project in filteredProjects"
-        :key="project.id"
-        class="project-card"
-      >
-        <button
-          class="project-main"
-          type="button"
-          :aria-label="`Open project ${project.name}`"
-          @click="openProject(project.id)"
-        >
+      <!-- Project cards -->
+      <article v-for="project in filteredProjects" :key="project.id" class="project-card">
+        <!-- Project card -->
+        <button class="project-main" type="button" :aria-label="`Open project ${project.name}`"
+          @click="openProject(project.id)">
+          <!-- Project card header -->
           <div class="project-card-header">
+            <!-- Project title and icon -->
             <div class="project-title-group">
-              <span class="project-icon" aria-hidden="true"
-                ><IconFolder :size="20" :stroke-width="2"></IconFolder
-              ></span>
+              <span class="project-icon" aria-hidden="true">
+                <IconFolder :size="20" :stroke-width="2"></IconFolder>
+              </span>
               <h2>{{ project.name }}</h2>
             </div>
 
-            <span class="open-indicator" aria-hidden="true"
-              ><IconArrowUpRight :size="20" :stroke-width="2"></IconArrowUpRight
-            ></span>
+            <!-- Open indicator -->
+            <span class="open-indicator" aria-hidden="true">
+              <IconArrowUpRight :size="20" :stroke-width="2"></IconArrowUpRight>
+            </span>
           </div>
 
+          <!-- Project description -->
           <p v-if="project.description" class="project-desc">
             {{ project.description }}
           </p>
 
           <p v-else class="project-desc is-empty">No description added yet.</p>
 
+          <!-- Project tags -->
           <div v-if="project.tags.length" class="project-tags">
             <span v-for="tag in project.tags" :key="tag" class="tag-chip">
               {{ tag }}
@@ -94,54 +88,52 @@
           </div>
         </button>
 
+        <!-- Project footer -->
         <footer class="project-footer">
+          <!-- Project metadata -->
           <span class="project-meta">
             <span class="project-meta-icon" aria-hidden="true">◌</span>
             {{ project.chats.length }}
             {{ project.chats.length === 1 ? "chat" : "chats" }}
           </span>
 
+          <!-- Project date -->
           <span class="project-date">{{ formatDate(project.createdAt) }}</span>
 
-          <button
-            class="delete-btn"
-            type="button"
-            :aria-label="`Delete project ${project.name}`"
-            title="Delete project"
-            @click="handleDelete(project.id)"
-          >
+          <!-- Delete button -->
+          <button class="delete-btn" type="button" :aria-label="`Delete project ${project.name}`" title="Delete project"
+            @click="handleDelete(project.id)">
             <IconX :size="16" :stroke-width="2" aria-hidden="true" />
           </button>
         </footer>
       </article>
     </div>
 
+    <!-- Empty state -->
     <section v-else class="empty-state">
       <div class="empty-state-icon" aria-hidden="true">
         <IconFolder :size="40" :stroke-width="1.5" />
       </div>
+
       <h2>No projects yet</h2>
+
       <p>Create a project to group related chats, prompts and experiments.</p>
+
       <button class="btn-primary" type="button" @click="openCreateModal">
         <IconPlus :size="18" :stroke-width="2" aria-hidden="true" />
         Create your first project
       </button>
     </section>
 
+    <!-- Create project modal -->
     <Teleport to="body">
+      <!-- Modal -->
       <Transition name="modal">
-        <div
-          v-if="showCreateModal"
-          class="modal-overlay"
-          @click.self="closeCreateModal"
-        >
-          <section
-            class="modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-project-title"
-          >
+        <!-- Modal content -->
+        <div v-if="showCreateModal" class="modal-overlay" @click.self="closeCreateModal">
+          <section class="modal" role="dialog" aria-modal="true" aria-labelledby="create-project-title">
             <div class="modal-header">
+              <!-- Modal header -->
               <div>
                 <p class="eyebrow">Workspace</p>
                 <h2 id="create-project-title">Create project</h2>
@@ -150,74 +142,51 @@
                 </p>
               </div>
 
-              <button
-                class="modal-close-btn"
-                type="button"
-                aria-label="Close dialog"
-                @click="closeCreateModal"
-              >
+              <!-- Modal close button -->
+              <button class="modal-close-btn" type="button" aria-label="Close dialog" @click="closeCreateModal">
                 <IconX :size="16" :stroke-width="2" aria-hidden="true" />
               </button>
             </div>
 
+            <!-- Modal form -->
             <div class="modal-form">
+              <!-- Project name -->
               <div class="field-group">
                 <label class="field-label" for="project-name">
                   Project name <span class="required-mark">*</span>
                 </label>
-                <input
-                  id="project-name"
-                  v-model="newProject.name"
-                  class="input"
-                  placeholder="For example: Research or Coding notes"
-                  autocomplete="off"
-                  @keydown.enter.prevent="handleCreate"
-                  ref="projectNameInput"
-                />
+
+                <input id="project-name" v-model="newProject.name" class="input"
+                  placeholder="For example: Research or Coding notes" autocomplete="off"
+                  @keydown.enter.prevent="handleCreate" ref="projectNameInput" />
               </div>
 
+              <!-- Project description -->
               <div class="field-group">
                 <label class="field-label" for="project-description">
                   Description <span class="optional-mark">Optional</span>
                 </label>
-                <textarea
-                  id="project-description"
-                  v-model="newProject.description"
-                  class="input textarea"
-                  placeholder="What is this project for?"
-                  rows="3"
-                ></textarea>
+                <textarea id="project-description" v-model="newProject.description" class="input textarea"
+                  placeholder="What is this project for?" rows="3"></textarea>
               </div>
 
+              <!-- Project tags -->
               <div class="field-group">
                 <label class="field-label" for="project-tags">
                   Tags <span class="optional-mark">Optional</span>
                 </label>
-                <input
-                  id="project-tags"
-                  v-model="newProject.tagsInput"
-                  class="input"
-                  placeholder="For example: work, ai, personal"
-                  autocomplete="off"
-                />
+                <input id="project-tags" v-model="newProject.tagsInput" class="input"
+                  placeholder="For example: work, ai, personal" autocomplete="off" />
                 <p class="field-hint">Separate multiple tags with commas.</p>
               </div>
             </div>
 
+            <!-- Modal actions -->
             <div class="modal-actions">
-              <button
-                class="btn-secondary"
-                type="button"
-                @click="closeCreateModal"
-              >
+              <button class="btn-secondary" type="button" @click="closeCreateModal">
                 Cancel
               </button>
-              <button
-                class="btn-primary"
-                type="button"
-                :disabled="!newProject.name.trim()"
-                @click="handleCreate"
-              >
+              <button class="btn-primary" type="button" :disabled="!newProject.name.trim()" @click="handleCreate">
                 Create project
               </button>
             </div>
@@ -231,7 +200,9 @@
 <script setup>
 import { ref, computed, nextTick } from "vue";
 import { useRouter } from "vue-router";
+
 import { useProjectsStore } from "@/stores/useProjectsStore";
+
 import IconFolder from "@/components/icons/IconFolder.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
@@ -249,21 +220,27 @@ const allTags = computed(() => projectsStore.getAllTags());
 
 const projectNameInput = ref(null);
 
+
+// computed property
 const filteredProjects = computed(() => {
   if (!activeTagFilter.value) return projects.value;
   return projects.value.filter((p) => p.tags.includes(activeTagFilter.value));
 });
 
-function toggleTagFilter(tag) {
-  activeTagFilter.value = activeTagFilter.value === tag ? null : tag;
-}
 
+// async function
 async function openCreateModal() {
   newProject.value = { name: "", description: "", tagsInput: "" };
   showCreateModal.value = true;
 
   await nextTick();
   projectNameInput.value?.focus();
+}
+
+
+// functions
+function toggleTagFilter(tag) {
+  activeTagFilter.value = activeTagFilter.value === tag ? null : tag;
 }
 
 function closeCreateModal() {
@@ -303,22 +280,15 @@ function formatDate(isoString) {
 }
 </script>
 
-<style setup>
+<style scoped>
+/* Page layout */
 .projects-view {
   height: 100%;
-  overflow-y: auto;
   padding: var(--space-8) var(--space-6);
+  overflow-y: auto;
 }
 
-.page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  max-width: var(--max-width);
-  margin-bottom: 2rem;
-}
-
+/* Page header */
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -371,6 +341,7 @@ function formatDate(isoString) {
   line-height: 1.5;
 }
 
+/* Shared buttons */
 .btn-primary,
 .btn-secondary,
 .btn-danger {
@@ -380,13 +351,13 @@ function formatDate(isoString) {
   gap: 0.4rem;
   min-height: 38px;
   padding: 0.55rem 0.85rem;
-  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
+  border-radius: var(--radius-md);
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
@@ -423,11 +394,9 @@ function formatDate(isoString) {
 
 .btn-secondary:hover {
   background: var(--color-bg);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
 .new-project-btn {
@@ -435,6 +404,7 @@ function formatDate(isoString) {
   margin-top: 0.2rem;
 }
 
+/* Tag filters */
 .filter-section {
   max-width: var(--max-width);
   padding: 0.85rem 0 1.25rem;
@@ -519,18 +489,20 @@ function formatDate(isoString) {
   border-color: var(--color-primary);
 }
 
+/* Project grid */
 .project-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
-  max-width: var(--max-width);
   gap: 0.85rem;
+  max-width: var(--max-width);
   padding-bottom: 2rem;
 }
 
+/* Project card */
 .project-card {
   display: flex;
-  flex-direction: column;
   min-width: 0;
+  flex-direction: column;
   overflow: hidden;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -543,22 +515,20 @@ function formatDate(isoString) {
 }
 
 .project-card:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 32%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 32%,
+      var(--color-border));
   box-shadow: 0 12px 28px rgb(0 0 0 / 0.06);
   transform: translateY(-2px);
 }
 
 .project-main {
   display: flex;
+  min-width: 0;
   flex: 1;
   flex-direction: column;
   align-items: stretch;
   gap: 0.85rem;
-  min-width: 0;
   padding: 1.1rem 1.1rem 0.9rem;
   color: inherit;
   text-align: left;
@@ -581,9 +551,9 @@ function formatDate(isoString) {
 
 .project-title-group {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 0.55rem;
-  min-width: 0;
 }
 
 .project-icon {
@@ -600,8 +570,8 @@ function formatDate(isoString) {
 }
 
 .project-card h2 {
-  overflow: hidden;
   margin: 0;
+  overflow: hidden;
   color: var(--color-text);
   font-size: var(--text-sm);
   font-weight: 650;
@@ -671,6 +641,7 @@ function formatDate(isoString) {
   border-radius: var(--radius-full);
 }
 
+/* Project card footer */
 .project-footer {
   display: flex;
   align-items: center;
@@ -728,6 +699,7 @@ function formatDate(isoString) {
   background: color-mix(in srgb, var(--color-error) 10%, transparent);
 }
 
+/* Empty state */
 .empty-state {
   display: grid;
   justify-items: center;
@@ -767,14 +739,15 @@ function formatDate(isoString) {
   line-height: 1.55;
 }
 
+/* Create project modal */
 .modal-overlay {
   position: fixed;
   z-index: 100;
   inset: 0;
   display: grid;
+  place-items: center;
   padding: 1rem;
   overflow-y: auto;
-  place-items: center;
   background: rgb(10 12 16 / 0.45);
   backdrop-filter: blur(5px);
 }
@@ -833,6 +806,7 @@ function formatDate(isoString) {
   background: var(--color-bg);
 }
 
+/* Project form */
 .modal-form {
   display: grid;
   gap: 1rem;
@@ -887,8 +861,7 @@ function formatDate(isoString) {
 
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-primary) 15%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 .input.textarea {
@@ -906,6 +879,7 @@ function formatDate(isoString) {
   border-top: 1px solid var(--color-border);
 }
 
+/* Modal transition */
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity 0.18s ease;
@@ -929,13 +903,17 @@ function formatDate(isoString) {
   transform: translateY(8px) scale(0.98);
 }
 
+/* Touch input sizing */
 @media (pointer: coarse) {
   .input {
     font-size: 16px;
   }
 }
 
+/* Mobile layout */
 @media (max-width: 620px) {
+
+  /* Page and header */
   .projects-view {
     padding: 0.85rem 0.75rem 1.5rem;
   }
@@ -977,6 +955,7 @@ function formatDate(isoString) {
     font-size: 11px;
   }
 
+  /* Filters */
   .filter-section {
     padding: 0.55rem 0 0.85rem;
     margin-bottom: 0.35rem;
@@ -999,6 +978,7 @@ function formatDate(isoString) {
     font-size: 10px;
   }
 
+  /* Project cards */
   .project-grid {
     grid-template-columns: 1fr;
     gap: 0.5rem;
@@ -1058,6 +1038,7 @@ function formatDate(isoString) {
     opacity: 1;
   }
 
+  /* Empty state */
   .empty-state {
     padding: 2rem 1rem;
     margin: 1rem auto;
@@ -1079,6 +1060,7 @@ function formatDate(isoString) {
     font-size: 12px;
   }
 
+  /* Bottom sheet modal */
   .modal-overlay {
     align-items: end;
     padding: 0;
@@ -1125,7 +1107,7 @@ function formatDate(isoString) {
 
   .input {
     padding: 0.5rem 0.6rem;
-    font-size: 13px;
+    font-size: 16px;
   }
 
   .input.textarea {

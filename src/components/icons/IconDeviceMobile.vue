@@ -1,7 +1,8 @@
-<!-- src/components/icons/IconAlertTriangle.vue -->
+<!-- src/components/icons/IconDeviceMobile.vue -->
 
 <template>
   <svg
+    xmlns="http://www.w3.org/2000/svg"
     :width="size"
     :height="size"
     viewBox="0 0 24 24"
@@ -10,12 +11,13 @@
     :stroke-width="strokeWidth"
     stroke-linecap="round"
     stroke-linejoin="round"
+    class="icon icon-device-mobile"
+    aria-hidden="true"
   >
-    <path
-      d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
-    />
-    <line x1="12" y1="9" x2="12" y2="13" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <rect x="7" y="4" width="10" height="16" rx="1" />
+    <path d="M11 5h2" />
+    <path d="M12 17v.01" />
   </svg>
 </template>
 

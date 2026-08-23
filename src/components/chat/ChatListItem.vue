@@ -1,69 +1,35 @@
 <!-- src/components/chat/ChatListItem.vue -->
 
 <template>
-  <div
-    class="chat-list-item"
-    :class="{ active: isActive }"
-    @click="$emit('select')"
-  >
+  <div class="chat-list-item" :class="{ active: isActive }" @click="$emit('select')">
+    <!-- Chat List Info -->
     <div class="chat-list-info">
-      <input
-        v-if="isEditing"
-        ref="editInput"
-        v-model="editingTitle"
-        class="chat-title-input"
-        maxlength="40"
-        @click.stop
-        @keyup.enter="save"
-        @keyup.esc="cancel"
-        @blur="save"
-      />
-      <span
-        v-else
-        class="chat-title"
-        @dblclick.stop="startEdit"
-        :title="chat.title"
-      >
+      <input v-if="isEditing" ref="editInput" v-model="editingTitle" class="chat-title-input" maxlength="40" @click.stop
+        @keyup.enter="save" @keyup.esc="cancel" @blur="save" />
+      <span v-else class="chat-title" @dblclick.stop="startEdit" :title="chat.title">
         {{ chat.title }}
       </span>
 
       <span v-if="showModel && chat.model" class="chat-model-tag">
         {{ formatModelLabel(chat.model) }}
       </span>
-      <span v-if="isEditing" class="char-count"
-        >{{ editingTitle.length }}/40</span
-      >
+      <span v-if="isEditing" class="char-count">{{ editingTitle.length }}/40</span>
     </div>
 
-    <button
-      v-if="!isEditing"
-      class="chat-delete-btn"
-      @click.stop="$emit('delete')"
-    >
+    <!-- Chat Action Button -->
+    <button v-if="!isEditing" class="chat-delete-btn" @click.stop="$emit('delete')">
       <IconX :size="14" :stroke-width="2" />
     </button>
 
-    <button
-      type="button"
-      class="chat-action-btn"
-      :title="chat.isPinned ? 'Unpin chat' : 'Pin chat'"
-      :aria-label="chat.isPinned ? 'Unpin chat' : 'Pin chat'"
-      @click.stop="togglePin"
-    >
-      <component
-        :is="chat.isPinned ? IconStarFilled : IconStar"
-        :size="14"
-        :stroke-width="1.8"
-      />
+    <!-- Pin/Unpin Button -->
+    <button type="button" class="chat-action-btn" :title="chat.isPinned ? 'Unpin chat' : 'Pin chat'"
+      :aria-label="chat.isPinned ? 'Unpin chat' : 'Pin chat'" @click.stop="togglePin">
+      <component :is="chat.isPinned ? IconStarFilled : IconStar" :size="14" :stroke-width="1.8" />
     </button>
 
-    <button
-      type="button"
-      class="chat-action-btn"
-      title="Archive chat"
-      aria-label="Archive chat"
-      @click.stop="archiveChat"
-    >
+    <!-- Archive Button -->
+    <button type="button" class="chat-action-btn" title="Archive chat" aria-label="Archive chat"
+      @click.stop="archiveChat">
       <IconDownload :size="14" :stroke-width="1.8" />
     </button>
   </div>
@@ -71,12 +37,12 @@
 
 <script setup>
 import { ref, nextTick } from "vue";
-import {
-  IconX,
-  IconStarFilled,
-  IconStar,
-  IconDownload,
-} from "@tabler/icons-vue";
+
+import IconX from "@/components/icons/IconX.vue"
+import IconStarFilled from "@/components/icons/IconStarFilled.vue"
+import IconStar from "@/components/icons/IconStar.vue"
+import IconDownload from "@/components/icons/IconDownload.vue"
+
 
 const props = defineProps({
   chat: { type: Object, required: true },
@@ -96,6 +62,8 @@ const isEditing = ref(false);
 const editingTitle = ref("");
 const editInput = ref(null);
 
+
+// async functions
 async function startEdit() {
   isEditing.value = true;
   editingTitle.value = props.chat.title;
@@ -104,6 +72,7 @@ async function startEdit() {
   editInput.value?.select();
 }
 
+// functions
 function save() {
   if (!isEditing.value) return;
   const trimmed = editingTitle.value.trim().slice(0, 40);
@@ -136,15 +105,16 @@ function formatModelLabel(value) {
 </script>
 
 <style scoped>
+/* Chat list item */
 .chat-list-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: var(--text-sm);
   color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  border-radius: var(--radius-md);
   transition: background 0.15s ease;
 }
 
@@ -153,56 +123,61 @@ function formatModelLabel(value) {
 }
 
 .chat-list-item.active {
-  background: var(--color-surface-2);
   color: var(--color-text);
   font-weight: 500;
+  background: var(--color-surface-2);
 }
 
+/* Chat information */
 .chat-list-info {
   display: flex;
+  min-width: 0;
+  flex: 1;
   flex-direction: column;
   gap: 1px;
   overflow: hidden;
-  flex: 1;
-  min-width: 0;
 }
 
 .chat-title {
   overflow: hidden;
+  color: var(--color-text);
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--color-text);
 }
 
 .chat-model-tag {
-  font-size: 11px;
   color: var(--color-text-faint);
+  font-size: 11px;
 }
 
+/* Inline title editing */
 .chat-title-input {
   width: 100%;
+  padding: 2px 6px;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  outline: none;
   background: var(--color-bg);
   border: 1px solid var(--color-primary);
   border-radius: var(--radius-sm);
-  padding: 2px 6px;
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  outline: none;
 }
 
 .char-count {
-  font-size: 10px;
   color: var(--color-text-faint);
+  font-size: 10px;
 }
 
-.chat-delete-btn {
-  background: none;
-  border: none;
-  color: var(--color-text-faint);
-  cursor: pointer;
-  font-size: var(--text-xs);
-  padding: 2px 4px;
+/* Chat actions */
+.chat-delete-btn,
+.chat-action-btn {
   flex-shrink: 0;
+  padding: 2px 4px;
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
 }
 
 .chat-delete-btn:hover {
@@ -213,15 +188,9 @@ function formatModelLabel(value) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  padding: 2px 4px;
-  font-size: var(--text-xs);
-  color: var(--color-text-faint);
-  cursor: pointer;
-  background: none;
-  border: none;
-  border-radius: var(--radius-sm);
-  transition: color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .chat-action-btn:hover {
@@ -229,6 +198,7 @@ function formatModelLabel(value) {
   background: var(--color-surface-2);
 }
 
+/* Mobile layout */
 @media (max-width: 620px) {
   .chat-list-item {
     gap: 0.35rem;

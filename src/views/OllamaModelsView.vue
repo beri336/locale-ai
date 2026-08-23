@@ -1,5 +1,7 @@
 <!-- src/views/OllamaModelsView.vue -->
 
+<!-- Renders the Ollama models feature as a route-level view. -->
+
 <template>
   <OllamaModels />
 </template>

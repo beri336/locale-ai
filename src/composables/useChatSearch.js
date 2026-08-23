@@ -1,16 +1,29 @@
 // src/composables/useChatSearch.js
 
-import { ref, computed } from "vue";
+/// Provides debounced search across local quick chats and project chats.
+
+import { computed, onScopeDispose, ref } from "vue";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 
 const CHAT_STORAGE_KEY = "ollama-chats";
 const MAX_SNIPPET_LENGTH = 150;
 const DEBOUNCE_MS = 200;
 
+/**
+ * Normalizes search values for case-insensitive comparisons.
+ *
+ * @param {unknown} value Value to normalize
+ * @returns {string} Normalized value
+ */
 function normalize(value = "") {
     return String(value).toLocaleLowerCase().trim();
 }
 
+/**
+ * Reads standalone quick chats from local storage.
+ *
+ * @returns {Array} Saved global chats, or an empty array when unavailable
+ */
 function getGlobalChats() {
     try {
         const stored = localStorage.getItem(CHAT_STORAGE_KEY);
@@ -23,32 +36,61 @@ function getGlobalChats() {
     }
 }
 
+/**
+ * Extracts text from supported message formats.
+ *
+ * @param {string | object | null | undefined} message Chat message
+ * @returns {string} Message text
+ */
 function getMessageText(message) {
-    if (typeof message === "string")
+    if (typeof message === "string") {
         return message;
+    }
 
     return message?.content ?? message?.text ?? message?.message ?? "";
 }
 
+/**
+ * Creates a shortened preview around the matching search text.
+ *
+ * @param {string} text Full source text
+ * @param {string} query Search query
+ * @returns {string} Truncated search snippet
+ */
 function getSnippet(text, query) {
     const source = String(text).replace(/\s+/g, " ").trim();
-    if (!source)
+
+    if (!source) {
         return "";
+    }
 
     const index = normalize(source).indexOf(normalize(query));
-    if (index === -1)
+
+    if (index === -1) {
         return source.slice(0, MAX_SNIPPET_LENGTH);
+    }
 
     const start = Math.max(0, index - 55);
-    const end = Math.min(
-        source.length,
-        index + String(query).length + 95,
-    );
+    const end = Math.min(source.length, index + String(query).length + 95);
 
     return `${start > 0 ? "…" : ""}${source.slice(start, end)}${end < source.length ? "…" : ""
         }`;
 }
 
+/**
+ * Finds the strongest match in a chat.
+ *
+ * Search priority:
+ * 1. Chat title
+ * 2. Project name
+ * 3. Selected model
+ * 4. Chat message content
+ *
+ * @param {object} chat Chat to evaluate
+ * @param {object | null} project Parent project, if the chat belongs to one
+ * @param {string} query Normalized search query
+ * @returns {object | null} Match metadata or null if nothing matches
+ */
 function getMatch(chat, project, query) {
     const title = chat.title ?? "Untitled chat";
     const model = chat.model ?? "";
@@ -98,6 +140,16 @@ function getMatch(chat, project, query) {
     return null;
 }
 
+/**
+ * Converts a chat and optional match data into a search result entry.
+ *
+ * @param {object} entry Chat source data
+ * @param {object} entry.chat Chat object
+ * @param {object | null} entry.project Parent project, if present
+ * @param {"global" | "project"} entry.source Chat source type
+ * @param {object | null} match Search match metadata
+ * @returns {object} Normalized search result
+ */
 function buildEntry({ chat, project, source }, match = null) {
     return {
         id: `${source}-${chat.id}`,
@@ -116,20 +168,41 @@ function buildEntry({ chat, project, source }, match = null) {
     };
 }
 
+/**
+ * Provides a debounced global search across quick chats and project chats.
+ *
+ * @returns {{
+ *   searchQuery: import("vue").Ref<string>,
+ *   setSearchQuery: (value: string) => void,
+ *   results: import("vue").ComputedRef<Array>
+ * }} Search state and result data
+ */
 export function useChatSearch() {
     const projectsStore = useProjectsStore();
+
     const searchQuery = ref("");
-    let debounceTimer = null;
     const debouncedQuery = ref("");
 
+    let debounceTimer = null;
+
+    /**
+     * Updates the visible query immediately and applies it after a short delay.
+     *
+     * @param {string} value - Current search input value
+     */
     function setSearchQuery(value) {
         searchQuery.value = value;
+
         clearTimeout(debounceTimer);
+
         debounceTimer = setTimeout(() => {
             debouncedQuery.value = value;
         }, DEBOUNCE_MS);
     }
 
+    /**
+     * Combines global chats and project chats, then filters and ranks them.
+     */
     const results = computed(() => {
         const query = normalize(debouncedQuery.value);
 
@@ -158,13 +231,21 @@ export function useChatSearch() {
         return allChats
             .map((entry) => {
                 const match = getMatch(entry.chat, entry.project, query);
+
                 return match ? buildEntry(entry, match) : null;
             })
             .filter(Boolean)
             .sort((a, b) => {
-                if (b.score !== a.score) return b.score - a.score;
+                if (b.score !== a.score) {
+                    return b.score - a.score;
+                }
+
                 return new Date(b.updatedAt) - new Date(a.updatedAt);
             });
+    });
+
+    onScopeDispose(() => {
+        clearTimeout(debounceTimer);
     });
 
     return {

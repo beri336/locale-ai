@@ -2,7 +2,7 @@
 
 <template>
   <div class="shell">
-    <!-- Desktop navigation -->
+    <!-- Desktop Navigation -->
     <aside class="sidebar" :class="{ collapsed: isCollapsed }">
       <div class="sidebar-top">
         <div v-if="!isCollapsed" class="logo">
@@ -10,12 +10,14 @@
           <span>LocalAI</span>
         </div>
 
+        <!-- Sidebar toggle button -->
         <button class="collapse-toggle" type="button" :title="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
           :aria-label="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'" @click="toggleSidebar">
           {{ isCollapsed ? "»" : "«" }}
         </button>
       </div>
 
+      <!-- Global search button -->
       <button class="global-search-btn" type="button" :title="isCollapsed ? 'Search chats' : ''"
         @click="openSearchModal">
         <span class="search-icon" aria-hidden="true">⌕</span>
@@ -23,7 +25,9 @@
         <kbd v-if="!isCollapsed">⌘ K</kbd>
       </button>
 
+      <!-- Main Navigation -->
       <nav class="desktop-nav" aria-label="Main navigation">
+        <!-- Dashboard -->
         <RouterLink to="/" class="nav-item" :title="isCollapsed ? 'Dashboard' : ''">
           <span class="nav-icon">
             <IconHome />
@@ -31,6 +35,7 @@
           <span v-if="!isCollapsed" class="nav-label">Dashboard</span>
         </RouterLink>
 
+        <!-- Chat -->
         <RouterLink to="/chat" class="nav-item" :title="isCollapsed ? 'Chat' : ''">
           <span class="nav-icon">
             <IconChat />
@@ -38,6 +43,7 @@
           <span v-if="!isCollapsed" class="nav-label">Chat</span>
         </RouterLink>
 
+        <!-- Projects -->
         <RouterLink to="/projects" class="nav-item" :title="isCollapsed ? 'Projects' : ''">
           <span class="nav-icon">
             <IconFolder />
@@ -45,6 +51,7 @@
           <span v-if="!isCollapsed" class="nav-label">Projects</span>
         </RouterLink>
 
+        <!-- Ollama Models -->
         <RouterLink to="/ollama-models" class="nav-item" :title="isCollapsed ? 'Ollama Models' : ''">
           <span class="nav-icon">
             <IconOllama />
@@ -52,6 +59,7 @@
           <span v-if="!isCollapsed" class="nav-label">Ollama Models</span>
         </RouterLink>
 
+        <!-- LM Studio Models -->
         <RouterLink to="/lms-models" class="nav-item" :title="isCollapsed ? 'LM Studio Models' : ''">
           <span class="nav-icon">
             <IconLmStudio />
@@ -59,6 +67,7 @@
           <span v-if="!isCollapsed" class="nav-label">LM Studio Models</span>
         </RouterLink>
 
+        <!-- Prompts -->
         <RouterLink to="/prompts" class="nav-item" :title="isCollapsed ? 'Prompts' : ''">
           <span class="nav-icon">
             <IconPrompt />
@@ -66,6 +75,7 @@
           <span v-if="!isCollapsed" class="nav-label">Prompts</span>
         </RouterLink>
 
+        <!-- Pseudocode -->
         <RouterLink to="/pseudocode" class="nav-item" :title="isCollapsed ? 'Pseudocode' : ''">
           <span class="nav-icon">
             <IconPseudocode />
@@ -75,6 +85,7 @@
 
         <div class="nav-spacer"></div>
 
+        <!-- FAQ -->
         <RouterLink to="/faq" class="nav-item" :title="isCollapsed ? 'FAQ' : ''">
           <span class="nav-icon">
             <IconFaq />
@@ -82,6 +93,7 @@
           <span v-if="!isCollapsed" class="nav-label">FAQ</span>
         </RouterLink>
 
+        <!-- Archive -->
         <RouterLink to="/archive" class="nav-item" :title="isCollapsed ? 'Archive' : ''">
           <span class="nav-icon">
             <IconArchive />
@@ -89,6 +101,7 @@
           <span v-if="!isCollapsed" class="nav-label">Archive</span>
         </RouterLink>
 
+        <!-- Settings -->
         <RouterLink to="/settings" class="nav-item" :title="isCollapsed ? 'Settings' : ''">
           <span class="nav-icon">
             <IconSettings />
@@ -97,10 +110,11 @@
         </RouterLink>
       </nav>
 
+      <!-- Theme Toggle -->
       <button class="theme-toggle" type="button" :title="themeStore.theme === 'light'
         ? 'Enable dark mode'
         : 'Enable light mode'
-        " @click="themeStore.toggle()">
+        " @click="themeStore.toggleTheme()">
         <IconMoon v-if="themeStore.theme === 'light'" :size="16" :stroke-width="2" aria-hidden="true" />
 
         <IconSun v-else class="sun-icon" :size="16" :stroke-width="2" aria-hidden="true" />
@@ -122,7 +136,7 @@
         @click="closeMobileMenu"></button>
     </Transition>
 
-    <!-- Mobile: More bottom sheet -->
+    <!-- Mobile: more bottom sheet -->
     <Transition name="sheet">
       <section v-if="isMobileMenuOpen" class="mobile-more-sheet" aria-label="More navigation options">
         <div class="sheet-handle"></div>
@@ -138,6 +152,7 @@
           </button>
         </div>
 
+        <!-- Global Search -->
         <button class="mobile-search-btn" type="button" @click="handleMobileSearch">
           <span class="sheet-item-icon" aria-hidden="true">
             <IconSearch :size="12" :stroke-width="2" aria-hidden="true" />
@@ -148,6 +163,7 @@
 
         <div class="sheet-divider"></div>
 
+        <!-- Ollama Models -->
         <RouterLink to="/ollama-models" class="sheet-nav-item" @click="closeMobileMenu">
           <span class="sheet-item-icon">
             <IconOllama />
@@ -156,6 +172,7 @@
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
+        <!-- LM Studio Models -->
         <RouterLink to="/lms-models" class="sheet-nav-item" @click="closeMobileMenu">
           <span class="sheet-item-icon">
             <IconLmStudio />
@@ -164,6 +181,7 @@
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
+        <!-- FAQ -->
         <RouterLink to="/faq" class="sheet-nav-item" @click="closeMobileMenu">
           <span class="sheet-item-icon">
             <IconFaq />
@@ -172,6 +190,7 @@
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
+        <!-- Archive -->
         <RouterLink to="/archive" class="sheet-nav-item" @click="closeMobileMenu">
           <span class="sheet-item-icon">
             <IconArchive />
@@ -180,6 +199,7 @@
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
+        <!-- Prompts -->
         <RouterLink to="/prompts" class="sheet-nav-item" @click="closeMobileMenu">
           <span class="sheet-item-icon">
             <IconPrompt />
@@ -188,11 +208,8 @@
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
-        <RouterLink
-          to="/pseudocode"
-          class="sheet-nav-item"
-          @click="closeMobileMenu"
-        >
+        <!-- Pseudocode -->
+        <RouterLink to="/pseudocode" class="sheet-nav-item" @click="closeMobileMenu">
           <span class="sheet-item-icon">
             <IconPseudocode />
           </span>
@@ -200,6 +217,7 @@
           <span class="sheet-arrow" aria-hidden="true">›</span>
         </RouterLink>
 
+        <!-- Settings -->
         <RouterLink to="/settings" class="sheet-nav-item" @click="closeMobileMenu">
           <span class="sheet-item-icon">
             <IconSettings />
@@ -210,6 +228,7 @@
 
         <div class="sheet-divider"></div>
 
+        <!-- Theme Toggle -->
         <button class="sheet-theme-btn" type="button" @click="themeStore.toggle()">
           <span class="sheet-item-icon" aria-hidden="true">
             <IconMoon v-if="themeStore.theme === 'light'" :size="16" :stroke-width="2" />
@@ -234,6 +253,7 @@
 
     <!-- Mobile bottom navigation -->
     <nav class="bottom-nav" aria-label="Mobile main navigation">
+      <!-- Home -->
       <RouterLink to="/" class="bottom-nav-item">
         <span class="bottom-nav-icon">
           <IconHome />
@@ -241,6 +261,7 @@
         <span>Home</span>
       </RouterLink>
 
+      <!-- Chat -->
       <RouterLink to="/chat" class="bottom-nav-item">
         <span class="bottom-nav-icon">
           <IconChat />
@@ -248,6 +269,7 @@
         <span>Chat</span>
       </RouterLink>
 
+      <!-- Projects -->
       <RouterLink to="/projects" class="bottom-nav-item">
         <span class="bottom-nav-icon">
           <IconFolder />
@@ -255,6 +277,7 @@
         <span>Projects</span>
       </RouterLink>
 
+      <!-- More -->
       <button class="bottom-nav-item" :class="{ active: isMobileMenuOpen }" type="button" @click="toggleMobileMenu">
         <span class="bottom-nav-icon more-icon" aria-hidden="true">•••</span>
         <span>More</span>
@@ -267,7 +290,8 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import { useThemeStore } from "@/stores/themeStore";
+
+import { useThemeStore } from "@/stores/useThemeStore";
 import { useSearchModal } from "@/composables/useSearchModal";
 import SearchModal from "@/components/search/SearchModal.vue";
 
@@ -319,6 +343,7 @@ watch(isMobileMenuOpen, (isOpen) => {
 </script>
 
 <style scoped>
+/* App shell */
 .shell {
   display: flex;
   width: 100%;
@@ -349,6 +374,7 @@ watch(isMobileMenuOpen, (isOpen) => {
   align-items: center;
 }
 
+/* Sidebar header and branding */
 .sidebar-top {
   display: flex;
   align-items: center;
@@ -407,6 +433,7 @@ watch(isMobileMenuOpen, (isOpen) => {
   background: var(--color-bg);
 }
 
+/* Desktop search */
 .global-search-btn {
   display: flex;
   align-items: center;
@@ -453,6 +480,7 @@ watch(isMobileMenuOpen, (isOpen) => {
   padding: 0.45rem;
 }
 
+/* Desktop navigation */
 .desktop-nav {
   display: flex;
   flex: 1;
@@ -511,6 +539,7 @@ watch(isMobileMenuOpen, (isOpen) => {
   white-space: nowrap;
 }
 
+/* Theme toggle */
 .theme-toggle {
   display: inline-flex;
   align-items: center;
@@ -549,13 +578,13 @@ watch(isMobileMenuOpen, (isOpen) => {
   overflow: auto;
 }
 
-/* Shared icon sizing */
+/* Shared icon styles */
 .sun-icon {
-  stroke: currentColor;
   fill: none;
+  stroke: currentColor;
 }
 
-/* Mobile UI hidden on desktop */
+/* Mobile-only elements */
 .bottom-nav,
 .mobile-menu-backdrop,
 .mobile-more-sheet {
@@ -564,6 +593,8 @@ watch(isMobileMenuOpen, (isOpen) => {
 
 /* Mobile navigation */
 @media (max-width: 767px) {
+
+  /* Mobile layout */
   .shell {
     display: block;
     height: 100dvh;
@@ -578,10 +609,11 @@ watch(isMobileMenuOpen, (isOpen) => {
     height: 100%;
     min-height: 0;
     padding-bottom: calc(58px + env(safe-area-inset-bottom));
-    overflow-y: auto;
     overflow-x: hidden;
+    overflow-y: auto;
   }
 
+  /* Bottom navigation */
   .bottom-nav {
     position: fixed;
     z-index: 40;
@@ -640,6 +672,7 @@ watch(isMobileMenuOpen, (isOpen) => {
     border-radius: 8px;
   }
 
+  /* Bottom sheet backdrop */
   .mobile-menu-backdrop {
     position: fixed;
     z-index: 50;
@@ -654,6 +687,7 @@ watch(isMobileMenuOpen, (isOpen) => {
     backdrop-filter: blur(2px);
   }
 
+  /* More navigation sheet */
   .mobile-more-sheet {
     position: fixed;
     z-index: 60;
@@ -680,6 +714,7 @@ watch(isMobileMenuOpen, (isOpen) => {
     border-radius: var(--radius-full);
   }
 
+  /* Bottom sheet header */
   .sheet-header {
     display: flex;
     align-items: flex-start;
@@ -721,6 +756,7 @@ watch(isMobileMenuOpen, (isOpen) => {
     border-radius: 50%;
   }
 
+  /* Bottom sheet actions */
   .mobile-search-btn,
   .sheet-nav-item,
   .sheet-theme-btn {
@@ -790,6 +826,7 @@ watch(isMobileMenuOpen, (isOpen) => {
     background: var(--color-border);
   }
 
+  /* Mobile transitions */
   .fade-enter-active,
   .fade-leave-active {
     transition: opacity 0.2s ease;

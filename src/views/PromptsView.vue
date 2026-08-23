@@ -1,5 +1,7 @@
 <!-- src/views/PromptsView.vue -->
 
+<!-- Renders the prompt-management feature as a route-level view. -->
+
 <template>
   <Prompts />
 </template>

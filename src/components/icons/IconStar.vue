@@ -1,7 +1,8 @@
-<!-- src/components/icons/IconAlertTriangle.vue -->
+<!-- src/components/icons/IconStar.vue -->
 
 <template>
   <svg
+    xmlns="http://www.w3.org/2000/svg"
     :width="size"
     :height="size"
     viewBox="0 0 24 24"
@@ -10,12 +11,13 @@
     :stroke-width="strokeWidth"
     stroke-linecap="round"
     stroke-linejoin="round"
+    class="icon icon-star"
+    aria-hidden="true"
   >
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
     <path
-      d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+      d="M12 2l2.928 6.22l6.572 .956l-4.75 4.832l1.121 6.816l-5.871 -3.23l-5.871 3.23l1.121 -6.816l-4.75 -4.832l6.572 -.956z"
     />
-    <line x1="12" y1="9" x2="12" y2="13" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
   </svg>
 </template>
 

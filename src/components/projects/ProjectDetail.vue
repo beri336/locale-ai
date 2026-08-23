@@ -3,35 +3,27 @@
 <template>
   <main v-if="project" class="project-detail">
     <aside class="project-sidebar" :class="{ collapsed: isSidebarCollapsed }">
+      <!-- Sidebar content -->
       <div class="sidebar-top">
-        <button
-          v-if="!isSidebarCollapsed"
-          class="back-btn"
-          type="button"
-          @click="goBack"
-        >
-          <span aria-hidden="true"
-            ><IconArrowLeft :size="12" :stroke-width="2"></IconArrowLeft
-          ></span>
+        <button v-if="!isSidebarCollapsed" class="back-btn" type="button" @click="goBack">
+          <span aria-hidden="true">
+            <IconArrowLeft :size="12" :stroke-width="2"></IconArrowLeft>
+          </span>
           All projects
         </button>
 
-        <button
-          class="sidebar-toggle-btn"
-          type="button"
-          :title="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-          :aria-label="
-            isSidebarCollapsed
-              ? 'Expand project sidebar'
-              : 'Collapse project sidebar'
-          "
-          @click="toggleSidebar"
-        >
+        <button class="sidebar-toggle-btn" type="button"
+          :title="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'" :aria-label="isSidebarCollapsed
+            ? 'Expand project sidebar'
+            : 'Collapse project sidebar'
+            " @click="toggleSidebar">
           <span aria-hidden="true">{{ isSidebarCollapsed ? "»" : "«" }}</span>
         </button>
       </div>
 
+      <!-- Project -->
       <template v-if="!isSidebarCollapsed">
+        <!-- Project Summary -->
         <div class="project-summary">
           <div class="project-summary-icon" aria-hidden="true">
             <IconFolder :size="20" :stroke-width="2"></IconFolder>
@@ -43,10 +35,12 @@
           </div>
         </div>
 
+        <!-- Project Description -->
         <div v-if="project.description" class="project-description">
           {{ project.description }}
         </div>
 
+        <!-- Project Tags -->
         <div v-if="project.tags.length" class="project-tags">
           <span v-for="tag in project.tags" :key="tag" class="tag-chip">
             {{ tag }}
@@ -55,94 +49,79 @@
 
         <div class="sidebar-divider"></div>
 
+        <!-- Chats -->
         <div class="chats-heading">
           <span>Chats</span>
           <span class="chat-count">Total: {{ project.chats.length }}</span>
-          <span class="chat-count"
-            >Visible: {{ sortedVisibleChats.length }}</span
-          >
+          <span class="chat-count">Visible: {{ sortedVisibleChats.length }}</span>
         </div>
 
-        <button
-          class="btn-primary new-chat-btn"
-          type="button"
-          @click="handleNewChat"
-        >
-          <span aria-hidden="true"
-            ><IconPlus :size="12" :stroke-width="2"></IconPlus
-          ></span>
+        <!-- New Chat Button -->
+        <button class="btn-primary new-chat-btn" type="button" @click="handleNewChat">
+          <span aria-hidden="true">
+            <IconPlus :size="12" :stroke-width="2"></IconPlus>
+          </span>
           New chat
         </button>
 
+        <!-- Chat List -->
         <div class="chat-list">
-          <ChatListItem
-            v-for="chat in sortedVisibleChats"
-            :key="chat.id"
-            :chat="chat"
-            :is-active="chat.id === activeChatId"
-            :show-model="true"
-            @select="selectChat(chat.id)"
-            @delete="handleDeleteChat(chat.id)"
-            @rename="(newTitle) => renameChat(chat, newTitle)"
-            @toggle-pin="projectsStore.toggleChatPin(project.id, chat.id)"
-            @archive="handleArchiveChat(chat.id)"
-          />
+          <ChatListItem v-for="chat in sortedVisibleChats" :key="chat.id" :chat="chat"
+            :is-active="chat.id === activeChatId" :show-model="true" @select="selectChat(chat.id)"
+            @delete="handleDeleteChat(chat.id)" @rename="(newTitle) => renameChat(chat, newTitle)"
+            @toggle-pin="projectsStore.toggleChatPin(project.id, chat.id)" @archive="handleArchiveChat(chat.id)" />
 
+          <!-- Empty State -->
           <div v-if="project.chats.length === 0" class="sidebar-empty-state" />
-          <div
-            v-if="sortedVisibleChats.length === 0"
-            class="sidebar-empty-state"
-          >
-            <span class="sidebar-empty-icon" aria-hidden="true"
-              ><IconChat :size="20" :stroke-width="2"></IconChat
-            ></span>
+
+          <div v-if="sortedVisibleChats.length === 0" class="sidebar-empty-state">
+            <span class="sidebar-empty-icon" aria-hidden="true">
+              <IconChat :size="20" :stroke-width="2"></IconChat>
+            </span>
             <p>No chats in this project yet.</p>
           </div>
         </div>
       </template>
 
-      <button
-        v-else
-        class="collapsed-new-chat-btn"
-        type="button"
-        title="New chat"
-        aria-label="Create new chat"
-        @click="handleNewChat"
-      >
+      <button v-else class="collapsed-new-chat-btn" type="button" title="New chat" aria-label="Create new chat"
+        @click="handleNewChat">
         <IconPlus :size="12" :stroke-width="2" aria-hidden="true"></IconPlus>
       </button>
     </aside>
 
     <section class="chat-main">
+      <!-- Header -->
       <header class="chat-header">
         <div class="chat-header-copy">
           <p class="chat-header-eyebrow">{{ project.name }}</p>
           <h2>{{ activeChat?.title || "Select a chat" }}</h2>
         </div>
 
-        <select
-          v-if="activeChat"
-          v-model="activeChat.model"
-          class="model-select"
-          aria-label="Select chat model"
-          @change="projectsStore.saveProjects"
-        >
-          <option value="" disabled>Select a model</option>
-          <option v-for="name in modelNames" :key="name" :value="name">
-            {{ name }}
+        <select v-if="activeChat" v-model="activeModelRef" class="model-select" aria-label="Select chat model">
+          <option value="" disabled>
+            Select a local model
+          </option>
+
+          <option v-for="model in availableModels" :key="model.id" :value="model.id">
+            {{ model.displayName }} · {{ model.providerLabel }}
+            {{
+              model.provider === "lmstudio" && !model.isLoaded
+                ? " (not loaded)"
+                : ""
+            }}
           </option>
         </select>
       </header>
 
+      <!-- Empty Project Chat State -->
       <div v-if="!activeChat" class="empty-project-chat-state">
-        <span class="empty-project-chat-icon" aria-hidden="true"
-          ><IconSparkles :size="20" :stroke-width="2"></IconSparkles
-        ></span>
+        <span class="empty-project-chat-icon" aria-hidden="true">
+          <IconSparkles :size="20" :stroke-width="2"></IconSparkles>
+        </span>
         <h3>No chat selected</h3>
         <p>
           Create a chat to start a conversation in
-          <strong>{{ project.name }}</strong
-          >.
+          <strong>{{ project.name }}</strong>.
         </p>
         <button class="btn-primary" type="button" @click="handleNewChat">
           <IconPlus :size="12" :stroke-width="2" aria-hidden="true"></IconPlus>
@@ -150,16 +129,13 @@
         </button>
       </div>
 
-      <ChatThread
-        v-else
-        :chat="activeChat"
-        :model-names="modelNames"
-        empty-hint="Start a conversation in this project."
-        @message-sent="projectsStore.saveProjects"
-      />
+      <!-- Chat Thread -->
+      <ChatThread v-else :chat="activeChat" :available-models="availableModels"
+        empty-hint="Start a conversation in this project." @message-sent="projectsStore.saveProjects" />
     </section>
   </main>
 
+  <!-- Not Found State -->
   <section v-else class="not-found-state">
     <div class="not-found-icon" aria-hidden="true">
       <IconFolder :size="20" :stroke-width="2"></IconFolder>
@@ -170,9 +146,9 @@
       storage.
     </p>
     <button class="btn-secondary" type="button" @click="goBack">
-      <span aria-hidden="true"
-        ><IconArrowLeft :size="12" :stroke-width="2"></IconArrowLeft
-      ></span>
+      <span aria-hidden="true">
+        <IconArrowLeft :size="12" :stroke-width="2"></IconArrowLeft>
+      </span>
       Back to projects
     </button>
   </section>
@@ -181,54 +157,159 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+
 import { useProjectsStore } from "@/stores/useProjectsStore";
+import { useSettingsStore } from "@/stores/useSettingsStore";
+
 import { useOllamaApi } from "@/services/ollamaApiService";
+import { useLmStudioApi } from "@/services/lmsApiService";
+
 import ChatThread from "@/components/chat/ChatThread.vue";
 import ChatListItem from "@/components/chat/ChatListItem.vue";
-import { useSettingsStore } from "@/stores/settingsStore";
+
 import IconArrowLeft from "@/components/icons/IconArrowLeft.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconSparkles from "@/components/icons/IconSparkles.vue";
 import IconFolder from "@/components/icons/IconFolder.vue";
 import IconChat from "@/components/icons/IconChat.vue";
 
+
 const route = useRoute();
 const router = useRouter();
-const projectsStore = useProjectsStore();
+
 const ollama = useOllamaApi();
+const lms = useLmStudioApi();
+const projectsStore = useProjectsStore();
 const settingsStore = useSettingsStore();
 
-const modelNames = ref([]);
+const availableModels = ref([]);
+
 const activeChatId = ref(null);
 const chatWindow = ref(null);
-
-const project = computed(() => projectsStore.getProjectById(route.params.id));
 
 const isSidebarCollapsed = ref(
   localStorage.getItem("project-sidebar-collapsed") === "true",
 );
 
-function toggleSidebar() {
-  isSidebarCollapsed.value = !isSidebarCollapsed.value;
-  localStorage.setItem("project-sidebar-collapsed", isSidebarCollapsed.value);
-}
+
+// computed properties
+const project = computed(() => projectsStore.getProjectById(route.params.id));
+
+const activeModelRef = computed({
+  get() {
+    return activeChat.value?.model ?? "";
+  },
+  set(value) {
+    if (!activeChat.value) return;
+
+    activeChat.value.model = value;
+    projectsStore.saveProjects();
+  },
+});
+
+const activeModel = computed(
+  () =>
+    availableModels.value.find(
+      (model) => model.id === activeModelRef.value,
+    ) ?? null,
+);
 
 const activeChat = computed(() => {
   if (!project.value) return null;
   return project.value.chats.find((c) => c.id === activeChatId.value) || null;
 });
 
+const sortedVisibleChats = computed(() => {
+  if (!project.value) return [];
+  return projectsStore.sortChatsByPin(
+    projectsStore.getVisibleChats(project.value),
+  );
+});
+
+
+// async functions
+async function scrollToBottom() {
+  await nextTick();
+  if (chatWindow.value) {
+    chatWindow.value.scrollTop = chatWindow.value.scrollHeight;
+  }
+}
+
+async function loadAvailableModels() {
+  const [ollamaResult, lmStudioResult] = await Promise.allSettled([
+    ollama.getAllModelsNames(),
+    lms.getAllModelsWithDetails(),
+  ]);
+
+  const ollamaModels =
+    ollamaResult.status === "fulfilled"
+      ? normalizeOllamaModels(ollamaResult.value)
+      : [];
+
+  const lmStudioModels =
+    lmStudioResult.status === "fulfilled"
+      ? normalizeLmStudioModels(lmStudioResult.value)
+      : [];
+
+  availableModels.value = [...ollamaModels, ...lmStudioModels];
+
+  ensureActiveChatModel();
+}
+
+
+// function
+function normalizeOllamaModels(models) {
+  if (!Array.isArray(models)) return [];
+
+  return models
+    .filter((name) => typeof name === "string" && name.trim())
+    .map((name) => ({
+      id: `ollama:${name}`,
+      provider: "ollama",
+      providerLabel: "Ollama",
+      modelId: name,
+      displayName: name,
+      isLoaded: true,
+    }));
+}
+
+function normalizeLmStudioModels(models) {
+  if (!Array.isArray(models)) return [];
+
+  return models
+    .filter(
+      (model) =>
+        model?.type === "llm" &&
+        typeof model.id === "string" &&
+        model.id.trim(),
+    )
+    .map((model) => ({
+      id: `lmstudio:${model.id}`,
+      provider: "lmstudio",
+      providerLabel: "LM Studio",
+      modelId: model.id,
+      displayName: model.displayName || model.id,
+      isLoaded: Boolean(model.isLoaded),
+      instanceId: model.instanceId ?? null,
+    }))
+    .sort((left, right) => {
+      if (left.isLoaded !== right.isLoaded) {
+        return left.isLoaded ? -1 : 1;
+      }
+
+      return left.displayName.localeCompare(right.displayName);
+    });
+}
+
+function toggleSidebar() {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value;
+  localStorage.setItem("project-sidebar-collapsed", isSidebarCollapsed.value);
+}
+
 function renameChat(chat, newTitle) {
   chat.title = newTitle;
   projectsStore.saveProjects();
 }
-
-watch(
-  () => activeChat.value?.model,
-  () => {
-    projectsStore.saveProjects();
-  },
-);
 
 function goBack() {
   router.push("/projects");
@@ -256,24 +337,10 @@ function handleDeleteChat(id) {
   }
 }
 
-const sortedVisibleChats = computed(() => {
-  if (!project.value) return [];
-  return projectsStore.sortChatsByPin(
-    projectsStore.getVisibleChats(project.value),
-  );
-});
-
 function handleArchiveChat(chatId) {
   projectsStore.toggleChatArchive(project.value.id, chatId);
   if (activeChatId.value === chatId)
     activeChatId.value = sortedVisibleChats.value[0]?.id || null;
-}
-
-async function scrollToBottom() {
-  await nextTick();
-  if (chatWindow.value) {
-    chatWindow.value.scrollTop = chatWindow.value.scrollHeight;
-  }
 }
 
 function updateChatTitle(chat, firstMessage) {
@@ -283,8 +350,55 @@ function updateChatTitle(chat, firstMessage) {
   }
 }
 
+function ensureActiveChatModel() {
+  if (!activeChat.value) return;
+
+  const modelRef = activeChat.value.model;
+
+  if (!modelRef) {
+    activeChat.value.model = availableModels.value[0]?.id ?? "";
+    projectsStore.saveProjects();
+    return;
+  }
+
+  const isValidModel = availableModels.value.some(
+    (model) => model.id === modelRef,
+  );
+
+  if (isValidModel) return;
+
+  /*
+    Migration for old project chats:
+      An old string without a provider is interpreted as an Ollama model.
+  */
+  const oldOllamaModel = availableModels.value.find(
+    (model) =>
+      model.provider === "ollama" &&
+      model.modelId === modelRef,
+  );
+
+  if (oldOllamaModel) {
+    activeChat.value.model = oldOllamaModel.id;
+    projectsStore.saveProjects();
+    return;
+  }
+
+  activeChat.value.model = availableModels.value[0]?.id ?? "";
+  projectsStore.saveProjects();
+}
+
+
+// watchers
+watch(
+  () => activeChat.value?.model,
+  () => {
+    projectsStore.saveProjects();
+  },
+);
+
+
+// mounted lifecycle hook
 onMounted(async () => {
-  modelNames.value = await ollama.getAllModelsNames();
   if (project.value?.chats.length > 0) {
     const requestedChatId = route.query.chat;
 
@@ -296,11 +410,14 @@ onMounted(async () => {
       ? requestedChatId
       : project.value.chats[0].id;
   }
-  scrollToBottom();
+
+  await loadAvailableModels();
+  await scrollToBottom();
 });
 </script>
 
 <style scoped>
+/* Page layout */
 .project-detail {
   display: flex;
   height: 100%;
@@ -308,13 +425,14 @@ onMounted(async () => {
   background: var(--color-bg);
 }
 
+/* Project sidebar */
 .project-sidebar {
   display: flex;
   width: 272px;
+  min-height: 0;
   flex: 0 0 auto;
   flex-direction: column;
   gap: 0.9rem;
-  min-height: 0;
   padding: 1rem;
   overflow: hidden;
   background: var(--color-surface);
@@ -326,10 +444,11 @@ onMounted(async () => {
 
 .project-sidebar.collapsed {
   width: 56px;
-  padding: 1rem 0.55rem;
   align-items: center;
+  padding: 1rem 0.55rem;
 }
 
+/* Sidebar controls */
 .sidebar-top {
   display: flex;
   align-items: center;
@@ -383,13 +502,12 @@ onMounted(async () => {
 .sidebar-toggle-btn:hover {
   color: var(--color-text);
   background: var(--color-bg);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
+/* Project summary */
 .project-summary {
   display: flex;
   align-items: flex-start;
@@ -451,6 +569,7 @@ onMounted(async () => {
   line-clamp: 3;
 }
 
+/* Project tags */
 .project-tags {
   display: flex;
   flex-wrap: wrap;
@@ -477,6 +596,7 @@ onMounted(async () => {
   background: var(--color-border);
 }
 
+/* Chat list */
 .chats-heading {
   display: flex;
   align-items: center;
@@ -502,6 +622,17 @@ onMounted(async () => {
   border-radius: var(--radius-full);
 }
 
+.chat-list {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 0.1rem;
+  overflow-y: auto;
+}
+
+/* Shared buttons */
 .btn-primary,
 .btn-secondary {
   display: inline-flex;
@@ -510,11 +641,11 @@ onMounted(async () => {
   gap: 0.4rem;
   min-height: 36px;
   padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: var(--text-xs);
   font-weight: 600;
   cursor: pointer;
+  border-radius: var(--radius-md);
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
@@ -546,27 +677,36 @@ onMounted(async () => {
 
 .btn-secondary:hover {
   background: var(--color-surface-2);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
 .new-chat-btn {
   width: 100%;
 }
 
-.chat-list {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 2px;
-  min-height: 0;
-  padding-right: 0.1rem;
-  overflow-y: auto;
+.collapsed-new-chat-btn {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  background: var(--color-primary);
+  border: 0;
+  border-radius: 9px;
 }
 
+.collapsed-new-chat-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Sidebar empty state */
 .sidebar-empty-state {
   display: grid;
   justify-items: center;
@@ -594,33 +734,14 @@ onMounted(async () => {
   border-radius: 9px;
 }
 
-.collapsed-new-chat-btn {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  padding: 0;
-  color: #fff;
-  font-family: inherit;
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-  background: var(--color-primary);
-  border: 0;
-  border-radius: 9px;
-}
-
-.collapsed-new-chat-btn:hover {
-  background: var(--color-primary-hover);
-}
-
+/* Chat content */
 .chat-main {
   display: flex;
+  min-width: 0;
+  min-height: 0;
   flex: 1;
   flex-direction: column;
   gap: 1rem;
-  min-width: 0;
-  min-height: 0;
   padding: clamp(1rem, 3vw, 2rem);
 }
 
@@ -646,6 +767,7 @@ onMounted(async () => {
   white-space: nowrap;
 }
 
+/* Model selector */
 .model-select {
   min-width: 180px;
   max-width: min(38vw, 280px);
@@ -674,58 +796,21 @@ onMounted(async () => {
 }
 
 .model-select:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
 .model-select:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-primary) 14%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
-.not-found-state {
-  display: grid;
-  justify-items: center;
-  max-width: 500px;
-  padding: 2rem;
-  margin: auto;
-  text-align: center;
-}
-
-.not-found-icon {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  margin-bottom: 0.8rem;
-  place-items: center;
-  color: var(--color-primary);
-  font-size: 1.8rem;
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border-radius: 14px;
-}
-
-.not-found-state h1 {
-  margin: 0;
-  color: var(--color-text);
-  font-size: var(--text-lg);
-}
-
-.not-found-state p {
-  max-width: 360px;
-  margin: 0.55rem 0 1rem;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  line-height: 1.55;
-}
-
+/* Project chat empty state */
 .empty-project-chat-state {
   display: grid;
-  flex: 1;
   min-height: 0;
+  flex: 1;
   place-content: center;
   justify-items: center;
   gap: 0.65rem;
@@ -765,12 +850,50 @@ onMounted(async () => {
   margin-top: 0.35rem;
 }
 
+/* Project not found state */
+.not-found-state {
+  display: grid;
+  justify-items: center;
+  max-width: 500px;
+  padding: 2rem;
+  margin: auto;
+  text-align: center;
+}
+
+.not-found-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 0.8rem;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 1.8rem;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-radius: 14px;
+}
+
+.not-found-state h1 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-lg);
+}
+
+.not-found-state p {
+  max-width: 360px;
+  margin: 0.55rem 0 1rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+/* Touch-friendly inputs */
 @media (pointer: coarse) {
   .model-select {
     font-size: 16px;
   }
 }
 
+/* Tablet layout */
 @media (max-width: 760px) {
   .project-sidebar {
     width: 200px;
@@ -787,7 +910,9 @@ onMounted(async () => {
   }
 }
 
+/* Mobile layout */
 @media (max-width: 620px) {
+  /* Sidebar overlay */
   .project-detail {
     position: relative;
   }
@@ -799,8 +924,8 @@ onMounted(async () => {
     bottom: 0;
     left: 0;
     width: min(80vw, 260px);
-    padding: 0.75rem;
     gap: 0.65rem;
+    padding: 0.75rem;
     box-shadow: 12px 0 28px rgb(0 0 0 / 0.12);
   }
 
@@ -810,6 +935,7 @@ onMounted(async () => {
     box-shadow: 4px 0 14px rgb(0 0 0 / 0.07);
   }
 
+  /* Sidebar elements */
   .back-btn {
     font-size: 10px;
   }
@@ -882,6 +1008,7 @@ onMounted(async () => {
     font-size: 1.05rem;
   }
 
+  /* Chat content */
   .chat-main {
     gap: 0.65rem;
     padding: 0.75rem 0.75rem 0.75rem 3.4rem;
@@ -904,11 +1031,13 @@ onMounted(async () => {
     font-size: 12px;
   }
 
-  .project-sidebar:not(.collapsed) + .chat-main {
+  /* Background interaction while sidebar is open */
+  .project-sidebar:not(.collapsed)+.chat-main {
     filter: brightness(0.82);
     pointer-events: none;
   }
 
+  /* Empty states */
   .empty-project-chat-state {
     gap: 0.5rem;
     padding: 1.25rem;

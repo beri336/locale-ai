@@ -1,5 +1,7 @@
 <!-- src/views/ProjectDetailView.vue -->
 
+<!-- Renders the selected project detail feature as a route-level view. -->
+
 <template>
   <ProjectDetail />
 </template>

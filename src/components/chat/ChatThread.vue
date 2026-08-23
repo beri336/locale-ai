@@ -2,6 +2,7 @@
 
 <template>
   <div class="chat-thread">
+    <!-- Chat window -->
     <div v-if="chat" class="chat-window" ref="chatWindow">
       <div class="chat-settings-row">
         <button class="copy-btn toolbar-copy-btn chat-settings-toggle-btn" type="button" title="Chat settings"
@@ -11,6 +12,7 @@
         </button>
       </div>
 
+      <!-- Chat settings panel -->
       <div v-if="showChatSettings" class="chat-settings-panel">
         <div class="field-group">
           <label class="field-label">System prompt override</label>
@@ -23,6 +25,7 @@
           </button>
         </div>
 
+        <!-- Temperature override -->
         <div class="field-group">
           <div class="label-row">
             <label class="field-label">Temperature override</label>
@@ -37,6 +40,7 @@
           </button>
         </div>
 
+        <!-- Context window override -->
         <div class="field-group">
           <label class="field-label">Context window override</label>
           <select class="input" :value="chat.numCtx ?? settingsStore.numCtx"
@@ -52,6 +56,7 @@
         </div>
       </div>
 
+      <!-- Chat toolbar -->
       <div class="chat-toolbar" v-if="chat.messages.length">
         <div class="toolbar-context">
           <div class="context-header">
@@ -100,10 +105,15 @@
         </div>
       </div>
 
+      <!-- Message list -->
       <div v-for="(message, index) in chat.messages" :key="index" class="message" :class="message.role">
+        <!-- Message content -->
         <div v-if="editingIndex === index" class="message-edit">
           <textarea v-model="editText" class="edit-textarea" ref="editTextarea"
-            @keydown.enter.exact.prevent="handleSaveEdit(index)" @keydown.esc.prevent="handleCancelEdit"></textarea>
+            @keydown.enter.exact.prevent="handleSaveEdit(index)" @keydown.esc.prevent="handleCancelEdit">
+          </textarea>
+
+          <!-- Edit actions -->
           <div class="edit-actions">
             <button class="btn-secondary" @click="handleCancelEdit">
               Cancel
@@ -115,12 +125,16 @@
           </div>
         </div>
 
+        <!-- Message content -->
         <template v-else>
+          <!-- Message bubble -->
           <div v-if="message.role === 'assistant'" class="message-bubble markdown-body"
             v-html="renderMarkdown(message.content)" @click="handleMarkdownClick"></div>
           <div v-else class="message-bubble">{{ message.content }}</div>
 
+          <!-- Message footer -->
           <div class="message-footer">
+            <!-- Message metadata -->
             <span class="message-meta">
               <template v-if="message.role === 'assistant' && message.model">
                 {{ message.model }} · {{ message.tokenCount }} tokens
@@ -130,11 +144,13 @@
               </template>
             </span>
 
+            <!-- Edit button -->
             <button v-if="message.role === 'user' && !isGenerating" class="copy-btn"
               @click="handleStartEdit(index, message.content)" title="Edit message">
               <IconEdit :size="10" :stroke-width="2" aria-hidden="true" />
             </button>
 
+            <!-- Regenerate button -->
             <button v-if="
               message.role === 'assistant' &&
               isLastAssistantMessage(index) &&
@@ -143,6 +159,7 @@
               <IconRefresh :size="10" :stroke-width="2" aria-hidden="true" />
             </button>
 
+            <!-- Copy button -->
             <button class="copy-btn" @click="handleCopyMessage(message.content, index)"
               :title="copiedIndex === index ? 'Copied!' : 'Copy message'">
               <IconCheck v-if="copiedIndex === index" :size="10" :stroke-width="2" aria-hidden="true" />
@@ -152,36 +169,45 @@
         </template>
       </div>
 
+      <!-- Streaming message -->
       <div v-if="isGenerating" class="message assistant">
         <div class="message-bubble markdown-body streaming" v-html="renderMarkdown(streamingText || '…')"
           @click="handleMarkdownClick"></div>
       </div>
     </div>
 
+    <!-- Empty chat hint -->
     <div v-else class="chat-window empty-selection">
       <p>Select or create a chat to get started.</p>
     </div>
 
+    <!-- Composer area -->
     <div class="composer-area">
+      <!-- Model warning -->
       <div v-if="chat && !hasValidModel" class="model-warning" role="alert">
         <span class="model-warning-icon" aria-hidden="true">!</span>
 
+        <!-- Model warning content -->
         <div>
           <strong>Model unavailable</strong>
           <p>{{ unavailableModelMessage }}</p>
         </div>
       </div>
 
+      <!-- Chat input row -->
       <div class="chat-input-row">
+        <!-- Chat input -->
         <textarea v-model="prompt" class="chat-input" :placeholder="hasValidModel
           ? 'Type a message...'
           : 'Select an installed model to continue'
-          " @keydown.enter.exact.prevent="handleSend"></textarea><!--:disabled="!hasValidModel || isGenerating"-->
+          " @keydown.enter.exact.prevent="handleSend"></textarea>
 
+        <!-- Generate button -->
         <button v-if="isGenerating" class="btn-stop" type="button" @click="handleStop">
           Stop
         </button>
 
+        <!-- Send button -->
         <button v-else class="btn-primary" type="button" :disabled="!prompt.trim() || !hasValidModel"
           @click="handleSend">
           Send
@@ -193,13 +219,21 @@
 
 <script setup>
 import { ref, computed, nextTick, watch, onMounted, onUnmounted } from "vue";
+
 import { useOllamaApi } from "@/services/ollamaApiService";
 import { useLmStudioApi } from "@/services/lmsApiService";
+
 import { renderMarkdown } from "@/utils/markdown";
 import { copyToClipboard } from "@/utils/clipboard";
-import { useSettingsStore } from "@/stores/settingsStore";
-import { IconSettings } from "@tabler/icons-vue";
+import {
+  buildChatMarkdown,
+  downloadMarkdownFile,
+  sanitizeFilename,
+} from "@/utils/export";
 
+import { useSettingsStore } from "@/stores/useSettingsStore";
+
+import { IconSettings } from "@tabler/icons-vue";
 import IconSparkles from "@/components/icons/IconSparkles.vue";
 import IconCheck from "@/components/icons/IconCheck.vue";
 import IconCopy from "@/components/icons/IconCopy.vue";
@@ -209,45 +243,24 @@ import IconRefresh from "@/components/icons/IconRefresh.vue";
 
 import "@/assets/styles/markdown.css";
 
-import {
-  buildChatMarkdown,
-  downloadMarkdownFile,
-  sanitizeFilename,
-} from "@/utils/export";
 
-// const copiedCodeButton = ref(null);
-
+// props / emits
 const props = defineProps({
   chat: { type: Object, default: null },
   emptyHint: { type: String, default: "Start a conversation." },
-  modelNames: { type: Array, default: () => [] },
-  lmstudioModels: { type: Array, default: () => [] },
-});
-
-const hasValidModel = computed(() => {
-  if (!props.chat?.model) return false;
-  const { source, name } = parseModelValue(props.chat.model);
-
-  if (source === "lmstudio") {
-    return props.lmstudioModels.some((m) => m.id === name);
-  }
-  return props.modelNames.includes(name);
-});
-
-const unavailableModelMessage = computed(() => {
-  if (!props.chat?.model) {
-    return "Select an installed model before sending a message.";
-  }
-
-  return `The model "${props.chat.model}" is no longer installed. Select an available model to continue.`;
+  availableModels: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(["message-sent"]);
 
+
+// services / stores
 const ollama = useOllamaApi();
 const lmstudio = useLmStudioApi();
 const settingsStore = useSettingsStore();
 
+
+// state
 const prompt = ref("");
 const isGenerating = ref(false);
 const streamingText = ref("");
@@ -261,42 +274,125 @@ const editText = ref("");
 const editTextarea = ref(null);
 
 const abortController = ref(null);
+
 const chatSettingsPanel = ref(null);
 const showChatSettings = ref(false);
 const chatSystemPromptInput = ref(props.chat?.systemPrompt ?? "");
 
-const effectiveSystemPrompt = computed(() => {
-  return props.chat?.systemPrompt ?? settingsStore.defaultSystemPrompt ?? "";
-});
 
-const effectiveTemperature = computed(() => {
-  const value = props.chat?.temperature;
-  return Number.isFinite(value) ? value : settingsStore.temperature;
-});
-
-const effectiveNumCtx = computed(() => {
-  const value = props.chat?.numCtx;
-  return Number.isFinite(value) ? value : settingsStore.numCtx;
-});
-
-watch(
-  () => props.chat?.id,
-  () => {
-    chatSystemPromptInput.value = props.chat?.systemPrompt ?? "";
-  },
-);
-
+// helpers
 function parseModelValue(value) {
-  if (!value) return { source: "ollama", name: "" };
-  const [source, name] = value.includes(":")
-    ? value.split(/:(.+)/)
-    : ["ollama", value]; // Fallback für alte Chats ohne Präfix
-  return { source, name };
+  const normalizedValue = String(value ?? "").trim();
+
+  if (!normalizedValue) {
+    return { source: "ollama", name: "" };
+  }
+
+  if (normalizedValue.startsWith("lmstudio:")) {
+    return {
+      source: "lmstudio",
+      name: normalizedValue.slice("lmstudio:".length),
+    };
+  }
+
+  if (normalizedValue.startsWith("ollama:")) {
+    return {
+      source: "ollama",
+      name: normalizedValue.slice("ollama:".length),
+    };
+  }
+
+  return {
+    source: "ollama",
+    name: normalizedValue,
+  };
 }
 
 function getStoreForModel(value) {
   const { source } = parseModelValue(value);
+
   return source === "lmstudio" ? lmstudio : ollama;
+}
+
+function isNearBottom() {
+  if (!chatWindow.value) return true;
+
+  const { scrollTop, scrollHeight, clientHeight } = chatWindow.value;
+
+  return scrollHeight - scrollTop - clientHeight < 100;
+}
+
+function updateChatTitle(chat, firstMessage) {
+  if (chat.title === "New Chat" && firstMessage) {
+    chat.title =
+      firstMessage.slice(0, 40) + (firstMessage.length > 40 ? "…" : "");
+  }
+}
+
+function updateStreamingText(chunk) {
+  const incomingText = chunk?.response ?? "";
+
+  if (!incomingText) {
+    return;
+  }
+
+  // LM Studio may send the entire accumulated text on every chunk.
+  // Ollama normally sends only a delta.
+  if (incomingText.startsWith(streamingText.value)) {
+    streamingText.value = incomingText;
+    return;
+  }
+
+  streamingText.value += incomingText;
+}
+
+function appendOrReplaceStreamText(currentText, chunk) {
+  const incomingText = chunk?.response ?? "";
+
+  if (!incomingText) {
+    return currentText;
+  }
+
+  if (incomingText.startsWith(currentText)) {
+    return incomingText;
+  }
+
+  return currentText + incomingText;
+}
+
+function handleStop() {
+  abortController.value?.abort();
+}
+
+function handleCancelEdit() {
+  editingIndex.value = null;
+  editText.value = "";
+}
+
+function estimateTokenCount(text = "") {
+  return Math.max(1, Math.ceil(text.trim().length / 4));
+}
+
+function formatTokenCount(value) {
+  if (value < 1000) return String(value);
+
+  const formatted = value / 1000;
+
+  return `${formatted.toFixed(formatted >= 10 ? 0 : 1)}k`;
+}
+
+function isLastAssistantMessage(index) {
+  const chat = props.chat;
+
+  if (!chat) return false;
+
+  const lastAssistantIndex = chat.messages.reduce(
+    (lastIndex, message, messageIndex) =>
+      message.role === "assistant" ? messageIndex : lastIndex,
+    -1,
+  );
+
+  return index === lastAssistantIndex;
 }
 
 function applyChatSystemPrompt() {
@@ -372,78 +468,101 @@ function handleEscapeKey(event) {
   }
 }
 
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-  document.addEventListener("keydown", handleEscapeKey);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-  document.removeEventListener("keydown", handleEscapeKey);
-});
-
 function handleExportChat() {
   if (!props.chat?.messages?.length) return;
 
   const markdown = buildChatMarkdown(props.chat);
   const filename = `${sanitizeFilename(props.chat.title)}.md`;
+
   downloadMarkdownFile(markdown, filename);
 }
 
-function isNearBottom() {
-  if (!chatWindow.value) return true;
-  const { scrollTop, scrollHeight, clientHeight } = chatWindow.value;
-  return scrollHeight - scrollTop - clientHeight < 100;
-}
+// computed properties
+const hasValidModel = computed(() => {
+  const modelId = String(props.chat?.model ?? "").trim();
 
+  if (!modelId) {
+    return false;
+  }
+
+  return props.availableModels.some((model) => {
+    if (typeof model === "string") {
+      return model === modelId;
+    }
+
+    return model?.id === modelId;
+  });
+});
+
+const unavailableModelMessage = computed(() => {
+  if (!props.chat?.model) {
+    return "Select an installed model before sending a message.";
+  }
+
+  return `The model "${props.chat.model}" is no longer installed. Select an available model to continue.`;
+});
+
+const effectiveSystemPrompt = computed(() => {
+  return props.chat?.systemPrompt ?? settingsStore.defaultSystemPrompt ?? "";
+});
+
+const effectiveTemperature = computed(() => {
+  const value = props.chat?.temperature;
+
+  return Number.isFinite(value) ? value : settingsStore.temperature;
+});
+
+const effectiveNumCtx = computed(() => {
+  const value = props.chat?.numCtx;
+
+  return Number.isFinite(value) ? value : settingsStore.numCtx;
+});
+
+const contextLimit = computed(() => {
+  const configuredLimit = Number(effectiveNumCtx.value);
+
+  return Number.isFinite(configuredLimit) && configuredLimit > 0
+    ? configuredLimit
+    : 4096;
+});
+
+const contextTokens = computed(() => {
+  if (!props.chat?.messages?.length) return 0;
+
+  return props.chat.messages.reduce((total, message) => {
+    if (Number.isFinite(message.tokenCount) && message.tokenCount > 0) {
+      return total + message.tokenCount;
+    }
+
+    return total + estimateTokenCount(message.content);
+  }, 0);
+});
+
+const contextPercent = computed(() => {
+  if (!contextLimit.value) return 0;
+
+  return Math.min(
+    100,
+    Math.round((contextTokens.value / contextLimit.value) * 100),
+  );
+});
+
+const contextStatus = computed(() => {
+  if (contextPercent.value >= 90) return "critical";
+  if (contextPercent.value >= 75) return "warning";
+
+  return "healthy";
+});
+
+// async functions
 async function scrollToBottom(force = false) {
   await nextTick();
+
   if (!chatWindow.value) return;
+
   if (force || isNearBottom()) {
     chatWindow.value.scrollTop = chatWindow.value.scrollHeight;
   }
-}
-
-watch(() => props.chat?.id, scrollToBottom);
-
-function updateChatTitle(chat, firstMessage) {
-  if (chat.title === "New Chat" && firstMessage) {
-    chat.title =
-      firstMessage.slice(0, 40) + (firstMessage.length > 40 ? "…" : "");
-  }
-}
-
-function updateStreamingText(chunk) {
-  const incomingText = chunk?.response ?? "";
-
-  if (!incomingText) {
-    return;
-  }
-
-  /*
-   * LM Studio can return the complete generated text on every stream event.
-   * Ollama usually returns only the new delta.
-   */
-  if (incomingText.startsWith(streamingText.value)) {
-    streamingText.value = incomingText;
-    return;
-  }
-
-  streamingText.value += incomingText;
-}
-
-function appendOrReplaceStreamText(currentText, chunk) {
-  const incomingText = chunk?.response ?? "";
-
-  if (!incomingText) {
-    return currentText;
-  }
-
-  if (incomingText.startsWith(currentText)) {
-    return incomingText;
-  }
-
-  return currentText + incomingText;
 }
 
 async function sendWithSession(
@@ -483,13 +602,13 @@ async function handleSend() {
 
   const chat = props.chat;
   const userMessage = prompt.value.trim();
+
   const userMessageObj = {
     role: "user",
     content: userMessage,
   };
 
   chat.messages.push(userMessageObj);
-
   updateChatTitle(chat, userMessage);
 
   prompt.value = "";
@@ -615,19 +734,13 @@ async function handleSend() {
   }
 }
 
-function handleStop() {
-  if (abortController.value) {
-    abortController.value.abort();
-  }
-}
-
-defineExpose({ scrollToBottom });
-
 async function handleCopyMessage(content, index) {
   const success = await copyToClipboard(content);
+
   if (success) {
     copiedIndex.value = index;
-    setTimeout(() => {
+
+    window.setTimeout(() => {
       copiedIndex.value = null;
     }, 1500);
   }
@@ -664,13 +777,18 @@ async function handleCopyFullChat() {
   if (!props.chat?.messages?.length) return;
 
   const fullText = props.chat.messages
-    .map((m) => `${m.role === "user" ? "User" : "Assistant"}:\n${m.content}`)
+    .map(
+      (message) =>
+        `${message.role === "user" ? "User" : "Assistant"}:\n${message.content}`,
+    )
     .join("\n\n---\n\n");
 
   const success = await copyToClipboard(fullText);
+
   if (success) {
     copiedAll.value = true;
-    setTimeout(() => {
+
+    window.setTimeout(() => {
       copiedAll.value = false;
     }, 1500);
   }
@@ -679,13 +797,9 @@ async function handleCopyFullChat() {
 async function handleStartEdit(index, content) {
   editingIndex.value = index;
   editText.value = content;
+
   await nextTick();
   editTextarea.value?.[0]?.focus();
-}
-
-function handleCancelEdit() {
-  editingIndex.value = null;
-  editText.value = "";
 }
 
 async function handleSaveEdit(index) {
@@ -702,6 +816,7 @@ async function handleSaveEdit(index) {
 
   editingIndex.value = null;
   editText.value = "";
+
   emit("message-sent");
   scrollToBottom(true);
 
@@ -710,9 +825,9 @@ async function handleSaveEdit(index) {
   abortController.value = new AbortController();
 
   try {
-    const messagesPayload = chat.messages.map((m) => ({
-      role: m.role,
-      content: m.content,
+    const messagesPayload = chat.messages.map((message) => ({
+      role: message.role,
+      content: message.content,
     }));
 
     const result = await sendWithSession(
@@ -734,43 +849,39 @@ async function handleSaveEdit(index) {
     );
 
     const responseText = result?.text?.trim() || streamingText.value.trim();
+
     chat.messages.push({
       role: "assistant",
       content: responseText || "Error: empty model response.",
       model: chat.model,
       tokenCount: result?.stats?.evalCount ?? estimateTokenCount(responseText),
     });
+
     emit("message-sent");
     scrollToBottom(true);
   } catch (error) {
     console.error("Chat generation failed:", error);
+
     chat.messages.push({
       role: "assistant",
       content: "Error: failed to generate a response.",
     });
+
     emit("message-sent");
   } finally {
     isGenerating.value = false;
     streamingText.value = "";
+    abortController.value = null;
   }
-}
-
-// Regenerate the last assistant message by removing it and re-generating a new response
-function isLastAssistantMessage(index) {
-  const chat = props.chat;
-  if (!chat) return false;
-  const lastAssistantIndex = chat.messages.reduce(
-    (acc, m, i) => (m.role === "assistant" ? i : acc),
-    -1,
-  );
-  return index === lastAssistantIndex;
 }
 
 async function handleRegenerate(index) {
   if (isGenerating.value) return;
 
   const chat = props.chat;
+
   chat.messages.splice(index);
+
   emit("message-sent");
   scrollToBottom(true);
 
@@ -780,17 +891,22 @@ async function handleRegenerate(index) {
 
   try {
     const messagesPayload = [];
+
     if (
-      settingsStore.defaultSystemPrompt &&
-      !chat.messages.some((m) => m.role === "system")
+      effectiveSystemPrompt.value &&
+      !chat.messages.some((message) => message.role === "system")
     ) {
       messagesPayload.push({
         role: "system",
-        content: settingsStore.defaultSystemPrompt,
+        content: effectiveSystemPrompt.value,
       });
     }
+
     messagesPayload.push(
-      ...chat.messages.map((m) => ({ role: m.role, content: m.content })),
+      ...chat.messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      })),
     );
 
     const result = await sendWithSession(
@@ -802,18 +918,20 @@ async function handleRegenerate(index) {
       },
       abortController.value.signal,
       (chunk) => {
-        streamingText.value += chunk.response ?? "";
+        updateStreamingText(chunk);
         scrollToBottom();
       },
     );
 
     const responseText = result?.text?.trim() || streamingText.value.trim();
+
     chat.messages.push({
       role: "assistant",
       content: responseText || "Error: empty model response.",
       model: chat.model,
       tokenCount: result?.stats?.evalCount ?? estimateTokenCount(responseText),
     });
+
     emit("message-sent");
     scrollToBottom(true);
   } catch (error) {
@@ -824,13 +942,16 @@ async function handleRegenerate(index) {
         model: chat.model,
         stopped: true,
       });
+
       emit("message-sent");
     } else {
       console.error("Regenerate failed:", error);
+
       chat.messages.push({
         role: "assistant",
         content: "Error: failed to generate a response.",
       });
+
       emit("message-sent");
     }
   } finally {
@@ -838,55 +959,6 @@ async function handleRegenerate(index) {
     streamingText.value = "";
     abortController.value = null;
   }
-}
-
-const contextLimit = computed(() => {
-  const configuredLimit = Number(effectiveNumCtx.value);
-
-  return Number.isFinite(configuredLimit) && configuredLimit > 0
-    ? configuredLimit
-    : 4096;
-});
-
-const contextTokens = computed(() => {
-  if (!props.chat?.messages?.length) return 0;
-
-  return props.chat.messages.reduce((total, message) => {
-    if (Number.isFinite(message.tokenCount) && message.tokenCount > 0) {
-      return total + message.tokenCount;
-    }
-
-    return total + estimateTokenCount(message.content);
-  }, 0);
-});
-
-const contextPercent = computed(() => {
-  if (!contextLimit.value) return 0;
-
-  return Math.min(
-    100,
-    Math.round((contextTokens.value / contextLimit.value) * 100),
-  );
-});
-
-const contextStatus = computed(() => {
-  if (contextPercent.value >= 90) return "critical";
-  if (contextPercent.value >= 75) return "warning";
-  return "healthy";
-});
-
-function estimateTokenCount(text = "") {
-  // Pragmatic fallback for messages without Ollama token statistics.
-  // For German/English mixed text, ~4 characters per token is sufficient
-  // for a visible context estimate.
-  return Math.max(1, Math.ceil(text.trim().length / 4));
-}
-
-function formatTokenCount(value) {
-  if (value < 1000) return String(value);
-
-  const formatted = value / 1000;
-  return `${formatted.toFixed(formatted >= 10 ? 0 : 1)}k`;
 }
 
 async function generateChatTitle(chat, userMessage, assistantMessage) {
@@ -908,8 +980,6 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
     ];
 
     const titleAbortController = new AbortController();
-
-    // Must be declared before sendWithSession and inside this function.
     let generatedTitleText = "";
 
     const result = await sendWithSession(
@@ -948,9 +1018,41 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
     );
   }
 }
+
+// watchers
+watch(
+  () => props.chat?.id,
+  () => {
+    chatSystemPromptInput.value = props.chat?.systemPrompt ?? "";
+  },
+);
+
+watch(
+  () => props.chat?.systemPrompt,
+  (systemPrompt) => {
+    chatSystemPromptInput.value = systemPrompt ?? "";
+  },
+);
+
+watch(() => props.chat?.id, scrollToBottom);
+
+// expose
+defineExpose({ scrollToBottom });
+
+// lifecycle
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+  document.addEventListener("keydown", handleEscapeKey);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+  document.removeEventListener("keydown", handleEscapeKey);
+});
 </script>
 
 <style scoped>
+/* layout */
 .chat-thread {
   display: flex;
   flex: 1;
@@ -988,11 +1090,12 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 
 .empty-state {
   margin: auto;
-  text-align: center;
   color: var(--color-text-faint);
   font-size: var(--text-sm);
+  text-align: center;
 }
 
+/* messages */
 .message {
   display: flex;
   flex-direction: column;
@@ -1019,8 +1122,8 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 }
 
 .message.user .message-bubble {
-  white-space: pre-wrap;
   color: #fff;
+  white-space: pre-wrap;
   background: var(--color-primary);
   border-bottom-right-radius: 5px;
 }
@@ -1034,6 +1137,64 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
 
 .message-bubble.streaming {
   opacity: 0.88;
+}
+
+/* message footer */
+.message-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 20px;
+  padding: 0 0.2rem;
+}
+
+.message.user .message-footer {
+  flex-direction: row-reverse;
+}
+
+.message-meta {
+  color: var(--color-text-faint);
+  font-size: 10px;
+}
+
+.message-footer .copy-btn {
+  opacity: 0;
+}
+
+.message:hover .message-footer .copy-btn,
+.message:focus-within .message-footer .copy-btn {
+  opacity: 1;
+}
+
+/* message editing */
+.message-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: min(85%, 820px);
+}
+
+.message.user .message-edit {
+  align-self: flex-end;
+}
+
+.edit-textarea {
+  min-height: 76px;
+  padding: 0.7rem 0.75rem;
+  resize: vertical;
+  font-size: var(--text-sm);
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+/* composer */
+.composer-area {
+  display: grid;
+  gap: 0.65rem;
 }
 
 .chat-input-row {
@@ -1055,11 +1216,30 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   color: var(--color-text-faint);
 }
 
-.chat-input:focus {
+/* input fields */
+.edit-textarea,
+.chat-input {
+  box-sizing: border-box;
+  width: 100%;
+  color: var(--color-text);
+  font-family: inherit;
+  line-height: 1.5;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   outline: none;
-  border-color: var(--color-primary);
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
+.edit-textarea:focus,
+.chat-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+/* buttons */
 .btn-primary,
 .btn-secondary,
 .btn-stop {
@@ -1069,14 +1249,14 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   min-width: 92px;
   min-height: 48px;
   padding: 0.65rem 1rem;
-  border: 1px solid transparent;
-  border-radius: 12px;
   font-family: inherit;
   font-size: var(--text-sm);
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 12px;
   box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
   transition:
     background 0.16s ease,
@@ -1140,45 +1320,7 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   transform: translateY(-1px);
 }
 
-/* Copy button styles */
-.message:hover .message-header {
-  visibility: visible;
-}
-
-.message.user .message-header {
-  justify-content: flex-end;
-}
-
-.message.assistant .message-header {
-  justify-content: flex-start;
-}
-
-/* .chat-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: var(--space-2);
-} */
-
-.message-footer {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  min-height: 20px;
-  padding: 0 0.2rem;
-}
-
-.message.user .message-footer {
-  flex-direction: row-reverse;
-}
-
-.message-meta {
-  color: var(--color-text-faint);
-  font-size: 10px;
-}
-
+/* copy buttons */
 .copy-btn {
   display: inline-flex;
   align-items: center;
@@ -1198,15 +1340,6 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
     color 0.16s ease,
     background 0.16s ease,
     opacity 0.16s ease;
-}
-
-.message-footer .copy-btn {
-  opacity: 0;
-}
-
-.message:hover .message-footer .copy-btn,
-.message:focus-within .message-footer .copy-btn {
-  opacity: 1;
 }
 
 .copy-btn:hover {
@@ -1231,53 +1364,7 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
       var(--color-border));
 }
 
-/* Edit message styles */
-.message-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  width: min(85%, 820px);
-}
-
-.message.user .message-edit {
-  align-self: flex-end;
-}
-
-.edit-textarea,
-.chat-input {
-  box-sizing: border-box;
-  width: 100%;
-  color: var(--color-text);
-  font-family: inherit;
-  line-height: 1.5;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  outline: none;
-  transition:
-    border-color 0.16s ease,
-    box-shadow 0.16s ease;
-}
-
-.edit-textarea {
-  min-height: 76px;
-  padding: 0.7rem 0.75rem;
-  resize: vertical;
-  font-size: var(--text-sm);
-}
-
-.edit-textarea:focus,
-.chat-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
-}
-
-.edit-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.45rem;
-}
-
+/* chat toolbar */
 .chat-toolbar {
   display: flex;
   align-items: center;
@@ -1285,6 +1372,10 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   gap: 1rem;
   padding: 0 0 0.85rem;
   border-bottom: 1px solid var(--color-border);
+}
+
+.chat-window .chat-toolbar {
+  margin-top: 0;
 }
 
 .toolbar-context {
@@ -1295,6 +1386,14 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   gap: 0.3rem;
 }
 
+.toolbar-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* context usage */
 .context-header,
 .context-footer {
   display: flex;
@@ -1363,40 +1462,7 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   background: var(--color-error, #ef4444);
 }
 
-.context-meta {
-  margin: 0;
-  color: var(--color-text-faint);
-  font-size: 10px;
-  line-height: 1.3;
-}
-
-.toolbar-actions {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.toolbar-copy-btn {
-  padding: 5px 8px;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-}
-
-.toolbar-copy-btn:hover {
-  color: var(--color-text);
-  background: var(--color-surface-2);
-  border-color: color-mix(in srgb,
-      var(--color-primary) 35%,
-      var(--color-border));
-}
-
 .context-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
 }
 
@@ -1404,11 +1470,19 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   margin: 0;
 }
 
+.context-meta {
+  margin: 0;
+  color: var(--color-text-faint);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+/* system prompt badge */
 .system-prompt-badge {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 0.25rem;
-  flex-shrink: 0;
   padding: 0.18rem 0.4rem;
   color: var(--color-primary);
   font-size: 10px;
@@ -1418,7 +1492,9 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   background: color-mix(in srgb,
       var(--color-primary) 10%,
       var(--color-surface-2));
-  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  border: 1px solid color-mix(in srgb,
+      var(--color-primary) 22%,
+      var(--color-border));
   border-radius: var(--radius-full);
 }
 
@@ -1427,11 +1503,7 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   line-height: 1;
 }
 
-.composer-area {
-  display: grid;
-  gap: 0.65rem;
-}
-
+/* model warning */
 .model-warning {
   display: flex;
   align-items: flex-start;
@@ -1441,7 +1513,9 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   background: color-mix(in srgb,
       var(--color-warning, #f59e0b) 12%,
       var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-warning, #f59e0b) 30%, var(--color-border));
+  border: 1px solid color-mix(in srgb,
+      var(--color-warning, #f59e0b) 30%,
+      var(--color-border));
   border-radius: var(--radius-md);
 }
 
@@ -1473,7 +1547,19 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   line-height: 1.45;
 }
 
-/* Settings modal styles */
+/* chat settings */
+.chat-settings-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 0.5rem;
+}
+
+.chat-settings-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .chat-settings-panel {
   display: grid;
   gap: 1rem;
@@ -1488,23 +1574,7 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   justify-self: start;
 }
 
-.chat-settings-row {
-  display: flex;
-  justify-content: flex-end;
-  padding-bottom: 0.5rem;
-}
-
-.chat-window .chat-toolbar {
-  margin-top: 0;
-}
-
-.chat-settings-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-/* iOS Safari: at least 16px prevents input auto-zoom */
+/* mobile input accessibility */
 @media (pointer: coarse) {
 
   .chat-input,
@@ -1513,6 +1583,7 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   }
 }
 
+/* responsive tablet/mobile */
 @media (max-width: 620px) {
   .chat-thread {
     gap: 0.5rem;
@@ -1525,8 +1596,8 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   }
 
   .chat-toolbar {
-    align-items: stretch;
     flex-direction: column;
+    align-items: stretch;
     gap: 0.5rem;
     padding-bottom: 0.6rem;
   }
@@ -1534,18 +1605,6 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   .toolbar-context {
     max-width: none;
     gap: 0.2rem;
-  }
-
-  .context-label {
-    font-size: 10px;
-  }
-
-  .context-value {
-    font-size: 10px;
-  }
-
-  .context-meta {
-    font-size: 9px;
   }
 
   .toolbar-actions {
@@ -1560,15 +1619,24 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
     font-size: 10px;
   }
 
-  .system-prompt-badge {
+  .context-label,
+  .context-value {
+    font-size: 10px;
+  }
+
+  .context-meta {
     font-size: 9px;
-    padding: 0.14rem 0.32rem;
   }
 
   .context-footer {
-    align-items: flex-start;
     flex-direction: column;
+    align-items: flex-start;
     gap: 0.25rem;
+  }
+
+  .system-prompt-badge {
+    padding: 0.14rem 0.32rem;
+    font-size: 9px;
   }
 
   .message {
@@ -1578,19 +1646,26 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   .message-edit {
     width: min(94%, 820px);
     max-width: min(94%, 820px);
-    padding: 0.5rem 0.55rem;
     gap: 0.4rem;
+    padding: 0.5rem 0.55rem;
   }
 
   .message-footer .copy-btn {
-    opacity: 1;
     min-width: 20px;
     min-height: 20px;
     font-size: 10px;
+    opacity: 1;
   }
 
   .message-meta {
     font-size: 9px;
+  }
+
+  .message-bubble {
+    max-width: 92%;
+    padding: 0.55rem 0.7rem;
+    font-size: 13px;
+    line-height: 1.45;
   }
 
   .chat-input-row {
@@ -1622,40 +1697,31 @@ async function generateChatTitle(chat, userMessage, assistantMessage) {
   }
 
   .chat-settings-toggle-btn {
-    font-size: 12px;
     padding: 0.3rem 0.5rem;
-  }
-
-  .message-bubble {
-    max-width: 92%;
-    padding: 0.55rem 0.7rem;
-    font-size: 13px;
-    line-height: 1.45;
+    font-size: 12px;
   }
 
   .model-warning {
-    padding: 0.5rem 0.6rem;
     gap: 0.45rem;
+    padding: 0.5rem 0.6rem;
   }
 
-  .model-warning strong {
-    font-size: 11px;
-  }
-
+  .model-warning strong,
   .model-warning p {
     font-size: 11px;
   }
 }
 
+/* responsive narrow mobile */
 @media (max-width: 430px) {
   .message-bubble {
-    font-size: 12.5px;
     max-width: 94%;
+    font-size: 12.5px;
   }
 
   .toolbar-copy-btn {
-    font-size: 9px;
     padding: 0.25rem 0.35rem;
+    font-size: 9px;
   }
 
   .btn-primary,

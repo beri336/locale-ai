@@ -9,6 +9,7 @@
           <IconPrompt :size="22" :stroke-width="1.8" />
         </div>
 
+        <!-- Page title and description -->
         <div>
           <p class="eyebrow">Prompt library</p>
           <h1>Prompts</h1>
@@ -18,6 +19,7 @@
         </div>
       </div>
 
+      <!-- New prompt button -->
       <button class="btn-primary" type="button" @click="startNewPrompt">
         <IconPlus :size="14" :stroke-width="2" aria-hidden="true" />
         New prompt
@@ -25,42 +27,35 @@
     </header>
 
     <!-- Provider connection and active generation model -->
-    <section
-      class="generation-toolbar"
-      aria-label="Local model connection and selection"
-    >
+    <section class="generation-toolbar" aria-label="Local model connection and selection">
+      <!-- Provider statuses -->
       <div class="provider-statuses" role="status" aria-live="polite">
-        <span
-          class="provider-status"
-          :class="{ online: ollamaOnline, offline: !ollamaOnline }"
-        >
+        <!-- Ollama status -->
+        <span class="provider-status" :class="{ online: ollamaOnline, offline: !ollamaOnline }">
           <span class="provider-status-dot" aria-hidden="true"></span>
           <span>Ollama</span>
         </span>
 
-        <span
-          class="provider-status"
-          :class="{ online: lmStudioOnline, offline: !lmStudioOnline }"
-        >
+        <!-- LM Studio status -->
+        <span class="provider-status" :class="{ online: lmStudioOnline, offline: !lmStudioOnline }">
           <span class="provider-status-dot" aria-hidden="true"></span>
           <span>LM Studio</span>
         </span>
       </div>
 
+      <!-- Model selection -->
       <label v-if="availableModels.length" class="model-select-field">
         <span class="model-select-label">Generation model</span>
 
+        <!-- Model options -->
         <select v-model="selectedModelId" :disabled="isCheckingProviders">
-          <option
-            v-for="model in availableModels"
-            :key="model.id"
-            :value="model.id"
-          >
+          <option v-for="model in availableModels" :key="model.id" :value="model.id">
             {{ model.name }} · {{ model.providerLabel }}
           </option>
         </select>
       </label>
 
+      <!-- Generation toolbar message -->
       <p v-else-if="!isCheckingProviders" class="generation-toolbar-message">
         No local model available. Start Ollama or LM Studio to generate prompts.
       </p>
@@ -72,22 +67,21 @@
 
     <!-- Prompt list and workspace -->
     <div class="prompts-layout">
+      <!-- Sidebar with saved prompts -->
       <aside class="prompts-sidebar" aria-label="Saved prompts">
+        <!-- Sidebar header -->
         <div class="prompts-sidebar-header">
           <span>Saved prompts</span>
           <span class="prompts-count">{{ prompts.length }}</span>
         </div>
 
+        <!-- Prompt list -->
         <div v-if="prompts.length" class="prompt-list">
-          <button
-            v-for="prompt in prompts"
-            :key="prompt.id"
-            type="button"
-            class="prompt-list-item"
-            :class="{ active: prompt.id === selectedId }"
-            :aria-current="prompt.id === selectedId ? 'true' : undefined"
-            @click="selectPrompt(prompt.id)"
-          >
+          <!-- Prompt list items -->
+          <button v-for="prompt in prompts" :key="prompt.id" type="button" class="prompt-list-item"
+            :class="{ active: prompt.id === selectedId }" :aria-current="prompt.id === selectedId ? 'true' : undefined"
+            @click="selectPrompt(prompt.id)">
+
             <span class="prompt-list-title">{{ prompt.title }}</span>
 
             <span v-if="prompt.description" class="prompt-list-desc">
@@ -100,9 +94,12 @@
           </button>
         </div>
 
+        <!-- Empty state -->
         <div v-else class="prompts-sidebar-empty">
           <IconSparkles :size="20" :stroke-width="1.6" aria-hidden="true" />
+
           <p>No prompts saved yet.</p>
+
           <button class="btn-secondary" type="button" @click="startNewPrompt">
             Create your first prompt
           </button>
@@ -112,61 +109,47 @@
       <main class="prompts-main">
         <!-- Prompt editor -->
         <form v-if="isEditing" class="prompt-form" @submit.prevent="savePrompt">
-          <section
-            class="ai-generate-panel"
-            aria-labelledby="ai-generate-title"
-          >
+          <!-- AI generation panel -->
+          <section class="ai-generate-panel" aria-labelledby="ai-generate-title">
+            <!-- Panel heading -->
             <div class="ai-generate-panel-heading">
+              <!-- Panel icon -->
               <div class="ai-generate-panel-icon" aria-hidden="true">
                 <IconSparkles :size="16" :stroke-width="2" />
               </div>
 
+              <!-- Panel content -->
               <div>
                 <h2 id="ai-generate-title">Generate with AI</h2>
+
                 <p v-if="selectedModel">
                   {{ selectedModel.name }} via {{ selectedModel.providerLabel }}
                 </p>
+
                 <p v-else>No local model selected</p>
               </div>
             </div>
 
+            <!-- Generation controls -->
             <div class="ai-generate-controls">
               <label class="sr-only" for="ai-prompt-topic"> Prompt goal </label>
 
-              <input
-                id="ai-prompt-topic"
-                v-model="aiTopic"
-                type="text"
-                placeholder="For example: Review a TypeScript pull request"
-                :disabled="isGeneratingAI"
-                @keydown.enter.prevent="generatePromptWithAI"
-              />
+              <!-- Prompt topic input -->
+              <input id="ai-prompt-topic" v-model="aiTopic" type="text"
+                placeholder="For example: Review a TypeScript pull request" :disabled="isGeneratingAI"
+                @keydown.enter.prevent="generatePromptWithAI" />
 
-              <button
-                class="btn-secondary"
-                type="button"
-                :disabled="isGeneratingAI || !selectedModel || !aiTopic.trim()"
-                :title="
-                  !selectedModel
-                    ? 'Start Ollama or LM Studio and choose a generation model.'
-                    : !aiTopic.trim()
-                      ? 'Describe what the prompt should do first.'
-                      : `Generate with ${selectedModel.name} via ${selectedModel.providerLabel}`
-                "
-                @click="generatePromptWithAI"
-              >
-                <IconLoader
-                  v-if="isGeneratingAI"
-                  :size="14"
-                  :stroke-width="2"
-                  aria-hidden="true"
-                />
-                <IconSparkles
-                  v-else
-                  :size="14"
-                  :stroke-width="2"
-                  aria-hidden="true"
-                />
+              <!-- Generate button -->
+              <button class="btn-secondary" type="button"
+                :disabled="isGeneratingAI || !selectedModel || !aiTopic.trim()" :title="!selectedModel
+                  ? 'Start Ollama or LM Studio and choose a generation model.'
+                  : !aiTopic.trim()
+                    ? 'Describe what the prompt should do first.'
+                    : `Generate with ${selectedModel.name} via ${selectedModel.providerLabel}`
+                  " @click="generatePromptWithAI">
+
+                <IconLoader v-if="isGeneratingAI" :size="14" :stroke-width="2" aria-hidden="true" />
+                <IconSparkles v-else :size="14" :stroke-width="2" aria-hidden="true" />
                 {{ isGeneratingAI ? "Generating…" : "Generate" }}
               </button>
             </div>
@@ -176,88 +159,74 @@
             {{ aiError }}
           </p>
 
+          <!-- Prompt details -->
           <div class="prompt-form-section">
+            <!-- Section heading -->
             <div class="prompt-form-section-heading">
               <h2>Prompt details</h2>
               <p>Give this prompt a clear name and optional context.</p>
             </div>
 
+            <!-- Title field -->
             <label class="prompt-form-field">
               <span>Title</span>
-              <input
-                v-model="draft.title"
-                type="text"
-                placeholder="For example: TypeScript code reviewer"
-                required
-              />
+              <input v-model="draft.title" type="text" placeholder="For example: TypeScript code reviewer" required />
             </label>
 
+            <!-- Description field -->
             <label class="prompt-form-field">
               <span>Description <em>Optional</em></span>
-              <textarea
-                v-model="draft.description"
-                rows="3"
-                placeholder="When and how should this prompt be used?"
-              ></textarea>
+
+              <textarea v-model="draft.description" rows="3"
+                placeholder="When and how should this prompt be used?"></textarea>
             </label>
           </div>
 
+          <!-- Prompt variants editor -->
           <div class="prompt-variants-editor">
+            <!-- Section heading -->
             <div class="prompt-form-section-heading">
+              <!-- Section icon -->
               <div>
                 <h2>Prompt variants</h2>
                 <p>Create alternatives for different use cases or models.</p>
               </div>
 
-              <button
-                class="btn-secondary btn-compact"
-                type="button"
-                @click="addVariant"
-              >
+              <!-- Add variant button -->
+              <button class="btn-secondary btn-compact" type="button" @click="addVariant">
                 <IconPlus :size="14" :stroke-width="2" aria-hidden="true" />
                 Add variant
               </button>
             </div>
 
-            <section
-              v-for="(variant, index) in draft.variants"
-              :key="index"
-              class="variant-editor"
-              :aria-label="`Variant ${index + 1}`"
-            >
+            <!-- Variant editors -->
+            <section v-for="(variant, index) in draft.variants" :key="index" class="variant-editor"
+              :aria-label="`Variant ${index + 1}`">
+              <!-- Variant header -->
               <div class="variant-editor-header">
+                <!-- Variant name field -->
                 <label class="variant-name-field">
                   <span>Variant {{ index + 1 }}</span>
-                  <input
-                    v-model="variant.label"
-                    type="text"
-                    placeholder="For example: Concise"
-                  />
+                  <input v-model="variant.label" type="text" placeholder="For example: Concise" />
                 </label>
 
-                <button
-                  v-if="draft.variants.length > 1"
-                  class="icon-btn icon-btn-danger"
-                  type="button"
-                  :aria-label="`Remove variant ${index + 1}`"
-                  title="Remove variant"
-                  @click="removeVariant(index)"
-                >
+                <!-- Remove variant button -->
+                <button v-if="draft.variants.length > 1" class="icon-btn icon-btn-danger" type="button"
+                  :aria-label="`Remove variant ${index + 1}`" title="Remove variant" @click="removeVariant(index)">
                   <IconX :size="14" :stroke-width="2" aria-hidden="true" />
                 </button>
               </div>
 
+              <!-- Variant content field -->
               <label class="variant-content-field">
                 <span class="sr-only">Prompt text</span>
-                <textarea
-                  v-model="variant.content"
-                  rows="8"
-                  placeholder="Write the prompt or generate it with AI above…"
-                ></textarea>
+                <textarea v-model="variant.content" rows="8"
+                  placeholder="Write the prompt or generate it with AI above…"></textarea>
               </label>
             </section>
           </div>
 
+          <!-- Form actions -->
           <footer class="prompt-form-actions">
             <button class="btn-secondary" type="button" @click="cancelEdit">
               Cancel
@@ -269,45 +238,40 @@
 
         <!-- Selected prompt -->
         <article v-else-if="selectedPrompt" class="prompt-detail">
+          <!-- Prompt header -->
           <header class="prompt-detail-header">
+            <!-- Prompt title and description -->
             <div class="prompt-detail-heading">
               <p class="eyebrow">Saved prompt</p>
               <h2>{{ selectedPrompt.title }}</h2>
 
+              <!-- Prompt description -->
               <p v-if="selectedPrompt.description" class="prompt-detail-desc">
                 {{ selectedPrompt.description }}
               </p>
             </div>
 
+            <!-- Prompt actions -->
             <div class="prompt-detail-actions">
-              <button
-                class="icon-btn"
-                type="button"
-                aria-label="Edit prompt"
-                title="Edit prompt"
-                @click="startEdit(selectedPrompt)"
-              >
+              <!-- Edit prompt button -->
+              <button class="icon-btn" type="button" aria-label="Edit prompt" title="Edit prompt"
+                @click="startEdit(selectedPrompt)">
                 <IconEdit :size="14" :stroke-width="2" aria-hidden="true" />
               </button>
 
-              <button
-                class="icon-btn icon-btn-danger"
-                type="button"
-                aria-label="Delete prompt"
-                title="Delete prompt"
-                @click="deletePrompt(selectedPrompt.id)"
-              >
+              <!-- Delete prompt button -->
+              <button class="icon-btn icon-btn-danger" type="button" aria-label="Delete prompt" title="Delete prompt"
+                @click="deletePrompt(selectedPrompt.id)">
                 <IconX :size="14" :stroke-width="2" aria-hidden="true" />
               </button>
             </div>
           </header>
 
-          <section
-            v-for="(variant, index) in selectedPrompt.variants"
-            :key="index"
-            class="prompt-variant"
-          >
+          <!-- Prompt variants -->
+          <section v-for="(variant, index) in selectedPrompt.variants" :key="index" class="prompt-variant">
+            <!-- Variant header -->
             <header class="prompt-variant-header">
+              <!-- Variant name field -->
               <div>
                 <span class="prompt-variant-label">{{ variant.label }}</span>
                 <span class="prompt-variant-number">
@@ -315,45 +279,35 @@
                 </span>
               </div>
 
-              <button
-                class="icon-btn"
-                type="button"
-                :aria-label="
-                  copiedPromptIndex === index
-                    ? 'Prompt copied to clipboard'
-                    : `Copy ${variant.label} prompt`
-                "
-                :title="copiedPromptIndex === index ? 'Copied!' : 'Copy prompt'"
-                @click="copyVariant(variant.content, index)"
-              >
-                <IconCheck
-                  v-if="copiedPromptIndex === index"
-                  :size="14"
-                  :stroke-width="2"
-                  aria-hidden="true"
-                />
-                <IconCopy
-                  v-else
-                  :size="14"
-                  :stroke-width="2"
-                  aria-hidden="true"
-                />
+              <!-- Copy variant button -->
+              <button class="icon-btn" type="button" :aria-label="copiedPromptIndex === index
+                ? 'Prompt copied to clipboard'
+                : `Copy ${variant.label} prompt`
+                " :title="copiedPromptIndex === index ? 'Copied!' : 'Copy prompt'"
+                @click="copyVariant(variant.content, index)">
+
+                <IconCheck v-if="copiedPromptIndex === index" :size="14" :stroke-width="2" aria-hidden="true" />
+                <IconCopy v-else :size="14" :stroke-width="2" aria-hidden="true" />
               </button>
             </header>
 
+            <!-- Variant content -->
             <pre class="prompt-variant-content">{{ variant.content }}</pre>
           </section>
         </article>
 
         <!-- No selection state -->
         <div v-else class="prompts-empty-state">
+          <!-- Empty state icon -->
           <div class="prompts-empty-icon" aria-hidden="true">
             <IconSparkles :size="26" :stroke-width="1.6" />
           </div>
 
           <h2>No prompt selected</h2>
+
           <p>Select a saved prompt from the left or start a new one.</p>
 
+          <!-- New prompt button -->
           <button class="btn-primary" type="button" @click="startNewPrompt">
             <IconPlus :size="14" :stroke-width="2" aria-hidden="true" />
             New prompt
@@ -379,9 +333,6 @@ import IconSparkles from "@/components/icons/IconSparkles.vue";
 import IconLoader from "@/components/icons/IconLoader.vue";
 import IconPrompt from "@/components/icons/IconPrompt.vue";
 
-/* ==========================================================================
-   Services and persistent keys
-   ========================================================================== */
 
 const ollama = useOllamaApi();
 const lmStudio = useLmStudioApi();
@@ -389,10 +340,6 @@ const lmStudio = useLmStudioApi();
 const STORAGE_KEY = "app.prompts.v1";
 const SELECTED_MODEL_STORAGE_KEY = "app.prompts.selected-model.v1";
 const PROVIDER_POLL_INTERVAL_MS = 15_000;
-
-/* ==========================================================================
-   Prompt library state
-   ========================================================================== */
 
 const prompts = ref(loadPrompts());
 const selectedId = ref(prompts.value[0]?.id ?? null);
@@ -407,10 +354,6 @@ const isGeneratingAI = ref(false);
 const copiedPromptIndex = ref(null);
 let copiedPromptTimeoutId = null;
 
-/* ==========================================================================
-   Local provider state
-   ========================================================================== */
-
 const ollamaOnline = ref(false);
 const lmStudioOnline = ref(false);
 
@@ -423,20 +366,22 @@ const selectedModelId = ref(loadSelectedModelId());
 let providerStatusIntervalId = null;
 let isRefreshingProviders = false;
 
-/* ==========================================================================
-   Derived state
-   ========================================================================== */
+const META_PROMPT = `You are an expert prompt engineer. Given a short topic or goal description, write a single, well-structured, production-ready prompt for a large language model. The prompt should be clear, specific, include relevant context, constraints, and desired output format. Respond with ONLY the prompt text itself, no explanations, no markdown formatting, no quotes around it.
 
+Topic/goal: `;
+
+
+// computed property
 const selectedPrompt = computed(
   () => prompts.value.find((prompt) => prompt.id === selectedId.value) ?? null,
 );
 
-/*
-  Das Modellobjekt wird bewusst normalisiert.
-  "id" enthält den Provider, da der gleiche Modellname in beiden Backends
-  existieren kann, etwa "qwen2.5:7b".
-*/
 const availableModels = computed(() => [
+  /*
+    The model object is intentionally normalized.
+    “id” contains the provider, since the same model name can exist in both backends,
+    such as “qwen2.5:7b”.
+  */
   ...ollamaModels.value.map((name) => ({
     id: `ollama:${name}`,
     modelId: name,
@@ -464,14 +409,12 @@ const selectedModel = computed(
 
 watch(selectedModelId, persistSelectedModelId);
 
-/* ==========================================================================
-   Provider status and model discovery
-   ========================================================================== */
 
+// async functions
 async function refreshProviderStatus() {
   /*
-    Verhindert überlappende Requests. Das kann sonst geschehen, wenn ein
-    langsamer Request länger dauert als das Polling-Intervall.
+    Prevents overlapping requests. This can otherwise occur if a
+    slow request takes longer than the polling interval.
   */
   if (isRefreshingProviders) return;
 
@@ -480,8 +423,8 @@ async function refreshProviderStatus() {
 
   try {
     const [ollamaResult, lmStudioResult] = await Promise.allSettled([
-      ollama.statusBool(),
-      lmStudio.statusBool(),
+      ollama.status(),
+      lmStudio.status(),
     ]);
 
     ollamaOnline.value =
@@ -552,43 +495,6 @@ async function loadLmStudioModels() {
   }
 }
 
-function normalizeModelNames(models) {
-  if (!Array.isArray(models)) return [];
-
-  return [...new Set(models.filter(isNonEmptyString))].sort((a, b) =>
-    a.localeCompare(b),
-  );
-}
-
-function isNonEmptyString(value) {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-/*
-  Eine zuvor gespeicherte Auswahl bleibt erhalten, solange das Modell
-  verfügbar ist. Falls nicht, wird automatisch das erste verfügbare Modell
-  ausgewählt oder die Auswahl zurückgesetzt.
-*/
-function ensureSelectedModel() {
-  const hasSelectedModel = availableModels.value.some(
-    (model) => model.id === selectedModelId.value,
-  );
-
-  if (!hasSelectedModel) {
-    selectedModelId.value = availableModels.value[0]?.id ?? "";
-  }
-
-  persistSelectedModelId();
-}
-
-/* ==========================================================================
-   AI prompt generation
-   ========================================================================== */
-
-const META_PROMPT = `You are an expert prompt engineer. Given a short topic or goal description, write a single, well-structured, production-ready prompt for a large language model. The prompt should be clear, specific, include relevant context, constraints, and desired output format. Respond with ONLY the prompt text itself, no explanations, no markdown formatting, no quotes around it.
-
-Topic/goal: `;
-
 async function generatePromptWithAI() {
   const topic = aiTopic.value.trim();
   const model = selectedModel.value;
@@ -597,7 +503,7 @@ async function generatePromptWithAI() {
 
   if (!model) {
     aiError.value =
-      "Kein Modell ausgewählt. Starte Ollama oder LM Studio und wähle ein Modell aus.";
+      "No model selected. Start Ollama or LM Studio and select a model.";
     return;
   }
 
@@ -611,11 +517,11 @@ async function generatePromptWithAI() {
     );
 
     if (!result?.success) {
-      throw new Error(result?.error || "Die Generierung ist fehlgeschlagen.");
+      throw new Error(result?.error || "The generation failed.");
     }
 
     if (!isNonEmptyString(result.response)) {
-      throw new Error("Das Modell hat keinen Text zurückgegeben.");
+      throw new Error("The model did not return any text.");
     }
 
     if (!draft.value.title.trim()) {
@@ -627,9 +533,9 @@ async function generatePromptWithAI() {
     console.error(`[Prompt generation / ${model.providerLabel}]`, error);
 
     const message =
-      error instanceof Error ? error.message : "Unbekannter Fehler";
+      error instanceof Error ? error.message : "Unknown error";
 
-    aiError.value = `Die Anfrage an ${model.providerLabel} ist fehlgeschlagen: ${message}`;
+    aiError.value = `The request to ${model.providerLabel} failed: ${message}`;
   } finally {
     isGeneratingAI.value = false;
   }
@@ -647,6 +553,57 @@ async function generateWithSelectedProvider(model, prompt) {
   throw new Error(`Unsupported provider: ${model.provider}`);
 }
 
+async function copyVariant(content, index) {
+  try {
+    await navigator.clipboard.writeText(content);
+
+    copiedPromptIndex.value = index;
+
+    if (copiedPromptTimeoutId) {
+      window.clearTimeout(copiedPromptTimeoutId);
+    }
+
+    copiedPromptTimeoutId = window.setTimeout(() => {
+      copiedPromptIndex.value = null;
+      copiedPromptTimeoutId = null;
+    }, 1_500);
+  } catch {
+    aiError.value =
+      "The prompt could not be copied to the clipboard.";
+  }
+}
+
+
+// functions
+function normalizeModelNames(models) {
+  if (!Array.isArray(models)) return [];
+
+  return [...new Set(models.filter(isNonEmptyString))].sort((a, b) =>
+    a.localeCompare(b),
+  );
+}
+
+function isNonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function ensureSelectedModel() {
+  /*
+    A previously saved selection is retained as long as the model
+    is available. If it is not, the first available model is automatically
+    selected, or the selection is reset.
+  */
+  const hasSelectedModel = availableModels.value.some(
+    (model) => model.id === selectedModelId.value,
+  );
+
+  if (!hasSelectedModel) {
+    selectedModelId.value = availableModels.value[0]?.id ?? "";
+  }
+
+  persistSelectedModelId();
+}
+
 function markProviderOffline(provider) {
   if (provider === "ollama") {
     ollamaOnline.value = false;
@@ -659,10 +616,6 @@ function markProviderOffline(provider) {
     lmStudioModels.value = [];
   }
 }
-
-/* ==========================================================================
-   Prompt library persistence and editing
-   ========================================================================== */
 
 function loadPrompts() {
   try {
@@ -712,23 +665,32 @@ function startNewPrompt() {
 }
 
 function startEdit(prompt) {
-  draft.value = structuredClone(prompt);
-  selectedId.value = prompt.id;
+  draft.value = {
+    id: prompt.id,
+    title: prompt.title ?? "",
+    description: prompt.description ?? "",
+    createdAt: prompt.createdAt ?? null,
+    updatedAt: prompt.updatedAt ?? null,
+    variants: (prompt.variants ?? []).map((variant, index) => ({
+      label: variant.label ?? `Variant ${index + 1}`,
+      content: variant.content ?? "",
+    })),
+  };
 
+  selectedId.value = prompt.id;
   aiTopic.value = "";
   aiError.value = "";
   isEditing.value = true;
 }
 
 function cancelEdit() {
+  /*
+    If a new draft has been canceled, 'selectedId' is already null.
+    An existing prompt, however, remains selected.
+  */
   isEditing.value = false;
   aiError.value = "";
   aiTopic.value = "";
-
-  /*
-    Falls ein neuer Entwurf abgebrochen wurde, ist selectedId bereits null.
-    Ein bestehender Prompt bleibt hingegen ausgewählt.
-  */
 }
 
 function addVariant() {
@@ -791,11 +753,19 @@ function savePrompt() {
 }
 
 function deletePrompt(id) {
-  const deletedPromptIndex = prompts.value.findIndex(
-    (prompt) => prompt.id === id,
+  const prompt = prompts.value.find((item) => item.id === id);
+
+  if (!prompt) return;
+
+  const confirmed = window.confirm(
+    `Delete "${prompt.title}"?\n\nThis permanently removes the prompt and all of its variants.`,
   );
 
-  if (deletedPromptIndex === -1) return;
+  if (!confirmed) return;
+
+  const deletedPromptIndex = prompts.value.findIndex(
+    (item) => item.id === id,
+  );
 
   prompts.value.splice(deletedPromptIndex, 1);
 
@@ -805,34 +775,6 @@ function deletePrompt(id) {
 
   persistPrompts();
 }
-
-/* ==========================================================================
-   Clipboard
-   ========================================================================== */
-
-async function copyVariant(content, index) {
-  try {
-    await navigator.clipboard.writeText(content);
-
-    copiedPromptIndex.value = index;
-
-    if (copiedPromptTimeoutId) {
-      window.clearTimeout(copiedPromptTimeoutId);
-    }
-
-    copiedPromptTimeoutId = window.setTimeout(() => {
-      copiedPromptIndex.value = null;
-      copiedPromptTimeoutId = null;
-    }, 1_500);
-  } catch {
-    aiError.value =
-      "Der Prompt konnte nicht in die Zwischenablage kopiert werden.";
-  }
-}
-
-/* ==========================================================================
-   Selected model persistence
-   ========================================================================== */
 
 function loadSelectedModelId() {
   try {
@@ -857,10 +799,8 @@ function persistSelectedModelId() {
   }
 }
 
-/* ==========================================================================
-   Lifecycle
-   ========================================================================== */
 
+// mounted/ unmounted lifecycle hooks
 onMounted(() => {
   refreshProviderStatus();
 
@@ -882,10 +822,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ==========================================================================
-   Foundation
-   ========================================================================== */
-
+/* Foundation */
 .prompts-view {
   height: 100%;
   overflow-y: auto;
@@ -901,10 +838,7 @@ onUnmounted(() => {
   margin-inline: 0;
 }
 
-/* ==========================================================================
-   Header
-   ========================================================================== */
-
+/* Header */
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -957,10 +891,7 @@ onUnmounted(() => {
   line-height: 1.5;
 }
 
-/* ==========================================================================
-   Buttons and keyboard focus
-   ========================================================================== */
-
+/* Buttons and keyboard focus */
 .btn-primary,
 .btn-secondary,
 .icon-btn {
@@ -1003,21 +934,17 @@ onUnmounted(() => {
 
 .btn-secondary {
   color: var(--color-text);
-  background: color-mix(
-    in srgb,
-    var(--color-surface) 92%,
-    var(--color-surface-2)
-  );
+  background: color-mix(in srgb,
+      var(--color-surface) 92%,
+      var(--color-surface-2));
   border: 1px solid var(--color-border);
 }
 
 .btn-secondary:hover:not(:disabled) {
   background: var(--color-surface-2);
-  border-color: color-mix(
-    in srgb,
-    var(--color-text-muted) 34%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-text-muted) 34%,
+      var(--color-border));
 }
 
 .btn-compact {
@@ -1070,10 +997,7 @@ onUnmounted(() => {
   outline-offset: 2px;
 }
 
-/* ==========================================================================
-   Provider toolbar and model selection
-   ========================================================================== */
-
+/* Provider toolbar and model selection */
 .generation-toolbar {
   display: flex;
   align-items: center;
@@ -1081,11 +1005,9 @@ onUnmounted(() => {
   gap: 1rem;
   padding: 0.5rem 0.75rem;
   margin-bottom: 0.85rem;
-  background: color-mix(
-    in srgb,
-    var(--color-surface) 94%,
-    var(--color-surface-2)
-  );
+  background: color-mix(in srgb,
+      var(--color-surface) 94%,
+      var(--color-surface-2));
   border: 1px solid var(--color-border);
   border-radius: 12px;
 }
@@ -1121,8 +1043,7 @@ onUnmounted(() => {
 
 .provider-status.online .provider-status-dot {
   background: var(--color-success, #34c759);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-success, #34c759) 13%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success, #34c759) 13%, transparent);
 }
 
 .provider-status.online {
@@ -1167,11 +1088,9 @@ onUnmounted(() => {
 }
 
 .model-select-field select:hover:not(:disabled) {
-  border-color: color-mix(
-    in srgb,
-    var(--color-text-muted) 38%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-text-muted) 38%,
+      var(--color-border));
 }
 
 .model-select-field select:disabled {
@@ -1190,10 +1109,7 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-/* ==========================================================================
-   Prompt workspace
-   ========================================================================== */
-
+/* Prompt workspace */
 .prompts-layout {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
@@ -1272,11 +1188,9 @@ onUnmounted(() => {
 
 .prompt-list-item.active {
   background: color-mix(in srgb, var(--color-primary) 9%, transparent);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 20%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 20%,
+      var(--color-border));
 }
 
 .prompt-list-title {
@@ -1334,17 +1248,13 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-/* ==========================================================================
-   Editor: AI generation panel
-   ========================================================================== */
-
+/* Editor: AI generation panel */
 .ai-generate-panel {
   display: grid;
   gap: 0.85rem;
   padding: 0.9rem;
   background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
-  border: 1px solid
-    color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
   border-radius: 10px;
 }
 
@@ -1422,11 +1332,9 @@ onUnmounted(() => {
 .ai-generate-controls input:hover,
 .prompt-form input:hover,
 .prompt-form textarea:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-text-muted) 36%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-text-muted) 36%,
+      var(--color-border));
 }
 
 .ai-generate-controls input:focus,
@@ -1434,8 +1342,7 @@ onUnmounted(() => {
 .prompt-form textarea:focus {
   background: color-mix(in srgb, var(--color-primary) 2%, var(--color-surface));
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-primary) 14%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
 .prompt-form-error {
@@ -1445,15 +1352,11 @@ onUnmounted(() => {
   font-size: var(--text-xs);
   line-height: 1.45;
   background: color-mix(in srgb, var(--color-error) 7%, var(--color-surface));
-  border: 1px solid
-    color-mix(in srgb, var(--color-error) 20%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-error) 20%, var(--color-border));
   border-radius: 8px;
 }
 
-/* ==========================================================================
-   Editor: form sections and variants
-   ========================================================================== */
-
+/* Editor: form sections and variants */
 .prompt-form-section,
 .prompt-variants-editor {
   display: grid;
@@ -1472,8 +1375,8 @@ onUnmounted(() => {
   gap: 0.4rem;
 }
 
-.prompt-form-field > span,
-.variant-name-field > span {
+.prompt-form-field>span,
+.variant-name-field>span {
   color: var(--color-text);
   font-size: var(--text-xs);
   font-weight: 650;
@@ -1504,11 +1407,9 @@ onUnmounted(() => {
   display: grid;
   gap: 0.65rem;
   padding: 0.8rem;
-  background: color-mix(
-    in srgb,
-    var(--color-surface) 88%,
-    var(--color-surface-2)
-  );
+  background: color-mix(in srgb,
+      var(--color-surface) 88%,
+      var(--color-surface-2));
   border: 1px solid var(--color-border);
   border-radius: 10px;
 }
@@ -1550,10 +1451,7 @@ onUnmounted(() => {
   border-top: 1px solid var(--color-border);
 }
 
-/* ==========================================================================
-   Prompt detail
-   ========================================================================== */
-
+/* Prompt detail */
 .prompt-detail-header {
   display: flex;
   align-items: flex-start;
@@ -1606,15 +1504,13 @@ onUnmounted(() => {
   gap: 0.75rem;
   min-height: 42px;
   padding: 0.35rem 0.45rem 0.35rem 0.75rem;
-  background: color-mix(
-    in srgb,
-    var(--color-surface-2) 82%,
-    var(--color-surface)
-  );
+  background: color-mix(in srgb,
+      var(--color-surface-2) 82%,
+      var(--color-surface));
   border-bottom: 1px solid var(--color-border);
 }
 
-.prompt-variant-header > div {
+.prompt-variant-header>div {
   display: grid;
   min-width: 0;
   gap: 0.1rem;
@@ -1652,10 +1548,7 @@ onUnmounted(() => {
   scrollbar-width: thin;
 }
 
-/* ==========================================================================
-   Empty state and screen-reader helper
-   ========================================================================== */
-
+/* Empty state and screen-reader helper */
 .prompts-empty-state {
   display: grid;
   justify-items: center;
@@ -1703,10 +1596,7 @@ onUnmounted(() => {
   border: 0;
 }
 
-/* ==========================================================================
-   Responsive layout
-   ========================================================================== */
-
+/* Responsive layout */
 @media (max-width: 760px) {
   .prompts-view {
     padding: 1rem 0.75rem 1.5rem;
@@ -1741,7 +1631,7 @@ onUnmounted(() => {
     font-size: 12px;
   }
 
-  .page-header > .btn-primary {
+  .page-header>.btn-primary {
     width: 100%;
   }
 
@@ -1849,11 +1739,9 @@ onUnmounted(() => {
   }
 }
 
-/* ==========================================================================
-   Touch devices: avoid iOS automatic input zoom
-   ========================================================================== */
-
+/* Touch devices: avoid iOS automatic input zoom */
 @media (pointer: coarse) {
+
   .ai-generate-controls input,
   .prompt-form input,
   .prompt-form textarea,

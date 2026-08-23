@@ -2,13 +2,14 @@
 
 <template>
   <div class="pseudocode-view">
+    <!-- Page header -->
     <header class="page-header">
+      <!-- Page title, description and icon -->
       <div class="page-header-title">
-        <IconPseudocode
-          :size="22"
-          :stroke-width="1.6"
-          class="page-header-icon"
-        />
+        <!-- Page icon -->
+        <IconPseudocode :size="22" :stroke-width="1.6" class="page-header-icon" />
+
+        <!-- Page title and description -->
         <div>
           <h1>Pseudocode to Code</h1>
           <p class="page-subtitle">
@@ -19,54 +20,51 @@
       </div>
     </header>
 
+    <!-- Translator layout -->
     <div class="translator-layout">
+      <!-- Input panel -->
       <div class="panel input-panel">
+        <!-- Panel toolbar -->
         <div class="panel-toolbar">
           <span class="panel-label">Pseudocode / Description</span>
           <span class="char-count">{{ pseudocodeInput.length }} chars</span>
         </div>
 
-        <textarea
-          v-model="pseudocodeInput"
-          class="input textarea pseudocode-textarea"
+        <!-- Pseudocode input textarea -->
+        <textarea v-model="pseudocodeInput" class="input textarea pseudocode-textarea"
           placeholder="e.g. loop through list of numbers, if number is even add to sum, return sum at the end"
-          :disabled="isGenerating"
-        ></textarea>
+          :disabled="isGenerating"></textarea>
 
+        <!-- Controls row -->
         <div class="controls-row">
+          <!-- Target language -->
           <div class="field-group">
             <label class="field-label">Target language</label>
-            <select
-              v-model="targetLanguage"
-              class="input"
-              :disabled="isGenerating"
-            >
+
+            <!-- Target language select -->
+            <select v-model="targetLanguage" class="input" :disabled="isGenerating">
               <option v-for="lang in languages" :key="lang" :value="lang">
                 {{ lang }}
               </option>
             </select>
           </div>
 
+          <!-- Generation model -->
           <div class="field-group">
             <label class="field-label" for="pseudocode-model">
               Generation model
             </label>
 
-            <select
-              id="pseudocode-model"
-              v-model="selectedModelId"
-              class="input"
-              :disabled="isGenerating || isCheckingProviders"
-            >
+            <!-- Generation model select -->
+            <select id="pseudocode-model" v-model="selectedModelId" class="input"
+              :disabled="isGenerating || isCheckingProviders">
+              <!-- No local model available -->
               <option v-if="!availableModels.length" value="" disabled>
                 No local model available
               </option>
 
-              <option
-                v-for="model in availableModels"
-                :key="model.id"
-                :value="model.id"
-              >
+              <!-- Available models -->
+              <option v-for="model in availableModels" :key="model.id" :value="model.id">
                 {{ model.name }} · {{ model.providerLabel }}
                 {{
                   model.provider === "lmstudio" && !model.isLoaded
@@ -78,11 +76,14 @@
           </div>
         </div>
 
+        <!-- Model warning -->
         <div v-if="!hasValidModel" class="model-warning" role="alert">
           <span class="model-warning-icon" aria-hidden="true">!</span>
 
+          <!-- Model warning content -->
           <div>
             <strong>No local model available</strong>
+
             <p>
               Start Ollama or LM Studio, then download or load a compatible
               model.
@@ -90,15 +91,12 @@
           </div>
         </div>
 
+        <!-- Action row -->
         <div class="action-row">
-          <button
-            class="btn-primary"
-            type="button"
-            :disabled="
-              isGenerating || !pseudocodeInput.trim() || !hasValidModel
-            "
-            @click="handleTranslate"
-          >
+          <!-- Generate button -->
+          <button class="btn-primary" type="button" :disabled="isGenerating || !pseudocodeInput.trim() || !hasValidModel
+            " @click="handleTranslate">
+
             <IconPseudocode :size="16" :stroke-width="1.8" aria-hidden="true" />
             {{
               isGenerating ? "Generating…" : `Translate to ${targetLanguage}`
@@ -107,29 +105,26 @@
         </div>
       </div>
 
+      <!-- Output panel -->
       <div class="panel output-panel">
+        <!-- Panel toolbar -->
         <div class="panel-toolbar">
           <span class="panel-label">Generated code</span>
-          <button
-            v-if="outputCode"
-            class="copy-btn toolbar-copy-btn"
-            type="button"
-            @click="handleCopyOutput"
-          >
+
+          <!-- Copy button -->
+          <button v-if="outputCode" class="copy-btn toolbar-copy-btn" type="button" @click="handleCopyOutput">
             {{ copied ? "✓ Copied" : "⧉ Copy" }}
           </button>
         </div>
 
+        <!-- Output empty state -->
         <div v-if="!outputCode && !isGenerating" class="output-empty">
           <IconPseudocode :size="30" :stroke-width="1.4" />
           <p>Your generated code will appear here.</p>
         </div>
 
-        <div
-          v-else
-          class="output-code markdown-body"
-          v-html="renderMarkdown(outputCode || '…')"
-        ></div>
+        <!-- Output code -->
+        <div v-else class="output-code markdown-body" v-html="renderMarkdown(outputCode || '…')"></div>
       </div>
     </div>
   </div>
@@ -151,19 +146,12 @@ import {
   buildPseudocodeUserPrompt,
 } from "@/prompts/pseudocodePrompt";
 
-/* ==========================================================================
-   Services and configuration
-   ========================================================================== */
 
 const ollama = useOllamaApi();
 const lmstudio = useLmStudioApi();
 
 const SELECTED_MODEL_STORAGE_KEY = "app.pseudocode.selected-model.v1";
 const PROVIDER_POLL_INTERVAL_MS = 15_000;
-
-/* ==========================================================================
-   Translation state
-   ========================================================================== */
 
 const languages = [
   "Python",
@@ -188,10 +176,6 @@ const generationError = ref("");
 const copied = ref(false);
 let copiedTimeoutId = null;
 
-/* ==========================================================================
-   Provider and model state
-   ========================================================================== */
-
 const ollamaOnline = ref(false);
 const lmStudioOnline = ref(false);
 
@@ -204,10 +188,8 @@ const selectedModelId = ref(loadSelectedModelId());
 let refreshIntervalId = null;
 let isRefreshingProviders = false;
 
-/* ==========================================================================
-   Derived model state
-   ========================================================================== */
 
+// computed properties
 const availableModels = computed(() => [
   ...ollamaModels.value.map((name) => ({
     id: `ollama:${name}`,
@@ -239,10 +221,8 @@ const hasValidModel = computed(() => selectedModel.value !== null);
 
 watch(selectedModelId, persistSelectedModelId);
 
-/* ==========================================================================
-   Provider status and model discovery
-   ========================================================================== */
 
+// async functions
 async function refreshProviders() {
   if (isRefreshingProviders) return;
 
@@ -251,8 +231,8 @@ async function refreshProviders() {
 
   try {
     const [ollamaResult, lmStudioResult] = await Promise.allSettled([
-      ollama.statusBool(),
-      lmstudio.statusBool(),
+      ollama.status(),
+      lmstudio.status(),
     ]);
 
     ollamaOnline.value =
@@ -325,32 +305,6 @@ async function loadLmStudioModels() {
   }
 }
 
-function normalizeModelNames(models) {
-  if (!Array.isArray(models)) return [];
-
-  return [...new Set(models.filter(isNonEmptyString))].sort((left, right) =>
-    left.localeCompare(right),
-  );
-}
-
-function ensureSelectedModel() {
-  const modelStillAvailable = availableModels.value.some(
-    (model) => model.id === selectedModelId.value,
-  );
-
-  if (!modelStillAvailable) {
-    selectedModelId.value = availableModels.value[0]?.id ?? "";
-  }
-}
-
-function isNonEmptyString(value) {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-/* ==========================================================================
-   Translation
-   ========================================================================== */
-
 async function handleTranslate() {
   const model = selectedModel.value;
   const source = pseudocodeInput.value.trim();
@@ -365,11 +319,11 @@ async function handleTranslate() {
 
   try {
     /*
-      Verwende absichtlich die bereits bestehenden "one-shot"-Service-Methoden.
-      Sie liefern bei Ollama und LM Studio den gleichen Vertrag:
+      Intentionally use the existing “one-shot” service methods.
+      They return the same contract in Ollama and LM Studio:
       { success, response, error }.
 
-      Das ist robuster als eine nicht gemeinsame Streaming-Methode zu erzwingen.
+      This is more robust than forcing a non-shared streaming method.
     */
     const result = await generateCode(model, userPrompt);
 
@@ -397,11 +351,6 @@ async function handleTranslate() {
 }
 
 async function generateCode(model, userPrompt) {
-  /*
-    Dein LM-Studio-Service unterstützt system_prompt über options.
-    Dein Ollama-Service akzeptiert die Prompt-Variante direkt.
-    Beide erhalten die technische modelId, nie den Display Name.
-  */
   const prompt = `${PSEUDOCODE_SYSTEM_PROMPT}\n\n${userPrompt}`;
 
   if (model.provider === "ollama") {
@@ -420,11 +369,51 @@ async function generateCode(model, userPrompt) {
   throw new Error(`Unsupported provider: ${model.provider}`);
 }
 
+async function handleCopyOutput() {
+  const success = await copyToClipboard(extractCodeBlock(outputCode.value));
+
+  if (!success) return;
+
+  copied.value = true;
+
+  if (copiedTimeoutId) {
+    window.clearTimeout(copiedTimeoutId);
+  }
+
+  copiedTimeoutId = window.setTimeout(() => {
+    copied.value = false;
+    copiedTimeoutId = null;
+  }, 1_500);
+}
+
+
+// functions
+function normalizeModelNames(models) {
+  if (!Array.isArray(models)) return [];
+
+  return [...new Set(models.filter(isNonEmptyString))].sort((left, right) =>
+    left.localeCompare(right),
+  );
+}
+
+function ensureSelectedModel() {
+  const modelStillAvailable = availableModels.value.some(
+    (model) => model.id === selectedModelId.value,
+  );
+
+  if (!modelStillAvailable) {
+    selectedModelId.value = availableModels.value[0]?.id ?? "";
+  }
+}
+
+function isNonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 function handleStop() {
   /*
-    Die verwendeten one-shot Methoden bieten momentan kein Cancel-Signal.
-    Der Button bleibt nur sinnvoll, wenn du später in BEIDEN Services
-    eine gemeinsame generateStreamingChatAnswer(..., signal)-Methode ergänzt.
+    The one-shot methods currently in use do not provide a cancel signal.
+    To be implemented in the future.
   */
 }
 
@@ -457,31 +446,6 @@ function getMarkdownLanguage(language) {
   return languageMap[language] ?? "";
 }
 
-/* ==========================================================================
-   Clipboard
-   ========================================================================== */
-
-async function handleCopyOutput() {
-  const success = await copyToClipboard(extractCodeBlock(outputCode.value));
-
-  if (!success) return;
-
-  copied.value = true;
-
-  if (copiedTimeoutId) {
-    window.clearTimeout(copiedTimeoutId);
-  }
-
-  copiedTimeoutId = window.setTimeout(() => {
-    copied.value = false;
-    copiedTimeoutId = null;
-  }, 1_500);
-}
-
-/* ==========================================================================
-   Persistent selected model
-   ========================================================================== */
-
 function loadSelectedModelId() {
   try {
     return localStorage.getItem(SELECTED_MODEL_STORAGE_KEY) ?? "";
@@ -502,10 +466,8 @@ function persistSelectedModelId() {
   }
 }
 
-/* ==========================================================================
-   Lifecycle
-   ========================================================================== */
 
+// mounted/ unmounted lifecycle hooks
 onMounted(() => {
   refreshProviders();
 
@@ -527,10 +489,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ==========================================================================
-   1. Page layout and header
-   ========================================================================== */
-
+/* Page layout and header */
 .pseudocode-view {
   box-sizing: border-box;
   height: 100%;
@@ -586,11 +545,7 @@ onUnmounted(() => {
   line-height: 1.5;
 }
 
-
-/* ==========================================================================
-   2. Translator workspace
-   ========================================================================== */
-
+/* Translator workspace */
 .translator-layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -618,11 +573,9 @@ onUnmounted(() => {
 }
 
 .panel:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 26%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 26%,
+      var(--color-border));
   box-shadow: 0 8px 26px rgb(0 0 0 / 0.035);
 }
 
@@ -634,11 +587,7 @@ onUnmounted(() => {
   grid-template-rows: auto minmax(0, 1fr);
 }
 
-
-/* ==========================================================================
-   3. Panel toolbar
-   ========================================================================== */
-
+/* Panel toolbar */
 .panel-toolbar {
   display: flex;
   align-items: center;
@@ -669,11 +618,7 @@ onUnmounted(() => {
   border-radius: var(--radius-sm);
 }
 
-
-/* ==========================================================================
-   4. Inputs and selectors
-   ========================================================================== */
-
+/* Inputs and selectors */
 .input {
   display: block;
   box-sizing: border-box;
@@ -695,17 +640,14 @@ onUnmounted(() => {
 }
 
 .input:hover:not(:disabled) {
-  border-color: color-mix(
-    in srgb,
-    var(--color-text-faint) 40%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-text-faint) 40%,
+      var(--color-border));
 }
 
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-primary) 15%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 .input:disabled {
@@ -764,11 +706,7 @@ select.input {
   font-weight: 600;
 }
 
-
-/* ==========================================================================
-   5. Buttons and actions
-   ========================================================================== */
-
+/* Buttons and actions */
 .action-row {
   display: flex;
   justify-content: flex-end;
@@ -817,8 +755,7 @@ select.input {
 .btn-stop {
   color: var(--color-error, #ef4444);
   background: transparent;
-  border: 1px solid
-    color-mix(in srgb, var(--color-error, #ef4444) 48%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-error, #ef4444) 48%, var(--color-border));
 }
 
 .btn-stop:hover {
@@ -838,11 +775,9 @@ select.input {
 .copy-btn:hover {
   color: var(--color-primary);
   background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface));
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 30%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 30%,
+      var(--color-border));
 }
 
 .btn-primary:active:not(:disabled),
@@ -858,24 +793,17 @@ select.input {
   outline-offset: 2px;
 }
 
-
-/* ==========================================================================
-   6. Model warning
-   ========================================================================== */
-
+/* Model warning */
 .model-warning {
   display: flex;
   align-items: flex-start;
   gap: 0.65rem;
   padding: 0.75rem 0.85rem;
   color: var(--color-warning, #a16207);
-  background: color-mix(
-    in srgb,
-    var(--color-warning, #f59e0b) 10%,
-    var(--color-surface)
-  );
-  border: 1px solid
-    color-mix(in srgb, var(--color-warning, #f59e0b) 28%, var(--color-border));
+  background: color-mix(in srgb,
+      var(--color-warning, #f59e0b) 10%,
+      var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-warning, #f59e0b) 28%, var(--color-border));
   border-radius: var(--radius-md);
 }
 
@@ -914,11 +842,7 @@ select.input {
   text-underline-offset: 2px;
 }
 
-
-/* ==========================================================================
-   7. Output and code-block scrolling
-   ========================================================================== */
-
+/* Output and code-block scrolling */
 /*
   The output wrapper does not scroll. It only provides the available grid size.
   The nested <pre> is the single scrollable area for both axes.
@@ -945,7 +869,6 @@ select.input {
   padding: 0.9rem 1rem;
   margin: 0;
 
-  /* The actual vertical and horizontal code scroll area. */
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-color: var(--color-border) transparent;
@@ -992,11 +915,7 @@ select.input {
   line-height: 1.5;
 }
 
-
-/* ==========================================================================
-   8. Tablet layout
-   ========================================================================== */
-
+/* Tablet layout */
 @media (max-width: 900px) {
   .translator-layout {
     grid-template-columns: 1fr;
@@ -1028,11 +947,7 @@ select.input {
   }
 }
 
-
-/* ==========================================================================
-   9. Mobile layout
-   ========================================================================== */
-
+/* Mobile layout */
 @media (max-width: 620px) {
   .pseudocode-view {
     padding: 0.85rem 0.75rem 1.5rem;
@@ -1161,12 +1076,9 @@ select.input {
   }
 }
 
-
-/* ==========================================================================
-   10. Touch devices
-   ========================================================================== */
-
+/* Touch devices */
 @media (pointer: coarse) {
+
   .input,
   .pseudocode-textarea {
     font-size: 16px;

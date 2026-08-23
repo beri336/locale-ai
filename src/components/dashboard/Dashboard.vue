@@ -24,7 +24,11 @@
           Search chats
         </button>
 
-        <button class="btn-primary" type="button" @click="router.push({ path: '/chat', query: { new: 'true' } })">
+        <button
+          class="btn-primary"
+          type="button"
+          @click="router.push({ path: '/chat', query: { new: 'true' } })"
+        >
           <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
           New chat
         </button>
@@ -53,8 +57,12 @@
           <h2>Weather</h2>
         </div>
 
-        <button class="link-btn" type="button" :disabled="isWeatherLoading"
-          @click="fetchWeather(settingsStore.weatherCity)">
+        <button
+          class="link-btn"
+          type="button"
+          :disabled="isWeatherLoading"
+          @click="fetchWeather(settingsStore.weatherCity)"
+        >
           Refresh
           <IconRefresh :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
@@ -64,7 +72,7 @@
         <div class="weather-main">
           <span class="weather-icon" aria-hidden="true">{{
             weather.icon
-            }}</span>
+          }}</span>
 
           <div>
             <p class="weather-city">
@@ -73,11 +81,14 @@
             <p class="weather-condition">{{ weather.label }}</p>
           </div>
 
-          <strong class="weather-temperature">{{ weather.temperature }}°</strong>
+          <strong class="weather-temperature"
+            >{{ weather.temperature }}°</strong
+          >
         </div>
 
         <div class="weather-details">
-          <span>Feels like {{ weather.apparentTemperature }}
+          <span
+            >Feels like {{ weather.apparentTemperature }}
             <IconThermometer :size="12" :stroke-width="2" aria-hidden="true" />
           </span>
           <span>Wind {{ weather.windSpeed }} km/h</span>
@@ -87,7 +98,12 @@
 
       <div v-else class="inline-empty-state">
         <div class="inline-empty-icon" aria-hidden="true">
-          <IconLoader v-if="isWeatherLoading" :size="32" :stroke-width="1.5" aria-hidden="true" />
+          <IconLoader
+            v-if="isWeatherLoading"
+            :size="32"
+            :stroke-width="1.5"
+            aria-hidden="true"
+          />
           <IconCloud v-else :size="32" :stroke-width="1.5" aria-hidden="true" />
         </div>
 
@@ -110,7 +126,12 @@
       <article class="stat-card">
         <div class="stat-card-header">
           <span class="stat-label">All chats</span>
-          <IconChat class="stat-icon" :size="20" :stroke-width="2" aria-hidden="true" />
+          <IconChat
+            class="stat-icon"
+            :size="20"
+            :stroke-width="2"
+            aria-hidden="true"
+          />
         </div>
         <strong class="stat-value">{{ totalChats }}</strong>
         <span class="stat-description">
@@ -125,7 +146,12 @@
       <article class="stat-card">
         <div class="stat-card-header">
           <span class="stat-label">Projects</span>
-          <IconFolder class="stat-icon" :size="20" :stroke-width="2" aria-hidden="true" />
+          <IconFolder
+            class="stat-icon"
+            :size="20"
+            :stroke-width="2"
+            aria-hidden="true"
+          />
         </div>
         <strong class="stat-value">{{ totalProjects }}</strong>
         <span class="stat-description">
@@ -136,12 +162,18 @@
 
     <!-- Server status -->
     <section class="status-grid" aria-label="Server status">
-      <article class="stat-card status-card" :class="{ online: ollamaStatusBool, offline: !ollamaStatusBool }">
+      <article
+        class="stat-card status-card"
+        :class="{ online: ollamaStatusBool, offline: !ollamaStatusBool }"
+      >
         <div class="stat-card-header">
           <span class="stat-label">Ollama server</span>
           <span class="server-status-dot"></span>
         </div>
-        <strong class="stat-value" :class="{ online: ollamaStatusBool, offline: !ollamaStatusBool }">
+        <strong
+          class="stat-value"
+          :class="{ online: ollamaStatusBool, offline: !ollamaStatusBool }"
+        >
           {{ ollamaStatusBool ? "Online" : "Offline" }}
         </strong>
         <span class="stat-description">
@@ -155,12 +187,18 @@
         </span>
       </article>
 
-      <article class="stat-card status-card" :class="{ online: lmsStatusBool, offline: !lmsStatusBool }">
+      <article
+        class="stat-card status-card"
+        :class="{ online: lmsStatusBool, offline: !lmsStatusBool }"
+      >
         <div class="stat-card-header">
           <span class="stat-label">LMS server</span>
           <span class="server-status-dot"></span>
         </div>
-        <strong class="stat-value" :class="{ online: lmsStatusBool, offline: !lmsStatusBool }">
+        <strong
+          class="stat-value"
+          :class="{ online: lmsStatusBool, offline: !lmsStatusBool }"
+        >
           {{ lmsStatusBool ? "Online" : "Offline" }}
         </strong>
         <span class="stat-description">
@@ -183,17 +221,30 @@
           <h2>Recent chats</h2>
         </div>
 
-        <button class="link-btn" type="button" @click="router.push({ path: '/chat', query: { new: 'true' } })">
+        <button
+          class="link-btn"
+          type="button"
+          @click="router.push({ path: '/chat', query: { new: 'true' } })"
+        >
           View all
           <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
       </div>
 
       <div v-if="recentChats.length" class="recent-chat-list">
-        <button v-for="chat in recentChats" :key="`${chat.source}-${chat.id}`" class="recent-chat-item" type="button"
-          @click="goToChat(chat)">
+        <button
+          v-for="chat in recentChats"
+          :key="`${chat.source}-${chat.id}`"
+          class="recent-chat-item"
+          type="button"
+          @click="goToChat(chat)"
+        >
           <span class="recent-chat-icon" aria-hidden="true">
-            <component :is="chat.source === 'project' ? IconFolder : IconMessages" :size="18" :stroke-width="2" />
+            <component
+              :is="chat.source === 'project' ? IconFolder : IconMessages"
+              :size="18"
+              :stroke-width="2"
+            />
           </span>
 
           <span class="recent-chat-info">
@@ -222,12 +273,15 @@
           <h3>No conversations yet</h3>
           <p>Start a new chat to begin working with your local models.</p>
         </div>
-        <button class="btn-primary" type="button" @click="router.push({ path: '/chat', query: { new: 'true' } })">
+        <button
+          class="btn-primary"
+          type="button"
+          @click="router.push({ path: '/chat', query: { new: 'true' } })"
+        >
           <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
           New chat
         </button>
       </div>
-
     </section>
 
     <!-- Active Projects -->
@@ -238,15 +292,24 @@
           <h2>Active projects</h2>
         </div>
 
-        <button class="link-btn" type="button" @click="$router.push('/projects')">
+        <button
+          class="link-btn"
+          type="button"
+          @click="$router.push('/projects')"
+        >
           View all
           <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
       </div>
 
       <div v-if="recentProjects.length" class="project-grid-compact">
-        <button v-for="project in recentProjects" :key="project.id" class="project-card-compact" type="button"
-          @click="$router.push(`/projects/${project.id}`)">
+        <button
+          v-for="project in recentProjects"
+          :key="project.id"
+          class="project-card-compact"
+          type="button"
+          @click="$router.push(`/projects/${project.id}`)"
+        >
           <div class="project-card-header">
             <span class="project-icon" aria-hidden="true">
               <IconFolder :size="20" :stroke-width="1.5" />
@@ -259,7 +322,11 @@
           <span class="project-name">{{ project.name }}</span>
 
           <span v-if="project.tags.length" class="project-tags">
-            <span v-for="tag in project.tags.slice(0, 3)" :key="tag" class="tag-chip">
+            <span
+              v-for="tag in project.tags.slice(0, 3)"
+              :key="tag"
+              class="tag-chip"
+            >
               {{ tag }}
             </span>
           </span>
@@ -273,7 +340,11 @@
           </span>
         </button>
 
-        <button class="new-project-card" type="button" @click="$router.push('/projects')">
+        <button
+          class="new-project-card"
+          type="button"
+          @click="$router.push('/projects')"
+        >
           <span class="new-project-icon" aria-hidden="true">
             <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
           </span>
@@ -290,7 +361,11 @@
           <h2>Ollama models</h2>
         </div>
 
-        <button class="link-btn" type="button" @click="$router.push('/ollama-models')">
+        <button
+          class="link-btn"
+          type="button"
+          @click="$router.push('/ollama-models')"
+        >
           Manage
           <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
@@ -298,26 +373,48 @@
 
       <div v-if="modelNames.length" class="model-list">
         <div v-for="name in modelNames" :key="name" class="model-item">
-          <span class="model-dot" :class="{ running: runningModels.includes(name) }"></span>
+          <span
+            class="model-dot"
+            :class="{ running: runningModels.includes(name) }"
+          ></span>
 
           <span class="model-name">{{ name }}</span>
 
-          <span class="model-status-label" :class="{ running: runningModels.includes(name) }">
+          <span
+            class="model-status-label"
+            :class="{ running: runningModels.includes(name) }"
+          >
             {{ runningModels.includes(name) ? "Running" : "Idle" }}
           </span>
         </div>
       </div>
 
       <div v-else class="inline-empty-state">
-        <div class="inline-empty-icon" :class="{ offline: !ollamaStatusBool }" aria-hidden="true">
-          <IconBox v-if="ollamaStatusBool" :size="32" :stroke-width="1.5" aria-hidden="true" />
-          <IconAlertTriangle v-else :size="32" :stroke-width="1.5" aria-hidden="true" />
+        <div
+          class="inline-empty-icon"
+          :class="{ offline: !ollamaStatusBool }"
+          aria-hidden="true"
+        >
+          <IconBox
+            v-if="ollamaStatusBool"
+            :size="32"
+            :stroke-width="1.5"
+            aria-hidden="true"
+          />
+          <IconAlertTriangle
+            v-else
+            :size="32"
+            :stroke-width="1.5"
+            aria-hidden="true"
+          />
         </div>
 
         <div>
           <h3>
             {{
-              ollamaStatusBool ? "No models installed" : "Ollama is not reachable"
+              ollamaStatusBool
+                ? "No models installed"
+                : "Ollama is not reachable"
             }}
           </h3>
           <p>
@@ -329,7 +426,11 @@
           </p>
         </div>
 
-        <button class="btn-secondary" type="button" @click="$router.push(ollamaStatusBool ? '/models' : '/settings')">
+        <button
+          class="btn-secondary"
+          type="button"
+          @click="$router.push(ollamaStatusBool ? '/models' : '/settings')"
+        >
           {{ ollamaStatusBool ? "Manage models" : "Open settings" }}
         </button>
       </div>
@@ -343,7 +444,11 @@
           <h2>LM Studio models</h2>
         </div>
 
-        <button class="link-btn" type="button" @click="$router.push('/lms-models')">
+        <button
+          class="link-btn"
+          type="button"
+          @click="$router.push('/lms-models')"
+        >
           Manage
           <IconArrowRight :size="12" :stroke-width="2" aria-hidden="true" />
         </button>
@@ -362,9 +467,23 @@
       </div>
 
       <div v-else class="inline-empty-state">
-        <div class="inline-empty-icon" :class="{ offline: !lmsStatusBool }" aria-hidden="true">
-          <IconBox v-if="lmsStatusBool" :size="32" :stroke-width="1.5" aria-hidden="true" />
-          <IconAlertTriangle v-else :size="32" :stroke-width="1.5" aria-hidden="true" />
+        <div
+          class="inline-empty-icon"
+          :class="{ offline: !lmsStatusBool }"
+          aria-hidden="true"
+        >
+          <IconBox
+            v-if="lmsStatusBool"
+            :size="32"
+            :stroke-width="1.5"
+            aria-hidden="true"
+          />
+          <IconAlertTriangle
+            v-else
+            :size="32"
+            :stroke-width="1.5"
+            aria-hidden="true"
+          />
         </div>
 
         <div>
@@ -384,13 +503,15 @@
           </p>
         </div>
 
-        <button class="btn-secondary" type="button" @click="$router.push(lmsStatusBool ? '/lms-models' : '/settings')">
+        <button
+          class="btn-secondary"
+          type="button"
+          @click="$router.push(lmsStatusBool ? '/lms-models' : '/settings')"
+        >
           {{ lmsStatusBool ? "Manage models" : "Open settings" }}
         </button>
       </div>
     </section>
-
-
   </main>
 </template>
 
@@ -402,7 +523,7 @@ import { useWeather } from "@/composables/useWeather";
 import { useChatSearch } from "@/composables/useChatSearch";
 import { useSearchModal } from "@/composables/useSearchModal";
 
-import { useSettingsStore } from "@/stores/settingsStore";
+import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 
 import { useOllamaApi } from "@/services/ollamaApiService";
@@ -442,10 +563,10 @@ const { openSearchModal } = useSearchModal({ enableShortcut: false });
 const isPwaMode = ref(false);
 
 const ollamaStatusBool = ref(false);
-const ollamaModelsCounter = ref(0)
+const ollamaModelsCounter = ref(0);
 
 const lmsStatusBool = ref(null);
-const lmsModelsCounter = ref(0)
+const lmsModelsCounter = ref(0);
 
 const lmsModels = ref([]);
 const modelNames = ref([]);
@@ -455,7 +576,7 @@ let pwaDisplayQuery = null;
 
 // async functions
 async function loadOllamaStatus() {
-  const isConnected = await ollamaApi.statusBool();
+  const isConnected = await ollamaApi.status();
 
   ollamaStatusBool.value = isConnected;
 
@@ -508,7 +629,6 @@ async function loadLmStudioStatus() {
   }
 }
 
-
 // functions
 function updatePwaMode() {
   isPwaMode.value =
@@ -540,7 +660,6 @@ function goToChat(chat) {
   }
 }
 
-
 // computed properties
 const totalChats = computed(() => allChats.value.length);
 const totalProjects = computed(() => projectsStore.getAllProjects().length);
@@ -552,8 +671,7 @@ const recentProjects = computed(() =>
     .slice(0, 4),
 );
 
-
-// Mount/unmount lifecycle hooks
+// mount/unmount lifecycle hooks
 onMounted(async () => {
   updatePwaMode();
   pwaDisplayQuery = window.matchMedia("(display-mode: standalone)");
@@ -562,7 +680,7 @@ onMounted(async () => {
   fetchWeather(settingsStore.weatherCity);
 
   await Promise.all([loadOllamaStatus(), loadLmStudioStatus()]);
-})
+});
 
 onUnmounted(() => {
   pwaDisplayQuery?.removeEventListener("change", updatePwaMode);
@@ -648,7 +766,8 @@ onUnmounted(() => {
   margin: -1rem 0 1.5rem;
   color: var(--color-text);
   background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
   border-radius: var(--radius-lg);
 }
 
@@ -691,7 +810,8 @@ onUnmounted(() => {
   font-weight: 700;
   letter-spacing: 0.07em;
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
   border-radius: var(--radius-full);
 }
 
@@ -765,9 +885,11 @@ onUnmounted(() => {
 
 .btn-secondary:hover {
   background: var(--color-surface-2);
-  border-color: color-mix(in srgb,
-      var(--color-primary) 35%,
-      var(--color-border));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-border)
+  );
 }
 
 /* Weather section */
@@ -789,11 +911,14 @@ onUnmounted(() => {
   padding: 1.1rem 1.15rem;
   overflow: hidden;
   background:
-    radial-gradient(circle at 100% 0,
+    radial-gradient(
+      circle at 100% 0,
       color-mix(in srgb, var(--color-primary) 12%, transparent),
-      transparent 42%),
+      transparent 42%
+    ),
     var(--color-surface);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   border-radius: var(--radius-lg);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.025);
 }
@@ -814,7 +939,8 @@ onUnmounted(() => {
   font-size: 1.8rem;
   line-height: 1;
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
   border-radius: 14px;
 }
 
@@ -920,9 +1046,11 @@ onUnmounted(() => {
 }
 
 .stat-card:hover {
-  border-color: color-mix(in srgb,
-      var(--color-primary) 28%,
-      var(--color-border));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 28%,
+    var(--color-border)
+  );
   box-shadow: 0 10px 24px rgb(0 0 0 / 0.045);
   transform: translateY(-1px);
 }
@@ -1032,7 +1160,6 @@ onUnmounted(() => {
 }
 
 @keyframes status-dot-breathe {
-
   0%,
   100% {
     transform: scale(1);
@@ -1184,9 +1311,11 @@ onUnmounted(() => {
 .source-badge.project {
   color: var(--color-primary);
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border-color: color-mix(in srgb,
-      var(--color-primary) 24%,
-      var(--color-border));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 24%,
+    var(--color-border)
+  );
 }
 
 .row-arrow {
@@ -1219,7 +1348,7 @@ onUnmounted(() => {
   background: color-mix(in srgb, var(--color-error) 10%, transparent);
 }
 
-.inline-empty-state>div:nth-child(2) {
+.inline-empty-state > div:nth-child(2) {
   min-width: 0;
 }
 
@@ -1273,9 +1402,11 @@ onUnmounted(() => {
 
 .project-card-compact:hover,
 .new-project-card:hover {
-  border-color: color-mix(in srgb,
-      var(--color-primary) 30%,
-      var(--color-border));
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 30%,
+    var(--color-border)
+  );
   box-shadow: 0 10px 24px rgb(0 0 0 / 0.055);
   transform: translateY(-2px);
 }
@@ -1409,7 +1540,8 @@ onUnmounted(() => {
 
 .model-dot.running {
   background: var(--color-success, #22c55e);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success, #22c55e) 13%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-success, #22c55e) 13%, transparent);
 }
 
 .model-name {
@@ -1433,9 +1565,11 @@ onUnmounted(() => {
 
 .model-status-label.running {
   color: var(--color-success, #22c55e);
-  background: color-mix(in srgb,
-      var(--color-success, #22c55e) 10%,
-      transparent);
+  background: color-mix(
+    in srgb,
+    var(--color-success, #22c55e) 10%,
+    transparent
+  );
 }
 
 .inline-empty-state {
@@ -1466,7 +1600,7 @@ onUnmounted(() => {
   background: color-mix(in srgb, var(--color-error) 10%, transparent);
 }
 
-.inline-empty-state>div:nth-child(2) {
+.inline-empty-state > div:nth-child(2) {
   min-width: 0;
 }
 
@@ -1497,14 +1631,23 @@ onUnmounted(() => {
   }
 
   .page-header {
+    display: flex;
+    flex: none;
     flex-direction: column;
     align-items: stretch;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 0;
+    height: auto;
     gap: 0.85rem;
-    margin-bottom: 1rem;
+    margin: 0 0 1rem;
   }
 
   .page-heading {
+    display: flex;
+    flex: none;
     align-items: flex-start;
+    min-width: 0;
     gap: 0.6rem;
   }
 
@@ -1535,9 +1678,12 @@ onUnmounted(() => {
 
   .header-actions {
     display: grid;
+    flex: none;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
+    min-height: 0;
     gap: 0.4rem;
+    margin: 0;
   }
 
   .header-actions .btn-primary,

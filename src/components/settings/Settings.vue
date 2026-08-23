@@ -1,13 +1,17 @@
 <!-- src/components/settings/Settings.vue -->
 
 <template>
+  <!-- Settings View -->
   <main class="settings-view">
+    <!-- Header -->
     <header class="page-header">
+      <!-- Page Heading -->
       <div class="page-heading">
         <div class="header-icon" aria-hidden="true">
           <IconSettings />
         </div>
 
+        <!-- Page Description -->
         <div>
           <p class="eyebrow">Configuration</p>
           <h1>Settings</h1>
@@ -18,65 +22,74 @@
       </div>
     </header>
 
+    <!-- Settings Content -->
     <div class="settings-content">
       <!-- Connection Ollama -->
       <section class="settings-card connection-card">
+        <!-- Section Heading -->
         <div class="section-heading">
           <div>
             <p class="section-kicker">Ollama</p>
+
             <h2>Connection</h2>
+
             <p class="section-description">
-              Set the address of the Ollama server this app should use.
+              Check the connection to your Ollama server and view network details.
             </p>
           </div>
 
+          <!-- Connection Status -->
           <span class="connection-badge" :class="statusClass">
             <span class="status-dot"></span>
             {{ statusLabel }}
           </span>
         </div>
 
-        <label class="field-label" for="api-url">API URL</label>
-
+        <!-- API URL Input Field -->
         <div class="input-row">
-          <input id="api-url" v-model="settingsStore.apiUrl" class="input" placeholder="http://localhost:11434"
-            spellcheck="false" />
-
           <button class="btn-primary" :disabled="isChecking" @click="handleTest">
             {{ isChecking ? "Checking…" : "Test connection" }}
           </button>
         </div>
 
+        <!-- Version Note -->
         <p v-if="settingsStore.ollamaVersion" class="version-note">
           Connected to Ollama
           <strong>v{{ settingsStore.ollamaVersion }}</strong>
         </p>
 
+        <!-- Network Details -->
         <div class="network-panel">
+          <!-- Network Panel Header -->
           <div class="network-panel-header">
             <span class="network-panel-icon" aria-hidden="true">⌘</span>
+
             <div>
               <h3>Network details</h3>
               <p>Useful when connecting from another device.</p>
             </div>
           </div>
 
+          <!-- Network Info -->
           <div class="network-info">
             <div class="info-row">
               <span class="info-label">App host</span>
               <code class="info-value">{{ hostIpLabel }}</code>
             </div>
 
+            <!-- App Port -->
             <div class="info-row">
               <span class="info-label">App port</span>
               <code class="info-value">{{ hostPort }}</code>
             </div>
 
+            <!-- Ollama Host -->
             <div class="info-row">
               <span class="info-label">Ollama host</span>
               <code class="info-value">{{ settingsStore.ollamaHost }}</code>
             </div>
 
+            <!-- Ollama Port -->
             <div class="info-row">
               <span class="info-label">Ollama port</span>
               <code class="info-value">{{ settingsStore.ollamaPort }}</code>
@@ -85,16 +98,77 @@
         </div>
       </section>
 
-      <!-- Connection LMS -->
+      <!-- Connection LM Studio -->
       <section class="settings-card connection-card">
-        <div class="field-group">
-          <label class="field-label">LM Studio API URL</label>
-          <input class="input" placeholder="http://localhost:1234" />
+        <!-- Heading -->
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">LM Studio</p>
+
+            <h2>Connection</h2>
+
+            <p class="section-description">
+              Check the connection to your LM Studio server and view network details.
+            </p>
+          </div>
+
+          <span class="connection-badge" :class="lmStudioStatusClass">
+            <span class="status-dot"></span>
+            {{ lmStudioStatusLabel }}
+          </span>
+        </div>
+
+        <!-- Test Connection Button -->
+        <div class="input-row">
+          <button class="btn-primary" type="button" :disabled="isCheckingLmStudio" @click="handleTestLmStudio">
+            {{ isCheckingLmStudio ? "Checking…" : "Test connection" }}
+          </button>
+        </div>
+
+        <!-- Network Details -->
+        <div class="network-panel">
+          <!-- Network Panel Header -->
+          <div class="network-panel-header">
+            <span class="network-panel-icon" aria-hidden="true">⌘</span>
+
+            <div>
+              <h3>Network details</h3>
+              <p>Useful when connecting from another device.</p>
+            </div>
+          </div>
+
+          <!-- Network Information -->
+          <div class="network-info">
+            <!-- App Host -->
+            <div class="info-row">
+              <span class="info-label">App host</span>
+              <code class="info-value">{{ hostIpLabel }}</code>
+            </div>
+
+            <!-- App Port -->
+            <div class="info-row">
+              <span class="info-label">App port</span>
+              <code class="info-value">{{ hostPort }}</code>
+            </div>
+
+            <!-- LM Studio Host -->
+            <div class="info-row">
+              <span class="info-label">LM Studio host</span>
+              <code class="info-value">{{ settingsStore.lmStudioHost }}</code>
+            </div>
+
+            <!-- LM Studio Port -->
+            <div class="info-row">
+              <span class="info-label">LM Studio port</span>
+              <code class="info-value">{{ settingsStore.lmStudioPort }}</code>
+            </div>
+          </div>
         </div>
       </section>
 
       <!-- Appearance -->
       <section class="settings-card">
+        <!-- Section Heading -->
         <div class="section-heading compact">
           <div>
             <p class="section-kicker">Interface</p>
@@ -105,12 +179,15 @@
           </div>
         </div>
 
+        <!-- Theme Switch -->
         <div class="setting-row">
+          <!-- Setting Copy -->
           <div class="setting-copy">
             <span class="setting-label">Color theme</span>
             <span class="setting-hint">Switch between light and dark mode.</span>
           </div>
 
+          <!-- Theme Switch Button -->
           <button class="theme-switch" type="button" aria-label="Toggle app theme" @click="themeStore.toggle()">
             <span :class="{ active: themeStore.theme === 'light' }">Light</span>
             <span :class="{ active: themeStore.theme === 'dark' }">Dark</span>
@@ -120,53 +197,68 @@
 
       <!-- Model Defaults -->
       <section class="settings-card">
+        <!-- Section Heading -->
         <div class="section-heading compact">
+          <!-- Section Title -->
           <div>
             <p class="section-kicker">Generation</p>
             <h2>Model defaults</h2>
+
             <p class="section-description">
               These values are applied to new chats by default.
             </p>
           </div>
 
+          <!-- Reset Button -->
           <button class="btn-reset" type="button" @click="settingsStore.resetModelDefaults()">
             Reset
           </button>
         </div>
 
+        <!-- Model Default Fields -->
         <div class="settings-fields">
+          <!-- Default Model -->
           <div class="field-group">
             <label class="field-label" for="default-model">Default model</label>
+
+            <!-- Model Selection -->
             <select id="default-model" v-model="settingsStore.defaultModel" class="input">
               <option value="">No default model</option>
-              <option v-for="name in modelNames" :key="name" :value="name">
-                {{ name }}
+              <option v-for="name in modelNames" :key="`ollama:${name}`" :value="`ollama:${name}`">
+                {{ name }} · Ollama
               </option>
             </select>
           </div>
 
+          <!-- Default Temperature -->
           <div class="field-group">
+            <!-- Temperature Label -->
             <div class="label-row">
               <label class="field-label" for="default-temp">Temperature</label>
+
               <output class="range-value">{{
                 settingsStore.temperature
                 }}</output>
             </div>
 
+            <!-- Temperature Slider -->
             <input id="default-temp" v-model.number="settingsStore.temperature" class="slider" type="range" min="0"
               max="2" step="0.1" />
 
+            <!-- Temperature Hint -->
             <p class="field-hint">
               Lower values are more predictable; higher values are more
               creative.
             </p>
           </div>
 
+          <!-- Context Length -->
           <div class="field-group">
             <label class="field-label" for="context-length">
               Context window
             </label>
 
+            <!-- Context Length Selection -->
             <select id="context-length" v-model.number="settingsStore.numCtx" class="input">
               <option :value="2048">2,048 tokens</option>
               <option :value="4096">4,096 tokens</option>
@@ -174,6 +266,7 @@
               <option :value="16384">16,384 tokens</option>
             </select>
 
+            <!-- Context Length Hint -->
             <p class="field-hint">
               A larger context preserves more conversation history but needs
               more memory.
@@ -184,24 +277,29 @@
 
       <!-- Model Behavior -->
       <section class="settings-card">
+        <!-- Section Heading -->
         <div class="section-heading compact">
           <div>
             <p class="section-kicker">Performance</p>
             <h2>Model behavior</h2>
+
             <p class="section-description">
               Control how long Ollama keeps a model loaded in memory.
             </p>
           </div>
 
+          <!-- Reset Button -->
           <button class="btn-reset" type="button" @click="settingsStore.resetModelBehavior()">
             Reset
           </button>
         </div>
 
+        <!-- Keep Alive Selection -->
         <label class="field-label" for="keep-alive">
           Keep model loaded after use
         </label>
 
+        <!-- Keep Alive Options -->
         <select id="keep-alive" v-model="settingsStore.keepAlive" class="input">
           <option value="0">Unload immediately</option>
           <option value="5m">Keep loaded for 5 minutes</option>
@@ -212,23 +310,30 @@
 
       <!-- Default System Prompt -->
       <section class="settings-card">
+        <!-- Section Heading -->
         <div class="section-heading compact">
+          <!-- Section Title -->
           <div>
             <p class="section-kicker">Instructions</p>
             <h2>Default system prompt</h2>
+
+            <!-- Section Description -->
             <p class="section-description">
               Add instructions automatically to every new model request.
             </p>
           </div>
 
+          <!-- Reset Button -->
           <button class="btn-reset" type="button" @click="settingsStore.resetSystemPrompt()">
             Reset
           </button>
         </div>
 
+        <!-- Default System Prompt Textarea -->
         <textarea v-model="settingsStore.defaultSystemPrompt" class="input textarea"
           placeholder="For example: You are a senior developer. Always answer in German." rows="4"></textarea>
 
+        <!-- Field Hint -->
         <p class="field-hint">
           The active prompt is shown in the chat toolbar.
         </p>
@@ -236,23 +341,28 @@
 
       <!-- Weather -->
       <section class="settings-card">
+        <!-- Section Heading -->
         <div class="section-heading compact">
           <div>
             <p class="section-kicker">Dashboard</p>
             <h2>Weather</h2>
+
             <p class="section-description">
               Choose the city shown on your dashboard.
             </p>
           </div>
         </div>
 
+        <!-- Weather City Input -->
         <div class="field-group">
           <label class="field-label" for="weather-city">Current city</label>
 
+          <!-- Weather City Input Row -->
           <div class="input-row weather-city-row">
             <input id="weather-city" v-model="weatherCityInput" class="input" type="text" placeholder="e.g. Stuttgart"
               autocomplete="address-level2" @keyup.enter="saveWeatherCity" />
 
+            <!-- Save Button -->
             <button class="btn-primary" type="button" @click="saveWeatherCity">
               Save
             </button>
@@ -266,26 +376,31 @@
 
       <!-- Temporary chats -->
       <section class="settings-card">
+        <!-- Section Heading -->
         <div class="section-heading compact">
           <div>
             <p class="section-kicker">Privacy</p>
             <h2>Temporary chats</h2>
+
             <p class="section-description">
               Set how long new temporary chats remain available.
             </p>
           </div>
 
+          <!-- Reset Button -->
           <button class="btn-reset" type="button" :disabled="settingsStore.temporaryChatDurationHours === 4"
             @click="resetTemporaryChatDuration">
             Reset
           </button>
         </div>
 
+        <!-- Temporary Chat Duration Selection -->
         <div class="field-group">
           <label class="field-label" for="temporary-chat-duration">
             Default duration
           </label>
 
+          <!-- Temporary Chat Duration Options -->
           <select id="temporary-chat-duration" v-model="temporaryChatDuration" class="input temporary-duration-select">
             <option v-for="duration in temporaryChatDurations" :key="duration" :value="duration">
               {{ duration }} {{ duration === 1 ? "hour" : "hours" }}
@@ -300,10 +415,12 @@
 
       <!-- Data Management -->
       <section class="settings-card">
+        <!-- Section Heading -->
         <div class="section-heading compact">
           <div>
             <p class="section-kicker">Storage</p>
             <h2>Data management</h2>
+
             <p class="section-description">
               Create a local backup or restore your chats, projects and
               settings.
@@ -311,47 +428,57 @@
           </div>
         </div>
 
+        <!-- Backup Actions -->
         <div class="backup-actions">
           <div class="backup-action">
+            <!-- Export Backup -->
             <div class="backup-action-copy">
               <h3>Export backup</h3>
               <p>Save chats, projects and settings as one JSON file.</p>
             </div>
 
+            <!-- Export Button -->
             <button class="btn-secondary" type="button" @click="handleExportBackup">
               Export JSON
             </button>
           </div>
 
+          <!-- Import Backup -->
           <div class="backup-action">
             <div class="backup-action-copy">
               <h3>Import backup</h3>
               <p>Restore a LocalAI JSON backup on this browser.</p>
             </div>
 
+            <!-- Import Button -->
             <button class="btn-secondary" type="button" @click="triggerImportBackup">
               Import JSON
             </button>
 
+            <!-- File Input -->
             <input ref="backupFileInput" class="visually-hidden" type="file" accept="application/json,.json"
               @change="handleImportBackup" />
           </div>
         </div>
 
+        <!-- Backup Feedback -->
         <p v-if="backupStatus" class="backup-feedback success">
           {{ backupStatus }}
         </p>
 
+        <!-- Backup Error -->
         <p v-if="backupError" class="backup-feedback error">
           {{ backupError }}
         </p>
 
         <div class="data-divider"></div>
 
+        <!-- Danger Zone -->
         <div class="data-danger-heading">
           <div>
             <p class="section-kicker danger-kicker">Danger zone</p>
             <h3>Delete local data</h3>
+
             <p>
               These actions affect only data saved in this browser. They cannot
               be undone.
@@ -359,44 +486,54 @@
           </div>
         </div>
 
+        <!-- Delete Actions -->
         <div class="delete-actions">
           <div class="delete-action">
+            <!-- Delete Quick Chats -->
             <div class="delete-action-copy">
               <h4>Delete quick chats</h4>
+
               <p>
                 Remove all standalone chats. Projects and project chats are
                 kept.
               </p>
             </div>
 
+            <!-- Delete Quick Chats Button -->
             <button class="btn-danger-outline" type="button" @click="handleDeleteQuickChats">
               Delete chats
             </button>
           </div>
 
+          <!-- Delete Projects -->
           <div class="delete-action">
             <div class="delete-action-copy">
               <h4>Delete projects</h4>
+
               <p>
                 Remove every project, including all chats stored inside
                 projects.
               </p>
             </div>
 
+            <!-- Delete Projects Button -->
             <button class="btn-danger-outline" type="button" @click="handleDeleteProjects">
               Delete projects
             </button>
           </div>
 
+          <!-- Delete All Data -->
           <div class="delete-action delete-action-critical">
             <div class="delete-action-copy">
               <h4>Delete all LocalAI data</h4>
+
               <p>
                 Remove quick chats, projects, settings, theme preferences and
                 local UI preferences.
               </p>
             </div>
 
+            <!-- Delete All Data Button -->
             <button class="btn-danger" type="button" @click="handleDeleteAllData">
               Delete everything
             </button>
@@ -406,6 +543,7 @@
 
       <!-- About -->
       <section class="settings-card about-card">
+        <!-- About Section -->
         <div class="section-heading compact">
           <div>
             <p class="section-kicker">Locale AI</p>
@@ -413,33 +551,40 @@
           </div>
         </div>
 
+        <!-- About List -->
         <div class="about-list">
+          <!-- Version -->
           <div class="about-row">
             <span>Version</span>
             <code>v{{ APP_VERSION }}</code>
           </div>
 
+          <!-- Built with -->
           <div class="about-row">
             <span>Built with</span>
             <span>Vue 3 · Ollama API · LM Studio API</span>
           </div>
 
+          <!-- Data Storage Location -->
           <div class="about-row">
             <span>Data Storage Location</span>
             <span>Browsers local storage</span>
           </div>
 
+          <!-- Privacy Policy -->
           <div class="about-row">
             <span>Privacy Policy</span>
             <span>All chat data stays on your (this) device.</span>
           </div>
 
+          <!-- Documentation -->
           <div class="about-row">
             <span>Documentation</span>
             <span>See <a href="https://github.com/beri336/locale-ai/blob/main/README.md" target="_blank"
                 rel="noreferrer">README on GitHub</a></span>
           </div>
 
+          <!-- License -->
           <div class="about-row">
             <span>License</span>
             <span>See <a href="https://github.com/beri336/locale-ai/blob/main/docs/LICENSE" target="_blank"
@@ -447,6 +592,7 @@
           </div>
         </div>
 
+        <!-- GitHub Link -->
         <a class="github-link" href="https://github.com/beri336/locale-ai" target="_blank" rel="noreferrer">
           View source code
           <span aria-hidden="true">
@@ -460,16 +606,21 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useSettingsStore } from "@/stores/settingsStore";
-import { useThemeStore } from "@/stores/themeStore";
+
+import { useSettingsStore } from "@/stores/useSettingsStore";
+import { useThemeStore } from "@/stores/useThemeStore";
+
 import { useOllamaApi } from "@/services/ollamaApiService";
+
 import IconSettings from "@/components/icons/IconSettings.vue";
+import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
+
 import {
   exportAppBackup,
   importAppBackup,
   LOCALAI_STORAGE_KEYS,
 } from "@/utils/appBackup";
-import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
+
 
 const APP_VERSION = __APP_VERSION__;
 
@@ -497,23 +648,16 @@ const weatherCityInput = ref(settingsStore.weatherCity);
 
 const temporaryChatDurations = settingsStore.ALLOWED_TEMPORARY_DURATIONS;
 
-const temporaryChatDuration = computed({
-  get: () => settingsStore.temporaryChatDurationHours,
-  set: (hours) => settingsStore.setTemporaryChatDurationHours(hours),
-});
-
 const temporaryChatDurationInput = ref(
   settingsStore.temporaryChatDurationHours,
 );
 
-function resetTemporaryChatDuration() {
-  settingsStore.resetTemporaryChatDurationHours();
-  temporaryChatDurationInput.value = settingsStore.temporaryChatDurationHours;
-}
 
-function saveWeatherCity() {
-  settingsStore.setWeatherCity(weatherCityInput.value);
-}
+// computed property
+const temporaryChatDuration = computed({
+  get: () => settingsStore.temporaryChatDurationHours,
+  set: (hours) => settingsStore.setTemporaryChatDurationHours(hours),
+});
 
 const isChecking = computed(
   () => settingsStore.connectionStatus === "checking",
@@ -538,21 +682,92 @@ const statusLabel = computed(() => {
   }
 });
 
+const storageUsedLabel = computed(() => `${calculateStorageUsage()} KB`);
+
+const hostIpLabel = computed(() => {
+  if (hostIp.value !== "localhost") return hostIp.value;
+  return localIp.value ? `localhost (${localIp.value})` : "localhost";
+});
+
+const isCheckingLmStudio = computed(() => {
+  return settingsStore.lmStudioConnectionStatus === "checking";
+});
+
+const lmStudioStatusClass = computed(() => ({
+  connected: settingsStore.lmStudioConnectionStatus === "connected",
+  error: settingsStore.lmStudioConnectionStatus === "error",
+  unknown:
+    settingsStore.lmStudioConnectionStatus === "unknown" ||
+    isCheckingLmStudio.value,
+}));
+
+const lmStudioStatusLabel = computed(() => {
+  switch (settingsStore.lmStudioConnectionStatus) {
+    case "connected":
+      return "Connected";
+    case "error":
+      return "Not reachable";
+    case "checking":
+      return "Checking connection…";
+    default:
+      return "Not checked yet";
+  }
+});
+
+
+// async functions
 async function handleTest() {
   await settingsStore.testConnection();
 }
 
-onMounted(async () => {
-  settingsStore.startPolling();
-  modelNames.value = await ollama.getAllModelsNames();
-  if (hostIp.value === "localhost") detectLocalIp();
-});
+async function handleTestLmStudio() {
+  await settingsStore.testLmStudioConnection();
+}
 
-onUnmounted(() => {
-  settingsStore.stopPolling();
-});
+async function handleImportBackup(event) {
+  const [file] = event.target.files;
 
-// Data Management
+  if (!file) return;
+
+  backupStatus.value = "";
+  backupError.value = "";
+
+  const confirmed = confirm(
+    "Importing replaces your current chats, projects and settings. Continue?",
+  );
+
+  if (!confirmed) {
+    event.target.value = "";
+    return;
+  }
+
+  try {
+    const backup = await importAppBackup(file);
+
+    backupStatus.value = `Backup from ${new Date(backup.exportedAt).toLocaleString()} imported. Reloading…`;
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
+  } catch (error) {
+    console.error("Backup import failed:", error);
+    backupError.value = error.message || "Could not import the backup.";
+  } finally {
+    event.target.value = "";
+  }
+}
+
+
+// functions
+function resetTemporaryChatDuration() {
+  settingsStore.resetTemporaryChatDurationHours();
+  temporaryChatDurationInput.value = settingsStore.temporaryChatDurationHours;
+}
+
+function saveWeatherCity() {
+  settingsStore.setWeatherCity(weatherCityInput.value);
+}
+
 function calculateStorageUsage() {
   let total = 0;
   for (const key in localStorage) {
@@ -562,8 +777,6 @@ function calculateStorageUsage() {
   }
   return (total / 1024).toFixed(1);
 }
-
-const storageUsedLabel = computed(() => `${calculateStorageUsage()} KB`);
 
 function handleExportAllData() {
   const data = {
@@ -618,12 +831,6 @@ function detectLocalIp() {
   }
 }
 
-const hostIpLabel = computed(() => {
-  if (hostIp.value !== "localhost") return hostIp.value;
-  return localIp.value ? `localhost (${localIp.value})` : "localhost";
-});
-
-// Export & Import
 function handleExportBackup() {
   backupStatus.value = "";
   backupError.value = "";
@@ -643,40 +850,6 @@ function triggerImportBackup() {
   backupFileInput.value?.click();
 }
 
-async function handleImportBackup(event) {
-  const [file] = event.target.files;
-
-  if (!file) return;
-
-  backupStatus.value = "";
-  backupError.value = "";
-
-  const confirmed = confirm(
-    "Importing replaces your current chats, projects and settings. Continue?",
-  );
-
-  if (!confirmed) {
-    event.target.value = "";
-    return;
-  }
-
-  try {
-    const backup = await importAppBackup(file);
-
-    backupStatus.value = `Backup from ${new Date(backup.exportedAt).toLocaleString()} imported. Reloading…`;
-
-    setTimeout(() => {
-      window.location.reload();
-    }, 800);
-  } catch (error) {
-    console.error("Backup import failed:", error);
-    backupError.value = error.message || "Could not import the backup.";
-  } finally {
-    event.target.value = "";
-  }
-}
-
-// Delete
 function handleDeleteAllData() {
   const confirmed = confirm(
     "Delete all LocalAI chats, projects and settings? This cannot be undone.",
@@ -719,17 +892,38 @@ function handleDeleteProjects() {
   removeLocalData([PROJECTS_KEY]);
   reloadAfterDataChange();
 }
+
+
+// mounted/ unmounted lifecycle hooks
+onMounted(async () => {
+  settingsStore.startPolling();
+  modelNames.value = await ollama.getAllModelsNames();
+  if (hostIp.value === "localhost") detectLocalIp();
+});
+
+onUnmounted(() => {
+  settingsStore.stopPolling();
+});
 </script>
 
 <style scoped>
+/* Page layout */
 .settings-view {
   box-sizing: border-box;
   min-height: 100%;
-  overflow-y: auto;
   padding: clamp(1.5rem, 4vw, 3rem);
-  transform: translateZ(0); /* prevents twice scrolling */
+  overflow-y: auto;
+  transform: translateZ(0);
 }
 
+.settings-content {
+  display: grid;
+  max-width: var(--max-width);
+  gap: 0.85rem;
+  padding-bottom: 2rem;
+}
+
+/* Page header */
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -743,31 +937,6 @@ function handleDeleteProjects() {
   display: flex;
   align-items: flex-start;
   gap: 0.65rem;
-}
-
-.eyebrow {
-  margin: 0 0 0.2rem;
-  color: var(--color-text-faint);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.page-header h1 {
-  margin: 0;
-  color: var(--color-text);
-  font-size: clamp(1.65rem, 3vw, 2.2rem);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
-}
-
-.header-description {
-  margin: 0.45rem 0 0;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  line-height: 1.5;
 }
 
 .header-icon {
@@ -792,13 +961,23 @@ function handleDeleteProjects() {
   text-transform: uppercase;
 }
 
-.settings-content {
-  display: grid;
-  max-width: var(--max-width);
-  gap: 0.85rem;
-  padding-bottom: 2rem;
+.page-header h1 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: clamp(1.65rem, 3vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
 }
 
+.header-description {
+  margin: 0.45rem 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+/* Settings cards */
 .settings-card {
   padding: clamp(1rem, 2.5vw, 1.35rem);
   background: var(--color-surface);
@@ -845,9 +1024,10 @@ function handleDeleteProjects() {
   line-height: 1.5;
 }
 
+/* Form fields */
 .field-group+.field-group {
-  margin-top: 1.25rem;
   max-width: var(--max-width);
+  margin-top: 1.25rem;
 }
 
 .field-label {
@@ -870,21 +1050,6 @@ function handleDeleteProjects() {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-}
-
-.range-value,
-.storage-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.2rem 0.45rem;
-  color: var(--color-text-muted);
-  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
 }
 
 .input-row {
@@ -923,9 +1088,9 @@ function handleDeleteProjects() {
 }
 
 select.input {
-  appearance: none;
   padding-right: 2.5rem;
   cursor: pointer;
+  appearance: none;
   background-image:
     linear-gradient(45deg, transparent 50%, currentColor 50%),
     linear-gradient(135deg, currentColor 50%, transparent 50%);
@@ -945,17 +1110,34 @@ textarea.input.textarea {
   line-height: 1.55;
 }
 
+.range-value,
+.storage-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.45rem;
+  color: var(--color-text-muted);
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+/* Shared buttons */
 .btn-primary,
 .btn-secondary,
-.btn-danger {
+.btn-danger,
+.btn-danger-outline {
   min-height: 38px;
   padding: 0.55rem 0.85rem;
-  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: var(--text-xs);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
+  border-radius: var(--radius-md);
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
@@ -998,18 +1180,55 @@ textarea.input.textarea {
       var(--color-border));
 }
 
-.btn-danger {
-  color: var(--color-error);
+.btn-danger-outline {
+  color: var(--color-error, #ef4444);
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--color-error) 60%, var(--color-border));
+  border: 1px solid color-mix(in srgb,
+      var(--color-error, #ef4444) 42%,
+      var(--color-border));
+}
+
+.btn-danger-outline:hover {
+  color: #fff;
+  background: var(--color-error, #ef4444);
+  border-color: var(--color-error, #ef4444);
+}
+
+.btn-danger {
+  color: #fff;
+  background: var(--color-error, #ef4444);
+  border: 1px solid var(--color-error, #ef4444);
 }
 
 .btn-danger:hover {
-  color: #fff;
-  background: var(--color-error);
-  border-color: var(--color-error);
+  filter: brightness(0.94);
 }
 
+.btn-reset {
+  padding: 0.3rem 0;
+  color: var(--color-text-faint);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.btn-reset:hover {
+  color: var(--color-primary);
+}
+
+.btn-reset:disabled {
+  color: var(--color-text-faint);
+  cursor: default;
+  opacity: 0.55;
+  text-decoration: none;
+}
+
+/* Connection status */
 .connection-badge {
   display: inline-flex;
   flex-shrink: 0;
@@ -1032,15 +1251,19 @@ textarea.input.textarea {
 
 .connection-badge.error {
   color: var(--color-error);
-  background: color-mix(in srgb, var(--color-error) 10%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--color-error) 28%, var(--color-border));
+  background: color-mix(in srgb,
+      var(--color-error) 10%,
+      var(--color-surface));
+  border-color: color-mix(in srgb,
+      var(--color-error) 28%,
+      var(--color-border));
 }
 
 .status-dot {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
   background: currentColor;
+  border-radius: 50%;
 }
 
 .version-note {
@@ -1055,6 +1278,7 @@ textarea.input.textarea {
   font-weight: 500;
 }
 
+/* Network details */
 .network-panel {
   padding: 0.9rem;
   margin-top: 1.25rem;
@@ -1065,8 +1289,8 @@ textarea.input.textarea {
 
 .network-panel-header {
   display: flex;
-  gap: 0.7rem;
   align-items: flex-start;
+  gap: 0.7rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--color-border);
 }
@@ -1105,16 +1329,16 @@ textarea.input.textarea {
 
 .info-row {
   display: grid;
-  gap: 0.2rem;
   min-width: 0;
+  gap: 0.2rem;
 }
 
 .info-label {
   color: var(--color-text-faint);
   font-size: 10px;
   font-weight: 600;
-  text-transform: uppercase;
   letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .info-value {
@@ -1129,6 +1353,7 @@ textarea.input.textarea {
   white-space: nowrap;
 }
 
+/* Appearance settings */
 .setting-row,
 .action-row {
   display: flex;
@@ -1139,8 +1364,8 @@ textarea.input.textarea {
 
 .setting-copy {
   display: grid;
-  gap: 0.2rem;
   min-width: 0;
+  gap: 0.2rem;
 }
 
 .setting-label {
@@ -1159,10 +1384,10 @@ textarea.input.textarea {
   display: flex;
   flex-shrink: 0;
   padding: 2px;
+  cursor: pointer;
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  cursor: pointer;
 }
 
 .theme-switch span {
@@ -1183,6 +1408,7 @@ textarea.input.textarea {
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
 }
 
+/* Model defaults */
 .slider {
   display: block;
   width: 100%;
@@ -1192,100 +1418,28 @@ textarea.input.textarea {
   accent-color: var(--color-primary);
 }
 
-.btn-reset {
-  padding: 0.3rem 0;
-  color: var(--color-text-faint);
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 500;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
+.temporary-duration-select,
+.weather-city-row {
+  width: 100%;
+  max-width: var(--max-width);
 }
 
-.btn-reset:hover {
-  color: var(--color-primary);
+.weather-city-row .input {
+  flex: 1;
 }
 
-.action-list {
-  display: grid;
-  border-top: 1px solid var(--color-border);
+.weather-city-row .btn-primary {
+  flex: 0 0 auto;
 }
 
-.action-row {
-  min-height: 68px;
-  padding: 0.85rem 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.action-row:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-
-.danger-row .setting-label {
-  color: var(--color-error);
-}
-
-.about-card {
-  margin-bottom: 1rem;
-}
-
-.about-list {
-  display: grid;
-  margin-bottom: 1rem;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.about-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: 0.65rem 0.75rem;
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.about-row:last-child {
-  border-bottom: 0;
-}
-
-.about-row code {
-  color: var(--color-text);
-  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
-  font-size: 11px;
-}
-
-.github-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: var(--color-primary);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.github-link:hover {
-  color: var(--color-primary-hover);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
+/* Backup management */
 .backup-actions {
   display: grid;
   gap: 0.75rem;
   margin-top: 1rem;
 }
 
-.backup-action,
-.danger-row {
+.backup-action {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1296,29 +1450,25 @@ textarea.input.textarea {
   border-radius: var(--radius-md);
 }
 
-.backup-action-copy,
-.danger-row>div {
+.backup-action-copy {
   min-width: 0;
 }
 
-.backup-action h3,
-.danger-row h3 {
+.backup-action h3 {
   margin: 0;
   color: var(--color-text);
   font-size: var(--text-sm);
   font-weight: 650;
 }
 
-.backup-action p,
-.danger-row p {
+.backup-action p {
   margin: 0.25rem 0 0;
   color: var(--color-text-muted);
   font-size: var(--text-xs);
   line-height: 1.45;
 }
 
-.backup-action .btn-secondary,
-.danger-row .btn-danger {
+.backup-action .btn-secondary {
   flex: 0 0 auto;
 }
 
@@ -1335,28 +1485,24 @@ textarea.input.textarea {
   background: color-mix(in srgb,
       var(--color-success, #22c55e) 10%,
       transparent);
-  border: 1px solid color-mix(in srgb, var(--color-success, #22c55e) 25%, transparent);
+  border: 1px solid color-mix(in srgb,
+      var(--color-success, #22c55e) 25%,
+      transparent);
 }
 
 .backup-feedback.error {
   color: var(--color-error, #ef4444);
-  background: color-mix(in srgb, var(--color-error, #ef4444) 10%, transparent);
+  background: color-mix(in srgb,
+      var(--color-error, #ef4444) 10%,
+      transparent);
   border: 1px solid color-mix(in srgb, var(--color-error, #ef4444) 25%, transparent);
 }
 
+/* Data deletion */
 .data-divider {
   height: 1px;
   margin: 1rem 0;
   background: var(--color-border);
-}
-
-.danger-row {
-  background: color-mix(in srgb,
-      var(--color-error, #ef4444) 5%,
-      var(--color-surface));
-  border-color: color-mix(in srgb,
-      var(--color-error, #ef4444) 22%,
-      var(--color-border));
 }
 
 .data-danger-heading {
@@ -1424,48 +1570,57 @@ textarea.input.textarea {
   line-height: 1.45;
 }
 
-.btn-danger-outline,
-.btn-danger {
+/* About section */
+.about-card {
+  margin-bottom: 1rem;
+}
+
+.about-list {
+  display: grid;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.about-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0.65rem 0.75rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.about-row:last-child {
+  border-bottom: 0;
+}
+
+.about-row code {
+  color: var(--color-text);
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px;
+}
+
+.github-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 36px;
-  flex: 0 0 auto;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-md);
-  font-family: inherit;
+  gap: 0.35rem;
+  color: var(--color-primary);
   font-size: var(--text-xs);
   font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background 0.16s ease,
-    border-color 0.16s ease,
-    color 0.16s ease;
+  text-decoration: none;
 }
 
-.btn-danger-outline {
-  color: var(--color-error, #ef4444);
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--color-error, #ef4444) 42%, var(--color-border));
+.github-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.btn-danger-outline:hover {
-  color: #fff;
-  background: var(--color-error, #ef4444);
-  border-color: var(--color-error, #ef4444);
-}
-
-.btn-danger {
-  color: #fff;
-  background: var(--color-error, #ef4444);
-  border: 1px solid var(--color-error, #ef4444);
-}
-
-.btn-danger:hover {
-  filter: brightness(0.94);
-}
-
+/* Accessibility helper */
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -1478,32 +1633,10 @@ textarea.input.textarea {
   border: 0;
 }
 
-/* Weather city input row */
-.weather-city-row {
-  max-width: var(--max-width);
-}
-
-.weather-city-row .input {
-  flex: 1;
-}
-
-.weather-city-row .btn-primary {
-  flex: 0 0 auto;
-}
-
-.temporary-duration-select {
-  width: 100%;
-  max-width: var(--max-width);
-}
-
-.btn-reset:disabled {
-  color: var(--color-text-faint);
-  cursor: default;
-  opacity: 0.55;
-  text-decoration: none;
-}
-
+/* Mobile layout */
 @media (max-width: 620px) {
+
+  /* Page and cards */
   .settings-view {
     padding: 0.85rem 0.75rem 1.5rem;
   }
@@ -1564,6 +1697,7 @@ textarea.input.textarea {
     font-size: 11px;
   }
 
+  /* Form fields */
   .field-group+.field-group {
     margin-top: 0.85rem;
   }
@@ -1603,6 +1737,7 @@ textarea.input.textarea {
     font-size: 11px;
   }
 
+  /* Connection and network */
   .connection-badge {
     align-self: flex-start;
     padding: 0.3rem 0.5rem;
@@ -1646,6 +1781,7 @@ textarea.input.textarea {
     font-size: 10px;
   }
 
+  /* Appearance and defaults */
   .theme-switch {
     align-self: flex-start;
   }
@@ -1671,35 +1807,41 @@ textarea.input.textarea {
     font-size: 10px;
   }
 
-  .storage-badge {
-    align-self: flex-start;
+  .weather-city-row {
+    flex-direction: column;
+    max-width: none;
   }
 
+  .weather-city-row .btn-primary {
+    width: 100%;
+  }
+
+  .temporary-duration-select {
+    width: 100%;
+  }
+
+  /* Backup management */
   .backup-actions {
     gap: 0.55rem;
     margin-top: 0.75rem;
   }
 
-  .backup-action,
-  .danger-row {
+  .backup-action {
     align-items: flex-start;
     flex-direction: column;
     gap: 0.6rem;
     padding: 0.65rem;
   }
 
-  .backup-action h3,
-  .danger-row h3 {
+  .backup-action h3 {
     font-size: 12px;
   }
 
-  .backup-action p,
-  .danger-row p {
+  .backup-action p {
     font-size: 11px;
   }
 
-  .backup-action .btn-secondary,
-  .danger-row .btn-danger {
+  .backup-action .btn-secondary {
     width: 100%;
   }
 
@@ -1708,6 +1850,7 @@ textarea.input.textarea {
     font-size: 11px;
   }
 
+  /* Danger zone */
   .data-divider {
     margin: 0.75rem 0;
   }
@@ -1750,6 +1893,7 @@ textarea.input.textarea {
     font-size: 11px;
   }
 
+  /* About section */
   .about-row {
     padding: 0.5rem 0.6rem;
     font-size: 11px;
@@ -1761,19 +1905,6 @@ textarea.input.textarea {
 
   .github-link {
     font-size: 11px;
-  }
-
-  .weather-city-row {
-    flex-direction: column;
-    max-width: none;
-  }
-
-  .weather-city-row .btn-primary {
-    width: 100%;
-  }
-
-  .temporary-duration-select {
-    width: 100%;
   }
 }
 </style>

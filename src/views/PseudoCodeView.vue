@@ -1,5 +1,7 @@
 <!-- src/views/PseudoCodeView.vue -->
 
+<!-- Renders the pseudocode-to-code feature as a route-level view. -->
+
 <template>
   <PseudoCode />
 </template>

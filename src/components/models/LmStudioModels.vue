@@ -2,6 +2,7 @@
 
 <template>
     <div class="models-view">
+        <!-- Page Header -->
         <header class="page-header">
             <div class="page-heading">
                 <div class="header-icon" aria-hidden="true">
@@ -85,7 +86,7 @@
                     All information about your local LM Studio server.
                 </p>
 
-                <!-- NEW Url References -->
+                <!-- Url References -->
                 <div class="link-row">
                     <a v-for="link in resourceLinks" :key="link.url" :href="link.url" target="_blank"
                         rel="noopener noreferrer">
@@ -93,7 +94,7 @@
                     </a>
                 </div>
 
-                <!-- NEW Installation Status -->
+                <!-- Installation Status -->
                 <div class="info-grid">
                     <div class="info-row">
                         <span class="info-label">Installation Status</span>
@@ -117,7 +118,7 @@
                     </div>
                 </div>
 
-                <!-- NEW Connection Status -->
+                <!-- Connection Status -->
                 <div class="info-grid">
                     <div class="info-row">
                         <span class="info-label">Connection Status</span>
@@ -141,26 +142,26 @@
                     </div>
                 </div>
 
-                <!-- NEW Base Url -->
+                <!-- Base Url -->
                 <div class="info-row">
                     <span class="info-label">Base URL</span>
                     <span class="info-value mono">{{ baseUrl }}</span>
                 </div>
 
-                <!-- NEW Version -->
+                <!-- Version -->
                 <div class="info-row">
                     <span class="info-label">Version</span>
                     <span class="info-value mono">{{ version }}</span>
                     <!--  (currently there no API endpoint available) -->
                 </div>
 
-                <!-- NEW Total Size -->
+                <!-- Total Size -->
                 <div class="info-row">
                     <span class="info-label">Total Size</span>
                     <span class="info-value mono">{{ totalSize }}</span>
                 </div>
 
-                <!-- NEW Installed Models Counter -->
+                <!-- Installed Models Counter -->
                 <div class="info-row">
                     <span class="info-label">Models Available</span>
                     <span class="info-value mono">
@@ -168,7 +169,7 @@
                     </span>
                 </div>
 
-                <!-- NEW Running Models Counter -->
+                <!-- Running Models Counter -->
                 <div class="info-row">
                     <span class="info-label">Running Models</span>
                     <span class="info-value mono">
@@ -257,7 +258,7 @@
                         {{ pullNameError }}
                     </span>
 
-                    <!-- Genau ein Status-Block: pulling ODER paused -->
+                    <!-- Exactly one status block: "pulling" OR "paused" -->
                     <div v-if="customPullStatus?.state === 'pulling'" class="pull-status" aria-live="polite">
                         <div class="pull-status-header">
                             <span class="pull-status-label">
@@ -279,10 +280,12 @@
                         </p>
                     </div>
 
+                    <!-- Error Message -->
                     <p v-else-if="customPullStatus?.state === 'error'" class="pull-message text-error" role="alert">
                         {{ customPullStatus.error }}
                     </p>
 
+                    <!-- Completed Message -->
                     <p v-else-if="customPullStatus?.state === 'completed'" class="pull-message text-success">
                         {{ pullCompletedMessage }}
                     </p>
@@ -299,6 +302,7 @@
 
                 <div class="recommended-models">
                     <div v-for="model in recommendedModels" :key="model.name" class="model-recommend-item">
+                        <!-- Recommended Model Info -->
                         <div class="model-recommend-info">
                             <p class="model-recommend-name">
                                 {{ model.label }}
@@ -343,10 +347,12 @@
                             </p>
                         </div>
 
-                        <button v-if="lmStudioApi.isModelInstalled(model)" type="button" class="btn-installed" disabled>
+                        <!-- Model Is Installed -->
+                        <button v-if="isRecommendedModelInstalled(model)" type="button" class="btn-installed" disabled>
                             Installed
                         </button>
 
+                        <!-- Model Is Not Installed -->
                         <button v-else type="button" class="btn-primary" :disabled="statusBool !== true ||
                             getRecommendedPullState(model.name)?.state === 'pulling'
                             " @click="handlePullRecommended(model)">
@@ -382,6 +388,7 @@
                     Load an installed model into memory so it is ready for inference.
                 </p>
 
+                <!-- Model Selection -->
                 <div class="select-row">
                     <label for="load-model-select" class="info-label">
                         Select model
@@ -399,6 +406,7 @@
                     </select>
                 </div>
 
+                <!-- Load Model Button -->
                 <div class="refresh-row">
                     <button type="button" class="btn-primary" :disabled="!selectedModelToLoad || isLoadingModel"
                         @click="handleLoadModel">
@@ -423,6 +431,7 @@
                     Remove a loaded model from memory. The downloaded model files remain on disk.
                 </p>
 
+                <!-- Unload Model Selection -->
                 <div class="select-row">
                     <label for="unload-model-select" class="info-label">
                         Select loaded model
@@ -440,6 +449,7 @@
                     </select>
                 </div>
 
+                <!-- Unload Model Button -->
                 <div class="refresh-row">
                     <button type="button" class="btn-danger" :disabled="!selectedInstanceId || isUnloading"
                         @click="handleUnloadModel">
@@ -458,6 +468,7 @@
 
             <!-- Card: Installed Models -->
             <section class="card">
+                <!-- Card Header -->
                 <div class="card-header-row">
                     <div>
                         <h2>All Models with Details</h2>
@@ -471,6 +482,7 @@
                     </span>
                 </div>
 
+                <!-- Models Toolbar with Search and Filter -->
                 <div class="models-toolbar">
                     <input v-model="searchQuery" class="input search-input" type="search"
                         placeholder="Search models…" />
@@ -482,16 +494,19 @@
                     </select>
                 </div>
 
+                <!-- Empty State -->
                 <div v-if="modelsCounter === 0" class="empty-state">
                     No models available.
                 </div>
 
+                <!-- Filtered Empty State -->
                 <div v-else-if="filteredModels.length === 0" class="empty-state">
                     <IconPackageOff :size="28" :stroke-width="1.5" />
                     <p>No models match your search or selected status filter.</p>
                 </div>
 
                 <div v-else class="model-detail-list">
+                    <!-- Model Detail Cards -->
                     <article v-for="model in filteredModels" :key="model.id" class="model-detail-card">
                         <header class="model-detail-header">
                             <div class="model-title-group">
@@ -615,15 +630,19 @@
             <!-- Card: All Running Models -->
             <section class="card">
                 <h2>All Running Models</h2>
+
                 <p class="card-hint">
                     List of all models that are currently loaded in memory.
                 </p>
+
                 <span v-if="loadedModelsCounter > 0" class="count-badge">
                     {{ loadedModelsCounter }}
                 </span>
+
                 <div v-if="loadedModels.length === 0" class="empty-state">
                     No models are currently loaded.
                 </div>
+
                 <div v-else class="running-models-list">
                     <ul>
                         <li v-for="model in loadedModels" :key="model.instanceId">
@@ -635,6 +654,7 @@
 
             <!-- Card: Chat defaults -->
             <section class="card chat-defaults-card">
+                <!-- Header -->
                 <div class="card-header-row">
                     <div>
                         <h2>Chat Defaults</h2>
@@ -648,7 +668,9 @@
                     </span>
                 </div>
 
+                <!-- Form -->
                 <div class="defaults-form">
+                    <!-- Temperature Setting -->
                     <div class="default-setting">
                         <div class="setting-label-row">
                             <label for="default-temperature">Temperature</label>
@@ -666,6 +688,7 @@
                         </p>
                     </div>
 
+                    <!-- Context Window Setting -->
                     <div class="default-setting">
                         <div class="setting-label-row">
                             <label for="default-context-window">
@@ -685,6 +708,7 @@
                         </p>
                     </div>
 
+                    <!-- Default System Prompt Setting -->
                     <div class="default-setting">
                         <div class="setting-label-row">
                             <label for="default-system-prompt">
@@ -712,80 +736,82 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+
 import { useLmStudioApi } from "@/services/lmsApiService";
+import { useSettingsStore } from "@/stores/useSettingsStore";
+
 import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
 import IconLmStudio from "@/components/icons/IconLmStudio.vue";
-//import IconRefresh from "@/components/icons/IconRefresh.vue";
-//import IconAlertTriangle from "@/components/icons/IconAlertTriangle.vue";
-import {
-    IconRefresh,
-    IconAlertTriangle,
-    IconPackageOff,
-    IconPlayerPlay,
-    IconPlayerStop,
-    IconCheck,
-} from "@tabler/icons-vue";
+import IconRefresh from "@/components/icons/IconRefresh.vue";
+import IconAlertTriangle from "@/components/icons/IconAlertTriangle.vue";
+import IconPackageOff from "@/components/icons/IconPackageOff.vue";
+import IconPlayerPlay from "@/components/icons/IconPlayerPlay.vue";
+import IconPlayerStop from "@/components/icons/IconPlayerStop.vue";
+import IconCheck from "@/components/icons/IconCheck.vue";
+
 
 const lmStudioApi = useLmStudioApi();
+const settingsStore = useSettingsStore();
 
-const isInstalled = ref(""); // installation
-const isConnected = ref(""); // connection
-const baseUrlMessage = ref("") // url
-const baseUrlError = ref("") // url
-const pullName = ref("") // download
-const pullNameError = ref("") // download
-const activePullName = ref("") // download
-const selectedInstanceId = ref("") // unload
-const unloadMessage = ref("") // unload
-const unloadError = ref("") // unload
-const selectedModelToLoad = ref("") // load
-const loadMessage = ref("") // load
-const loadError = ref("") // load
+const isInstalled = ref("");
+const isConnected = ref("");
+const baseUrlMessage = ref("")
+const baseUrlError = ref("")
+const pullName = ref("")
+const pullNameError = ref("")
+const activePullName = ref("")
+const selectedInstanceId = ref("")
+const unloadMessage = ref("")
+const unloadError = ref("")
+const selectedModelToLoad = ref("")
+const loadMessage = ref("")
+const loadError = ref("")
 const totalSize = ref("")
 const searchQuery = ref("")
 
 const statusFilter = ref("all")
 
-const statusBool = ref(null); // installation && connection
-const version = ref(null); // version
-const errorInstalled = ref(null); // installation
-const errorConnection = ref(null); // connection
-const customPullStatus = ref(null) // download
+const statusBool = ref(null);
+const version = ref(null);
+const errorInstalled = ref(null);
+const errorConnection = ref(null);
+const customPullStatus = ref(null)
 const pendingModelId = ref(null);
 
 const resourceLinks = lmStudioApi.getResourceLinks()
-const baseUrl = ref(lmStudioApi.getBaseUrl()) // url
-const newBaseUrl = ref(baseUrl.value); // start value: current Url
+const defaults = lmStudioApi.getChatDefaults()
+
+const baseUrl = computed(() => settingsStore.lmStudioApiUrl);
+const newBaseUrl = ref(settingsStore.lmStudioApiUrl);
 const recommendedModels = ref(lmStudioApi.getRecommendedModels());
 const debugEnabled = ref(lmStudioApi.isDebugEnabled());
-
-const defaults = lmStudioApi.getChatDefaults()
 const temperature = ref(defaults.temperature)
 const contextWindow = ref(defaults.contextLength)
 const systemPrompt = ref(defaults.systemPrompt)
 
-const allModelsWithDetails = ref([]) // model
-const installedNames = ref([]) // model
+const allModelsWithDetails = ref([])
+const installedNames = ref([])
 
-const modelsCounter = ref(0) // model
+const modelsCounter = ref(0)
 const runningModelsCounter = ref(0)
 
-const isUpdatingBaseUrl = ref(false) // url
-const isUnloading = ref(false) // unload
-const isLoadingModel = ref(false) // load
+const isUpdatingBaseUrl = ref(false)
+const isUnloading = ref(false)
+const isLoadingModel = ref(false)
 const isRefreshing = ref(false);
 
 const recommendedPullStatus = ref({}) // key: model.name, value: { state: string, progress: number }
 
-const loadedModels = computed(() => { // for unload
+const loadedModels = computed(() => {
     return allModelsWithDetails.value.filter(model => model.isLoaded)
 })
-const unloadedModels = computed(() => { // for load
+const unloadedModels = computed(() => {
     return allModelsWithDetails.value.filter(model => !model.isLoaded)
 })
 const loadedModelsCounter = computed(() => {
     return allModelsWithDetails.value.filter(model => model.isLoaded).length
-}) // getRunningModelsTotalCount() is async and returns a Promise (and not a number), so we use a computed property to get the count synchronously
+}) // getRunningModelsTotalCount() is async and returns a Promise (and not a number), so using a computed property to get the count synchronously
+
 const temperatureLabel = computed(() => {
     return Number(temperature.value).toFixed(1)
 })
@@ -799,9 +825,9 @@ async function reloadStatus() {
     try {
         await lmStudioApi.getAllInstalledModels()
         isInstalled.value = await lmStudioApi.isInstalled();
-        statusBool.value = await lmStudioApi.statusBool();
+        statusBool.value = await lmStudioApi.status();
         isConnected.value = await lmStudioApi.isConnected();
-        version.value = await lmStudioApi.getVersion(); // Kein offizieller Versionsendpunkt vorhanden
+        version.value = await lmStudioApi.getVersion(); // no API endpoint available
 
         installedNames.value = await lmStudioApi.getAllModelsNames()
         allModelsWithDetails.value = await lmStudioApi.getAllModelsWithDetails()
@@ -839,14 +865,12 @@ async function updateBaseUrl() {
     isUpdatingBaseUrl.value = true
 
     try {
-        lmStudioApi.setBaseUrl(nextUrl)
+        settingsStore.lmStudioApiUrl = nextUrl;
+        newBaseUrl.value = settingsStore.lmStudioApiUrl;
 
-        baseUrl.value = lmStudioApi.getBaseUrl()
-        newBaseUrl.value = baseUrl.value
+        await reloadStatus();
 
-        await reloadStatus()
-
-        baseUrlMessage.value = "Base URL updated successfully."
+        baseUrlMessage.value = "Base URL updated successfully.";
         window.setTimeout(() => {
             baseUrlMessage.value = ""
         }, 5_000)
@@ -866,14 +890,12 @@ async function resetBaseUrl() {
     isUpdatingBaseUrl.value = true
 
     try {
-        lmStudioApi.resetBaseUrl()
+        settingsStore.lmStudioApiUrl = "http://localhost:1234";
+        newBaseUrl.value = settingsStore.lmStudioApiUrl;
 
-        baseUrl.value = lmStudioApi.getBaseUrl()
-        newBaseUrl.value = baseUrl.value
+        await reloadStatus();
 
-        await reloadStatus()
-
-        baseUrlMessage.value = "Base URL reset to the default address."
+        baseUrlMessage.value = "Base URL reset to the default address.";
         window.setTimeout(() => {
             baseUrlMessage.value = ""
         }, 5_000)
@@ -1023,7 +1045,6 @@ async function restoreActivePull() {
 async function handlePullRecommended(model) {
     const name = model.name
 
-    // Falls dieses Modell gerade schon geladen wird
     if (recommendedPullStatus.value[name]?.state === "pulling") {
         return
     }
@@ -1113,10 +1134,7 @@ async function handleLoadModel() {
         const result = await lmStudioApi.loadModel(
             selectedModelToLoad.value,
             {
-                // Optional: Entferne diese Optionen, wenn LM Studio Defaults verwenden soll.
-                //contextLength: 4096,
-                //flashAttention: true,
-                //offloadKvCacheToGpu: true,
+                // TODO: get these values from the chat defaults settings
             },
         )
 
@@ -1252,6 +1270,33 @@ function formatRunningModelCount(count) {
     return `${count} models running`
 }
 
+function isRecommendedModelInstalled(recommendedModel) {
+    const candidates = [
+        recommendedModel.name,
+        ...(recommendedModel.aliases ?? []),
+    ]
+        .map((value) => lmStudioApi.normalizeModelValue(value))
+        .filter(Boolean);
+
+    if (!candidates.length) {
+        return false;
+    }
+
+    return allModelsWithDetails.value.some((installedModel) => {
+        const installedValues = [
+            installedModel.id,
+            installedModel.displayName,
+            installedModel.path,
+        ]
+            .map((value) => lmStudioApi.normalizeModelValue(value))
+            .filter(Boolean);
+
+        return candidates.some((candidate) => {
+            return installedValues.includes(candidate);
+        });
+    });
+}
+
 
 // computed properties
 const isPulling = computed(() => {
@@ -1340,7 +1385,7 @@ watch(
 )
 
 
-// Mounted/ Unmounted lifecycle hooks
+// mounted lifecycle hooks
 onMounted(async () => {
     await restoreActivePull()
     await reloadStatus()
@@ -1348,12 +1393,21 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Page layout */
 .models-view {
     height: 100%;
-    overflow-y: auto;
     padding: var(--space-8) var(--space-6);
+    overflow-y: auto;
 }
 
+.models-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    max-width: var(--max-width);
+}
+
+/* Page header */
 .page-header {
     display: flex;
     align-items: flex-start;
@@ -1395,6 +1449,9 @@ onMounted(async () => {
 }
 
 .page-header h1 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     margin: 0;
     color: var(--color-text);
     font-size: clamp(1.65rem, 3vw, 2.2rem);
@@ -1410,56 +1467,61 @@ onMounted(async () => {
     line-height: 1.5;
 }
 
-.models-content {
+.header-status {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
+    align-items: center;
+    gap: 0.5rem;
     max-width: var(--max-width);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
 }
 
+/* Shared cards */
 .card {
+    padding: var(--space-6);
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    padding: var(--space-6);
 }
 
 .card h2 {
+    margin-bottom: var(--space-3);
     font-size: var(--text-sm);
     font-weight: 600;
-    margin-bottom: var(--space-3);
 }
 
 .card-header-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    gap: var(--space-3);
     margin-bottom: var(--space-2);
 }
 
-.count-badge {
-    font-size: var(--text-xs);
+.card-hint {
+    margin-bottom: var(--space-2);
     color: var(--color-text-muted);
-    background: var(--color-surface-2);
+    font-size: var(--text-xs);
+}
+
+.count-badge {
     padding: 2px 10px;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    background: var(--color-surface-2);
     border-radius: var(--radius-full);
 }
 
-/* Pull form */
-.pull-form {
-    display: flex;
-    gap: var(--space-2);
-}
-
+/* Shared form controls */
 .input {
-    flex: 1;
     min-width: 0;
+    flex: 1;
     padding: var(--space-2) var(--space-3);
+    color: var(--color-text);
+    font-size: var(--text-sm);
     background: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    font-size: var(--text-sm);
-    color: var(--color-text);
     outline: none;
     transition: border-color 0.15s ease;
 }
@@ -1468,14 +1530,39 @@ onMounted(async () => {
     border-color: var(--color-primary);
 }
 
+.select {
+    min-width: 200px;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.input-error-text {
+    display: block;
+    margin-top: var(--space-1);
+    color: var(--color-error);
+    font-size: var(--text-xs);
+}
+
+/* Shared buttons */
+.btn-primary,
+.btn-danger,
+.btn-ghost,
+.btn-debug {
+    cursor: pointer;
+}
+
 .btn-primary {
     padding: var(--space-2) var(--space-4);
-    background: var(--color-primary);
     color: white;
-    border-radius: var(--radius-md);
     font-size: var(--text-sm);
     font-weight: 500;
     white-space: nowrap;
+    background: var(--color-primary);
+    border-radius: var(--radius-md);
     transition: background 0.15s ease;
 }
 
@@ -1483,42 +1570,102 @@ onMounted(async () => {
     background: var(--color-primary-hover);
 }
 
-.btn-primary:disabled {
-    opacity: 0.5;
+.btn-primary:disabled,
+.btn-danger:disabled,
+.btn-debug:disabled {
     cursor: not-allowed;
+    opacity: 0.5;
 }
 
-.progress-info {
-    margin-top: var(--space-3);
+.btn-ghost {
+    padding: 4px var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
 }
 
-.progress-bar {
-    height: 4px;
-    background: var(--color-border);
-    border-radius: var(--radius-full);
-    overflow: hidden;
+.btn-ghost:hover {
+    color: var(--color-text);
+    background: var(--color-surface-2);
 }
 
-.progress-fill {
-    height: 100%;
-    background: var(--color-primary);
-    transition: width 300ms ease;
+.btn-danger {
+    padding: var(--space-2) var(--space-4);
+    color: var(--color-error);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    white-space: nowrap;
+    background: transparent;
+    border: 1px solid oklch(from var(--color-error) l c h / 0.3);
+    border-radius: var(--radius-md);
+    transition: background 0.15s ease;
 }
 
-.progress-text {
+.btn-danger:hover:not(:disabled) {
+    background: oklch(from var(--color-error) l c h / 0.08);
+}
+
+/* Status indicators */
+.status-dot {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    background: var(--color-error, #ef4444);
+    border-radius: 50%;
+}
+
+.status-dot.connected,
+.status-dot.online {
+    background: #6daa45;
+    box-shadow: 0 0 0 3px oklch(from #6daa45 l c h / 0.15);
+}
+
+.status-dot.disconnected {
+    background: var(--color-error);
+    box-shadow: 0 0 0 3px oklch(from var(--color-error) l c h / 0.15);
+}
+
+/* Offline state */
+.offline-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: var(--space-4);
+    color: var(--color-warning, #a16207);
+    background: color-mix(in srgb,
+            var(--color-warning, #f59e0b) 12%,
+            var(--color-surface));
+    border: 1px solid color-mix(in srgb,
+            var(--color-warning, #f59e0b) 30%,
+            var(--color-border));
+    border-radius: var(--radius-md);
+}
+
+.offline-banner strong {
     display: block;
-    margin-top: var(--space-2);
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
+    font-size: var(--text-sm);
 }
 
-/* Ollama info card */
-.card-hint {
-    font-size: var(--text-xs);
+.offline-banner p {
+    margin: 0.25rem 0 0;
     color: var(--color-text-muted);
-    margin-bottom: var(--space-2);
+    font-size: var(--text-xs);
 }
 
+.offline-banner code {
+    padding: 0.05rem 0.3rem;
+    font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+    background: color-mix(in srgb, var(--color-text) 8%, transparent);
+    border-radius: var(--radius-sm);
+}
+
+/* General information */
 .link-row {
     display: flex;
     flex-wrap: wrap;
@@ -1527,8 +1674,8 @@ onMounted(async () => {
 }
 
 .link-row a {
-    font-size: var(--text-xs);
     color: var(--color-primary);
+    font-size: var(--text-xs);
     text-decoration: none;
 }
 
@@ -1545,9 +1692,9 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--space-3);
     padding: var(--space-3) 0;
     border-bottom: 1px solid var(--color-divider);
-    gap: var(--space-3);
 }
 
 .info-row:last-child {
@@ -1555,338 +1702,248 @@ onMounted(async () => {
 }
 
 .info-label {
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-    font-weight: 500;
     flex-shrink: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: 500;
 }
 
 .info-value {
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    color: var(--color-text);
     font-size: var(--text-sm);
     font-weight: 600;
-    color: var(--color-text);
     text-align: right;
 }
 
 .info-value.mono {
+    max-width: 240px;
+    overflow: hidden;
+    color: var(--color-text-muted);
     font-family: "JetBrains Mono", "SF Mono", monospace;
     font-size: var(--text-xs);
     font-weight: 500;
-    color: var(--color-text-muted);
-    max-width: 240px;
-    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
+/* API endpoint configuration */
+.endpoint-card,
+.chat-defaults-card {
+    overflow: hidden;
 }
 
-.status-dot.connected {
-    background: #6daa45;
-    box-shadow: 0 0 0 3px oklch(from #6daa45 l c h / 0.15);
-}
-
-.status-dot.disconnected {
-    background: var(--color-error);
-    box-shadow: 0 0 0 3px oklch(from var(--color-error) l c h / 0.15);
-}
-
-.refresh-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-top: var(--space-4);
-}
-
-.select-row {
-    display: flex;
+.endpoint-status,
+.defaults-saved-badge {
+    display: inline-flex;
+    min-height: 22px;
+    flex: 0 0 auto;
     align-items: center;
-    justify-content: space-between;
-    margin-top: var(--space-4);
-    padding-top: var(--space-4);
-    border-top: 1px solid var(--color-divider);
+    padding: 2px 8px;
+    color: var(--color-success);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: color-mix(in srgb, var(--color-success) 9%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-success) 28%, var(--color-border));
+    border-radius: var(--radius-full);
 }
 
-.select {
-    padding: var(--space-2) var(--space-3);
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
-    color: var(--color-text);
-    min-width: 200px;
+.defaults-saved-badge {
+    padding: 3px 8px;
 }
 
-/* Model cards */
-.model-cards {
+.endpoint-current {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--space-3);
-}
-
-.model-card {
+    gap: 5px;
+    padding: var(--space-3);
+    margin-top: var(--space-4);
     background: var(--color-surface-2);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    padding: var(--space-4);
-    transition:
-        box-shadow 0.15s ease,
-        transform 0.15s ease;
 }
 
-.model-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
+.endpoint-label,
+.endpoint-input-label {
+    color: var(--color-text-faint);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
-.model-card-title {
-    margin: 0 0 var(--space-2);
-    font-size: var(--text-sm);
-    font-weight: 600;
+.endpoint-value {
+    overflow: hidden;
     color: var(--color-text);
-    padding-bottom: var(--space-2);
-    border-bottom: 1px solid var(--color-divider);
-}
-
-.model-card-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: var(--space-3);
-    padding: 4px 0;
+    font-family: "JetBrains Mono", "SF Mono", monospace;
     font-size: var(--text-xs);
-}
-
-.model-card-key {
-    color: var(--color-text-muted);
     font-weight: 500;
-    flex-shrink: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.model-card-value {
-    color: var(--color-text);
-    text-align: right;
-    word-break: break-word;
+.endpoint-form {
+    margin-top: var(--space-4);
 }
 
-/* Installed models list */
-.models-list,
-.model-list {
+.endpoint-input-label {
+    display: block;
+    margin-bottom: var(--space-2);
+}
+
+.endpoint-input-row {
     display: flex;
-    flex-direction: column;
+    gap: var(--space-2);
 }
 
-.model-item {
+.endpoint-input {
+    min-width: 0;
+    flex: 1;
+    font-family: "JetBrains Mono", "SF Mono", monospace;
+}
+
+.endpoint-update-button {
+    flex: 0 0 auto;
+}
+
+.endpoint-help {
+    margin: var(--space-2) 0 0;
+    color: var(--color-text-faint);
+    font-size: var(--text-xs);
+    line-height: 1.45;
+}
+
+.endpoint-help code {
+    padding: 1px 4px;
+    color: var(--color-text-muted);
+    font-family: "JetBrains Mono", "SF Mono", monospace;
+    font-size: 0.92em;
+    background: var(--color-surface-2);
+    border-radius: 4px;
+}
+
+.endpoint-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-3) 0;
-    border-bottom: 1px solid var(--color-divider);
+    gap: var(--space-3);
+    padding-top: var(--space-3);
+    margin-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
 }
 
-.model-item:last-child {
-    border-bottom: none;
+.endpoint-feedback {
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    text-align: right;
 }
 
-.model-info {
+/* Debug mode */
+.debug-card {
+    border-color: color-mix(in srgb,
+            var(--color-primary) 22%,
+            var(--color-border));
+}
+
+.debug-card-header,
+.debug-card-body {
     display: flex;
-    flex-direction: column;
-    gap: 3px;
-    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
 }
 
-.model-name {
-    font-size: var(--text-sm);
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.debug-card-body {
+    align-items: center;
+    padding-top: var(--space-3);
+    margin-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
 }
 
-.model-meta {
-    display: flex;
-    flex-wrap: wrap;
+.debug-description {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+}
+
+.debug-state {
+    display: inline-flex;
+    min-height: 24px;
+    flex: 0 0 auto;
     align-items: center;
     gap: 6px;
-}
-
-.model-tag {
-    padding: 1px 8px;
+    padding: 3px 9px;
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     background: var(--color-surface-2);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-full);
-    font-size: 11px;
-    color: var(--color-text-muted);
 }
 
-.model-size,
-.model-date {
+.debug-state-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--color-text-faint);
+    border-radius: 50%;
+}
+
+.debug-state.enabled {
+    color: var(--color-success);
+    background: color-mix(in srgb, var(--color-success) 9%, transparent);
+    border-color: color-mix(in srgb,
+            var(--color-success) 30%,
+            var(--color-border));
+}
+
+.debug-state.enabled .debug-state-dot {
+    background: currentColor;
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.btn-debug {
+    min-height: 34px;
+    flex: 0 0 auto;
+    padding: 0.45rem 0.7rem;
+    color: var(--color-text);
     font-size: var(--text-xs);
-    color: var(--color-text-muted);
-}
-
-.running-badge {
-    font-size: var(--text-xs);
-}
-
-.running-badge.running {
-    color: #6daa45;
-}
-
-.running-badge.idle {
-    color: var(--color-text-faint);
-}
-
-.model-actions {
-    display: flex;
-    gap: var(--space-2);
-    flex-shrink: 0;
-}
-
-.btn-ghost,
-.btn-danger {
-    padding: 4px var(--space-3);
+    font-weight: 600;
+    background: var(--color-surface-2);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    font-size: var(--text-xs);
-    background: var(--color-bg);
-    cursor: pointer;
     transition:
+        border-color 0.15s ease,
         background 0.15s ease,
         color 0.15s ease;
 }
 
-.btn-ghost {
-    color: var(--color-text-muted);
+.btn-debug:hover:not(:disabled) {
+    color: var(--color-primary);
+    background: color-mix(in srgb,
+            var(--color-primary) 8%,
+            var(--color-surface-2));
+    border-color: color-mix(in srgb,
+            var(--color-primary) 35%,
+            var(--color-border));
 }
 
-.btn-ghost:hover {
-    background: var(--color-surface-2);
-    color: var(--color-text);
+.btn-debug.active {
+    color: var(--color-success);
+    background: color-mix(in srgb,
+            var(--color-success) 9%,
+            var(--color-surface-2));
+    border-color: color-mix(in srgb,
+            var(--color-success) 35%,
+            var(--color-border));
 }
 
-.btn-danger {
-    color: var(--color-error);
-    border-color: oklch(from var(--color-error) l c h / 0.3);
-}
-
-.btn-danger:hover {
-    background: oklch(from var(--color-error) l c h / 0.08);
-}
-
-.empty-state {
-    padding: var(--space-8) 0;
-    text-align: center;
-    color: var(--color-text-faint);
-    font-size: var(--text-sm);
-}
-
-/* Remove Models */
-.btn-danger {
-    padding: var(--space-2) var(--space-4);
-    background: transparent;
-    color: var(--color-error);
-    border: 1px solid oklch(from var(--color-error) l c h / 0.3);
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    white-space: nowrap;
-    transition: background 0.15s ease;
-}
-
-.btn-danger:hover:not(:disabled) {
-    background: oklch(from var(--color-error) l c h / 0.08);
-}
-
-.btn-danger:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.input-error-text {
-    color: var(--color-error);
-    font-size: var(--text-xs);
-    margin-top: var(--space-1);
-}
-
-/* Recommended Models */
-.recommended-models {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-}
-
-.model-recommend-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-3);
-    background: var(--color-surface-2);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-}
-
-.model-recommend-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.model-recommend-name {
-    font-size: var(--text-sm);
-    font-weight: 600;
-    color: var(--color-text);
-}
-
-.model-recommend-desc {
-    font-size: 11px;
-    color: var(--color-text-faint);
-}
-
-.btn-installed {
-    padding: var(--space-1) var(--space-3);
-    background: var(--color-success, #22c55e);
-    color: white;
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
-    opacity: 0.85;
-    cursor: default;
-}
-
-.btn-pulling {
-    padding: var(--space-1) var(--space-3);
-    background: var(--color-primary);
-    color: white;
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
-    min-width: 60px;
-    opacity: 0.9;
-}
-
-/* Page header styling */
-.page-header h1 {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-}
-
-/* Nav icon SVG styling */
-.nav-icon svg {
-    width: 20px;
-    height: 20px;
-    display: block;
-}
-
-/* Pull Model Status Styling */
+/* Model downloading */
 .pull-section {
     min-width: 0;
 }
@@ -1907,8 +1964,8 @@ onMounted(async () => {
 }
 
 .pull-status {
-    margin-top: var(--space-3);
     padding: var(--space-3);
+    margin-top: var(--space-3);
     background: var(--color-surface-2);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
@@ -1947,18 +2004,91 @@ onMounted(async () => {
     font-weight: 600;
 }
 
-.pull-message {
+.progress-info {
+    margin-top: var(--space-3);
+}
+
+.progress-bar {
+    height: 4px;
+    overflow: hidden;
+    background: var(--color-border);
+    border-radius: var(--radius-full);
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--color-primary);
+    transition: width 300ms ease;
+}
+
+.progress-text {
+    display: block;
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+}
+
+.pull-message,
+.remove-message {
     margin: var(--space-3) 0 0;
     font-size: var(--text-xs);
     line-height: 1.45;
 }
 
-.input-error-text {
-    display: block;
-    margin-top: var(--space-1);
+/* Recommended models */
+.recommended-models {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
 }
 
-/* Link styling */
+.model-recommend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3);
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.model-recommend-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.model-recommend-name {
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: 600;
+}
+
+.model-recommend-desc {
+    color: var(--color-text-faint);
+    font-size: 11px;
+}
+
+.btn-installed,
+.btn-pulling {
+    min-width: 60px;
+    padding: var(--space-1) var(--space-3);
+    color: white;
+    font-size: var(--text-sm);
+    border-radius: var(--radius-md);
+}
+
+.btn-installed {
+    cursor: default;
+    background: var(--color-success, #22c55e);
+    opacity: 0.85;
+}
+
+.btn-pulling {
+    background: var(--color-primary);
+    opacity: 0.9;
+}
+
 .btn-details {
     display: inline-flex;
     align-items: center;
@@ -1967,14 +2097,14 @@ onMounted(async () => {
     min-height: 30px;
     padding: 0.35rem 0.55rem;
     color: var(--color-text-muted);
-    background: transparent;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
     font-size: var(--text-xs);
     font-weight: 500;
     line-height: 1;
     text-decoration: none;
     white-space: nowrap;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
     transition:
         color 0.15s ease,
         background 0.15s ease,
@@ -1983,9 +2113,11 @@ onMounted(async () => {
 
 .btn-details:hover {
     color: var(--color-primary);
-    background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-    border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
     cursor: pointer;
+    background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+    border-color: color-mix(in srgb,
+            var(--color-primary) 30%,
+            var(--color-border));
 }
 
 .btn-details:focus-visible {
@@ -2004,14 +2136,162 @@ onMounted(async () => {
     transform: translate(1px, -1px);
 }
 
-/* Remove Model Section Styling */
-.remove-message {
-    margin: var(--space-2) 0 0;
-    font-size: var(--text-xs);
-    line-height: 1.45;
+/* Model load and unload controls */
+.select-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--space-4);
+    margin-top: var(--space-4);
+    border-top: 1px solid var(--color-divider);
 }
 
-/* Installed Models Section Styling */
+.refresh-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+}
+
+/* Legacy model cards */
+.model-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-3);
+}
+
+.model-card {
+    padding: var(--space-4);
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition:
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+}
+
+.model-card:hover {
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+    transform: translateY(-2px);
+}
+
+.model-card-title {
+    padding-bottom: var(--space-2);
+    margin: 0 0 var(--space-2);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.model-card-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: 4px 0;
+    font-size: var(--text-xs);
+}
+
+.model-card-key {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
+.model-card-value {
+    color: var(--color-text);
+    text-align: right;
+    word-break: break-word;
+}
+
+/* Installed model list */
+.models-list,
+.model-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.model-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.model-item:last-child {
+    border-bottom: none;
+}
+
+.model-info {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.model-name {
+    overflow: hidden;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.model-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.model-tag {
+    padding: 1px 8px;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+}
+
+.model-size,
+.model-date,
+.running-badge {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+}
+
+.running-badge.running {
+    color: #6daa45;
+}
+
+.running-badge.idle {
+    color: var(--color-text-faint);
+}
+
+.model-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: var(--space-2);
+}
+
+/* Model detail cards */
+.models-toolbar {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+}
+
+.search-input {
+    min-width: 0;
+}
+
+.filter-select {
+    flex: 0 0 auto;
+}
+
 .model-detail-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -2050,10 +2330,10 @@ onMounted(async () => {
 
 .model-title-group {
     display: flex;
+    min-width: 0;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
-    min-width: 0;
 }
 
 .model-detail-name {
@@ -2071,17 +2351,17 @@ onMounted(async () => {
 .model-family-badge,
 .model-size-badge {
     display: inline-flex;
-    align-items: center;
     min-height: 22px;
+    align-items: center;
     padding: 2px 8px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-full);
-    background: var(--color-bg);
     color: var(--color-text-muted);
     font-family: "JetBrains Mono", "SF Mono", monospace;
     font-size: 10px;
     font-weight: 500;
     white-space: nowrap;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
 }
 
 .model-size-badge {
@@ -2128,272 +2408,29 @@ onMounted(async () => {
     font-size: 10px;
 }
 
-/* Set new Base Url Section Styling */
-.endpoint-card {
-    overflow: hidden;
-}
-
-.card-header-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-3);
-}
-
-.endpoint-status {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    min-height: 22px;
-    padding: 2px 8px;
-    border: 1px solid color-mix(in srgb,
-            var(--color-success) 28%,
-            var(--color-border));
-    border-radius: var(--radius-full);
-    background: color-mix(in srgb,
-            var(--color-success) 9%,
-            transparent);
-    color: var(--color-success);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.endpoint-current {
-    display: grid;
-    gap: 5px;
-    margin-top: var(--space-4);
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-surface-2);
-}
-
-.endpoint-label,
-.endpoint-input-label {
-    color: var(--color-text-faint);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.endpoint-value {
-    overflow: hidden;
-    color: var(--color-text);
-    font-family: "JetBrains Mono", "SF Mono", monospace;
-    font-size: var(--text-xs);
-    font-weight: 500;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.endpoint-form {
-    margin-top: var(--space-4);
-}
-
-.endpoint-input-label {
-    display: block;
-    margin-bottom: var(--space-2);
-}
-
-.endpoint-input-row {
+.model-card-actions {
     display: flex;
     gap: var(--space-2);
-}
-
-.endpoint-input {
-    flex: 1;
-    min-width: 0;
-    font-family: "JetBrains Mono", "SF Mono", monospace;
-}
-
-.endpoint-update-button {
-    flex: 0 0 auto;
-}
-
-.endpoint-help {
-    margin: var(--space-2) 0 0;
-    color: var(--color-text-faint);
-    font-size: var(--text-xs);
-    line-height: 1.45;
-}
-
-.endpoint-help code {
-    padding: 1px 4px;
-    border-radius: 4px;
-    background: var(--color-surface-2);
-    color: var(--color-text-muted);
-    font-family: "JetBrains Mono", "SF Mono", monospace;
-    font-size: 0.92em;
-}
-
-.endpoint-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
     margin-top: var(--space-4);
-    padding-top: var(--space-3);
-    border-top: 1px solid var(--color-border);
 }
 
-.endpoint-feedback {
-    font-size: var(--text-xs);
-    line-height: 1.4;
-    text-align: right;
-}
-
-@media (pointer: coarse) {
-    .endpoint-input {
-        font-size: 16px;
-    }
-}
-
-/* Debug Mode Section Styling */
-.debug-card {
-    border-color: color-mix(in srgb,
-            var(--color-primary) 22%,
-            var(--color-border));
-}
-
-.debug-card-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-3);
-}
-
-.debug-card-body {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-    margin-top: var(--space-4);
-    padding-top: var(--space-3);
-    border-top: 1px solid var(--color-border);
-}
-
-.debug-description {
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
-    line-height: 1.5;
-}
-
-.debug-state {
+.model-action-btn {
     display: inline-flex;
-    flex: 0 0 auto;
     align-items: center;
-    gap: 6px;
-    min-height: 24px;
-    padding: 3px 9px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-full);
-    background: var(--color-surface-2);
-    color: var(--color-text-muted);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    justify-content: center;
+    gap: 0.35rem;
+    flex: 1;
 }
 
-.debug-state-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--color-text-faint);
+/* Empty states */
+.empty-state {
+    padding: var(--space-8) 0;
+    color: var(--color-text-faint);
+    font-size: var(--text-sm);
+    text-align: center;
 }
 
-.debug-state.enabled {
-    border-color: color-mix(in srgb,
-            var(--color-success) 30%,
-            var(--color-border));
-    background: color-mix(in srgb,
-            var(--color-success) 9%,
-            transparent);
-    color: var(--color-success);
-}
-
-.debug-state.enabled .debug-state-dot {
-    background: currentColor;
-    box-shadow: 0 0 0 3px color-mix(in srgb,
-            currentColor 16%,
-            transparent);
-}
-
-.btn-debug {
-    flex: 0 0 auto;
-    min-height: 34px;
-    padding: 0.45rem 0.7rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-surface-2);
-    color: var(--color-text);
-    font-size: var(--text-xs);
-    font-weight: 600;
-    cursor: pointer;
-    transition:
-        border-color 0.15s ease,
-        background 0.15s ease,
-        color 0.15s ease;
-}
-
-.btn-debug:hover:not(:disabled) {
-    border-color: color-mix(in srgb,
-            var(--color-primary) 35%,
-            var(--color-border));
-    background: color-mix(in srgb,
-            var(--color-primary) 8%,
-            var(--color-surface-2));
-    color: var(--color-primary);
-}
-
-.btn-debug.active {
-    border-color: color-mix(in srgb,
-            var(--color-success) 35%,
-            var(--color-border));
-    background: color-mix(in srgb,
-            var(--color-success) 9%,
-            var(--color-surface-2));
-    color: var(--color-success);
-}
-
-.btn-debug:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-/* Chat Defaults Section Styling */
-.chat-defaults-card {
-    overflow: hidden;
-}
-
-.card-header-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-3);
-}
-
-.defaults-saved-badge {
-    flex: 0 0 auto;
-    padding: 3px 8px;
-    border: 1px solid color-mix(in srgb,
-            var(--color-success) 28%,
-            var(--color-border));
-    border-radius: var(--radius-full);
-    background: color-mix(in srgb,
-            var(--color-success) 9%,
-            transparent);
-    color: var(--color-success);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
+/* Chat defaults */
 .defaults-form {
     display: grid;
     gap: var(--space-4);
@@ -2443,29 +2480,29 @@ onMounted(async () => {
     width: 100%;
     height: 5px;
     margin: var(--space-2) 0;
-    appearance: none;
     cursor: pointer;
-    border-radius: var(--radius-full);
-    background: var(--color-border);
+    appearance: none;
     accent-color: var(--color-primary);
+    background: var(--color-border);
+    border-radius: var(--radius-full);
 }
 
 .temperature-slider::-webkit-slider-thumb {
     width: 16px;
     height: 16px;
     appearance: none;
+    background: var(--color-primary);
     border: 2px solid var(--color-surface);
     border-radius: 50%;
-    background: var(--color-primary);
     box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
 }
 
 .temperature-slider::-moz-range-thumb {
     width: 14px;
     height: 14px;
+    background: var(--color-primary);
     border: 2px solid var(--color-surface);
     border-radius: 50%;
-    background: var(--color-primary);
     box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
 }
 
@@ -2490,73 +2527,27 @@ onMounted(async () => {
     line-height: 1.5;
 }
 
-/* Header Styles */
-.status-dot {
-    width: 7px;
-    height: 7px;
-    background: var(--color-error, #ef4444);
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.status-dot.online {
-    background: #6daa45;
-    box-shadow: 0 0 0 3px oklch(from #6daa45 l c h / 0.15);
-}
-
-.header-status {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-    max-width: var(--max-width);
-}
-
-/* Offline Banner Styles */
-.offline-banner {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.65rem;
-    padding: 0.85rem 1rem;
-    color: var(--color-warning, #a16207);
-    background: color-mix(in srgb,
-            var(--color-warning, #f59e0b) 12%,
-            var(--color-surface));
-    border: 1px solid color-mix(in srgb, var(--color-warning, #f59e0b) 30%, var(--color-border));
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-4);
-}
-
-.offline-banner strong {
+/* Shared navigation icon */
+.nav-icon svg {
     display: block;
-    font-size: var(--text-sm);
+    width: 20px;
+    height: 20px;
 }
 
-.offline-banner p {
-    margin: 0.25rem 0 0;
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
-}
-
-.offline-banner code {
-    padding: 0.05rem 0.3rem;
-    font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
-    background: color-mix(in srgb, var(--color-text) 8%, transparent);
-    border-radius: var(--radius-sm);
-}
-
-
-/* Responsive Styles */
+/* Touch-device input sizing */
 @media (pointer: coarse) {
 
+    .endpoint-input,
     .setting-number-input,
     .system-prompt-input {
         font-size: 16px;
     }
 }
 
+/* Mobile layout */
 @media (max-width: 620px) {
+
+    /* Page and header */
     .models-view {
         padding: 0.85rem 0.75rem 1.5rem;
     }
@@ -2593,19 +2584,24 @@ onMounted(async () => {
         font-size: 12px;
     }
 
+    .header-status {
+        display: none;
+    }
+
     .models-content {
         gap: 0.6rem;
         max-width: none;
     }
 
+    /* Cards and generic controls */
     .card {
         padding: 0.75rem;
         border-radius: var(--radius-md);
     }
 
     .card h2 {
-        font-size: 12px;
         margin-bottom: 0.5rem;
+        font-size: 12px;
     }
 
     .card-header-row {
@@ -2613,29 +2609,18 @@ onMounted(async () => {
     }
 
     .count-badge {
-        font-size: 10px;
         padding: 2px 8px;
+        font-size: 10px;
     }
 
-    .card-hint {
+    .card-hint,
+    .link-row a {
         font-size: 10px;
     }
 
     .link-row {
         gap: 0.5rem;
         margin-bottom: 0.65rem;
-    }
-
-    .link-row a {
-        font-size: 10px;
-    }
-
-    .pull-form {
-        grid-template-columns: 1fr;
-    }
-
-    .pull-form .btn-primary {
-        width: 100%;
     }
 
     .input {
@@ -2650,24 +2635,32 @@ onMounted(async () => {
         font-size: 12px;
     }
 
+    /* Download form */
+    .pull-form {
+        grid-template-columns: 1fr;
+    }
+
+    .pull-form .btn-primary {
+        width: 100%;
+    }
+
     .progress-info {
         margin-top: 0.5rem;
     }
 
-    .progress-text {
+    .progress-text,
+    .input-error-text {
         font-size: 10px;
     }
 
+    /* Information rows */
     .info-row {
         flex-wrap: wrap;
-        padding: 0.5rem 0;
         gap: 0.3rem;
+        padding: 0.5rem 0;
     }
 
-    .info-label {
-        font-size: 12px;
-    }
-
+    .info-label,
     .info-value {
         font-size: 12px;
     }
@@ -2677,19 +2670,31 @@ onMounted(async () => {
         font-size: 10px;
     }
 
+    /* Load and unload controls */
     .refresh-row {
         gap: 0.35rem;
         margin-top: 0.65rem;
     }
 
     .refresh-row .btn-ghost {
-        flex: 1;
         min-width: 0;
+        flex: 1;
         padding: 0.35rem 0.5rem;
         font-size: 10px;
         text-align: center;
     }
 
+    .select-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Legacy model cards */
     .model-cards {
         grid-template-columns: 1fr;
         gap: 0.5rem;
@@ -2700,8 +2705,8 @@ onMounted(async () => {
     }
 
     .model-card-title {
-        font-size: 12px;
         padding-bottom: 0.4rem;
+        font-size: 12px;
     }
 
     .model-card-row {
@@ -2741,13 +2746,14 @@ onMounted(async () => {
         font-size: 10px;
     }
 
+    /* Recommended models */
     .recommended-models {
         gap: 0.4rem;
     }
 
     .model-recommend-item {
-        flex-direction: column;
         align-items: stretch;
+        flex-direction: column;
         gap: 0.5rem;
         padding: 0.6rem;
     }
@@ -2767,13 +2773,18 @@ onMounted(async () => {
         text-align: center;
     }
 
+    /* Model detail cards */
+    .models-toolbar {
+        flex-direction: column;
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+
     .empty-state {
         padding: 1.5rem 0;
         font-size: 12px;
-    }
-
-    .input-error-text {
-        font-size: 10px;
     }
 
     .model-detail-list {
@@ -2794,7 +2805,11 @@ onMounted(async () => {
         font-size: 12px;
     }
 
-    /* Set new Base Url Section Styling */
+    .model-card-actions {
+        flex-direction: column;
+    }
+
+    /* API endpoint */
     .endpoint-input-row {
         flex-direction: column;
     }
@@ -2812,7 +2827,7 @@ onMounted(async () => {
         text-align: left;
     }
 
-    /* Debug Mode Section Styling */
+    /* Debug mode */
     .debug-card-header,
     .debug-card-body {
         align-items: stretch;
@@ -2821,11 +2836,11 @@ onMounted(async () => {
 
     .debug-state,
     .btn-debug {
-        width: 100%;
         justify-content: center;
+        width: 100%;
     }
 
-    /* Chat Defaults Section Styling */
+    /* Chat defaults */
     .card-header-row {
         align-items: stretch;
         flex-direction: column;

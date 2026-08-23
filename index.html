@@ -1,27 +1,38 @@
+<!-- index.html -->
+
+<!-- Defines the HTML document shell, browser metadata, icons, and Vue mount point. -->
+
 <!doctype html>
-<html lang="">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="alternate icon" href="/favicon.ico" /> <!-- Fallback for older browsers -->
 
-    <!-- iPhone Metadata -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f172a" />
 
+    <meta
+      name="description"
+      content="LocalAI is a local AI workspace for chats, projects, prompts, and model management."
+    />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icon-192x192.png" />
+
+    <!-- Apple mobile web-app metadata. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
-    <meta name="apple-mobile-web-app-title" content="Locale AI" />
+    <meta name="apple-mobile-web-app-title" content="LocalAI" />
 
-    <link rel="apple-touch-icon" href="/icon-192x192.png" />
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>L'Intelligence</title>
+    <title>LocalAI</title>
   </head>
+
   <body>
     <div id="app"></div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

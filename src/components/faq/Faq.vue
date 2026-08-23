@@ -2,6 +2,7 @@
 
 <template>
   <main class="faq-view">
+    <!-- Page Header -->
     <header class="page-header">
       <div class="page-heading">
         <div class="header-icon" aria-hidden="true">
@@ -19,6 +20,7 @@
     </header>
 
     <div class="faq-content">
+      <!-- FAQ Items -->
       <section
         v-for="item in faqItems"
         :key="item.id"
@@ -60,6 +62,7 @@
             :id="`faq-${item.id}`"
             class="faq-answer"
           >
+            <!-- Access from a smartphone or network device -->
             <template v-if="item.id === 'mobile'">
               <div class="intro-box">
                 <IconInfoCircle
@@ -74,6 +77,7 @@
                 </p>
               </div>
 
+              <!-- Steps -->
               <div class="steps">
                 <article class="step">
                   <span class="step-number">1</span>
@@ -180,6 +184,7 @@
                 </article>
               </div>
 
+              <!-- Warning -->
               <aside class="notice notice-warning">
                 <IconAlertTriangle
                   class="notice-icon warning-icon"
@@ -194,6 +199,7 @@
               </aside>
             </template>
 
+            <!-- Test on a different Windows computer -->
             <template v-else>
               <div class="intro-box">
                 <IconBulb class="intro-icon" :size="18" :stroke-width="1.8" />
@@ -203,7 +209,9 @@
                 </p>
               </div>
 
+              <!-- Scenarios -->
               <div class="scenario-grid">
+                <!-- Scenario A -->
                 <article class="scenario-card">
                   <div class="scenario-header">
                     <span class="scenario-badge">Scenario A</span>
@@ -216,7 +224,8 @@
                   </p>
 
                   <CodeBlock
-                    >API-URL: http://&lt;Computer-IP-Address-A&gt;:11434</CodeBlock
+                    >API-URL:
+                    http://&lt;Computer-IP-Address-A&gt;:11434</CodeBlock
                   >
 
                   <p class="muted">
@@ -225,6 +234,7 @@
                   </p>
                 </article>
 
+                <!-- Scenario B -->
                 <article class="scenario-card">
                   <div class="scenario-header">
                     <span class="scenario-badge">Scenario B</span>
@@ -245,6 +255,7 @@
                 </article>
               </div>
 
+              <!-- API-Key-Info -->
               <aside class="notice notice-info">
                 <IconKey class="notice-icon" :size="18" :stroke-width="1.8" />
                 <p>
@@ -254,6 +265,7 @@
                 </p>
               </aside>
 
+              <!-- Diagnostic -->
               <div class="diagnostic-card">
                 <div>
                   <p class="eyebrow">Quick Diagnosis</p>
@@ -287,14 +299,12 @@ import { reactive } from "vue";
 
 import IconFaq from "@/components/icons/IconFaq.vue";
 import CodeBlock from "@/components/ui/CodeBlock.vue";
-import {
-  IconInfoCircle,
-  IconAlertTriangle,
-  IconBulb,
-  IconKey,
-  IconDeviceMobile,
-  IconBrandWindows,
-} from "@tabler/icons-vue";
+import IconInfoCircle from "@/components/icons/IconInfoCircle.vue";
+import IconAlertTriangle from "@/components/icons/IconAlertTriangle.vue";
+import IconBulb from "@/components/icons/IconBulb.vue";
+import IconKey from "@/components/icons/IconKey.vue";
+import IconDeviceMobile from "@/components/icons/IconDeviceMobile.vue";
+import IconBrandWindows from "@/components/icons/IconBrandWindows.vue";
 
 const openSections = reactive({
   mobile: false,
@@ -322,12 +332,14 @@ function toggle(key) {
 </script>
 
 <style scoped>
+/* Page Layout */
 .faq-view {
   height: 100%;
   overflow-y: auto;
   padding: clamp(1.5rem, 4vw, 3rem);
 }
 
+/* Page Header */
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -377,6 +389,7 @@ function toggle(key) {
   font-size: var(--text-sm);
 }
 
+/* FAQ Accordion */
 .faq-content {
   display: grid;
   max-width: var(--max-width);
@@ -482,6 +495,7 @@ function toggle(key) {
   line-height: 1.65;
 }
 
+/* Shared Content Containers */
 .intro-box,
 .notice,
 .diagnostic-card,
@@ -511,6 +525,7 @@ function toggle(key) {
   line-height: 1.5;
 }
 
+/* Step-by-Step Instructions */
 .steps {
   display: grid;
   gap: 1.5rem;
@@ -545,6 +560,7 @@ function toggle(key) {
   margin-top: 0.65rem;
 }
 
+/* Platform and Scenario Cards */
 .platform-grid,
 .scenario-grid {
   display: grid;
@@ -595,6 +611,7 @@ function toggle(key) {
   font-size: var(--text-xs);
 }
 
+/* Inline and Block Code */
 .faq-answer code {
   padding: 0.12rem 0.35rem;
   color: var(--color-text);
@@ -625,6 +642,7 @@ function toggle(key) {
   border: 0;
 }
 
+/* Notices and Diagnostics */
 .notice {
   display: flex;
   gap: 0.7rem;
@@ -653,6 +671,7 @@ function toggle(key) {
   border: 1px solid var(--color-border);
 }
 
+/* Accordion Transition */
 .accordion-enter-active,
 .accordion-leave-active {
   overflow: hidden;
@@ -667,6 +686,7 @@ function toggle(key) {
   transform: translateY(-6px);
 }
 
+/* Icon Alignment */
 .question-icon,
 .intro-icon,
 .notice-icon {
@@ -682,11 +702,14 @@ function toggle(key) {
   flex-shrink: 0;
 }
 
+/* Mobile Layout */
 @media (max-width: 680px) {
+  /* Page layout */
   .faq-view {
     padding: 0.85rem 0.75rem 1.5rem;
   }
 
+  /* Header */
   .page-header {
     gap: 0.55rem;
     margin-bottom: 1rem;
@@ -715,6 +738,7 @@ function toggle(key) {
     font-size: 12px;
   }
 
+  /* FAQ accordion */
   .faq-content {
     gap: 0.5rem;
   }
@@ -753,6 +777,7 @@ function toggle(key) {
     font-size: 12px;
   }
 
+  /* Intro and steps */
   .intro-box {
     gap: 0.55rem;
     padding: 0.7rem;
@@ -782,6 +807,7 @@ function toggle(key) {
     margin-top: 0.45rem;
   }
 
+  /* Cards and grids */
   .platform-grid,
   .scenario-grid {
     grid-template-columns: 1fr;
@@ -808,6 +834,7 @@ function toggle(key) {
     font-size: 10px;
   }
 
+  /* Code blocks */
   .faq-answer code {
     font-size: 0.8em;
   }
@@ -818,6 +845,7 @@ function toggle(key) {
     font-size: 11px;
   }
 
+  /* Notices and diagnostics */
   .notice {
     gap: 0.5rem;
     padding: 0.65rem 0.7rem;

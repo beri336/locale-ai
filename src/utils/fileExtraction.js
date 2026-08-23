@@ -1,62 +1,172 @@
 // src/utils/fileExtraction.js
 
-const MAX_CHARS_PER_FILE = 20000
+/// Extracts plain text from uploaded text files and PDF documents.
+/// Limits extracted content to a configured character count and returns
+/// normalized metadata, truncation state and user-friendly error details.
 
+const MAX_CHARS_PER_FILE = 20_000;
+
+const PDF_MIME_TYPE = "application/pdf";
+const PDF_FILE_EXTENSION = ".pdf";
+const PDF_WORKER_MODULE = "pdfjs-dist/build/pdf.worker.min.mjs";
+const PDF_LIBRARY_MODULE = "pdfjs-dist/build/pdf";
+
+
+/**
+ * Extracts raw text from a plain-text-compatible file.
+ *
+ * @param {File} file File to read
+ * @returns {Promise<string>} Extracted file content
+ */
 async function extractPlainText(file) {
-    return await file.text()
+    return file.text();
 }
 
+/**
+ * Loads the PDF.js module and configures its web worker.
+ *
+ * @returns {Promise<Object>} Configured PDF.js module
+ */
+async function getPdfLibrary() {
+    const pdfjsLib = await import(PDF_LIBRARY_MODULE);
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+        PDF_WORKER_MODULE,
+        import.meta.url,
+    ).href;
+
+    return pdfjsLib;
+}
+
+/**
+ * Extracts text from every page of a PDF document.
+ *
+ * @param {File} file PDF file to extract
+ * @returns {Promise<string>} Extracted PDF text
+ */
 async function extractPdfText(file) {
-    const pdfjsLib = await import('pdfjs-dist/build/pdf')
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-        new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).href
+    const pdfjsLib = await getPdfLibrary();
+    const arrayBuffer = await file.arrayBuffer();
 
-    const arrayBuffer = await file.arrayBuffer()
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+    const pdfDocument = await pdfjsLib.getDocument({
+        data: arrayBuffer,
+    }).promise;
 
-    let fullText = ''
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum)
-        const textContent = await page.getTextContent()
-        const pageText = textContent.items.map((item) => item.str).join(' ')
-        fullText += pageText + '\n\n'
+    const pageText = [];
+
+    for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+        const page = await pdfDocument.getPage(pageNumber);
+        const textContent = await page.getTextContent();
+
+        pageText.push(
+            textContent.items
+                .map((item) => item.str)
+                .join(" "),
+        );
     }
 
-    return fullText.trim()
+    return pageText.join("\n\n").trim();
 }
 
+/**
+ * Checks whether a file should be processed as a PDF.
+ *
+ * @param {File} file Uploaded file
+ * @returns {boolean} True when the file is a PDF
+ */
+function isPdfFile(file) {
+    return file.type === PDF_MIME_TYPE ||
+        file.name.toLocaleLowerCase().endsWith(PDF_FILE_EXTENSION);
+}
+
+/**
+ * Limits extracted text to the configured character count.
+ *
+ * @param {string} content Extracted text
+ * @param {number} [maxChars=20000] Maximum number of characters
+ * @returns {{ content: string, truncated: boolean }} Limited content and state
+ */
 function truncateContent(content, maxChars = MAX_CHARS_PER_FILE) {
-    if (content.length > maxChars) {
-        return { content: content.slice(0, maxChars), truncated: true }
+    if (content.length <= maxChars) {
+        return {
+            content,
+            truncated: false,
+        };
     }
-    return { content, truncated: false }
+
+    return {
+        content: content.slice(0, maxChars),
+        truncated: true,
+    };
 }
 
-export async function extractFileContent(file) {
-    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
-
-    let rawText = ''
-    try {
-        rawText = isPdf ? await extractPdfText(file) : await extractPlainText(file)
-    } catch (error) {
-        return {
-            filename: file.name,
-            content: '',
-            charCount: 0,
-            truncated: false,
-            error: `Extraktion fehlgeschlagen: ${error.message}`,
-        }
-    }
-
-    const { content, truncated } = truncateContent(rawText)
+/**
+ * Creates a standardized extraction-error result.
+ *
+ * @param {File} file File that could not be extracted
+ * @param {unknown} error Extraction error
+ * @returns {{
+ *     filename: string,
+ *     content: string,
+ *     charCount: number,
+ *     truncated: boolean,
+ *     error: string
+ * }} Error extraction result
+ */
+function createExtractionErrorResult(file, error) {
+    const message = error instanceof Error
+        ? error.message
+        : "Unknown extraction error.";
 
     return {
         filename: file.name,
-        content,
-        charCount: content.length,
-        truncated,
-        error: null,
+        content: "",
+        charCount: 0,
+        truncated: false,
+        error: `Extraktion fehlgeschlagen: ${message}`,
+    };
+}
+
+/**
+ * Extracts text content from a text file or PDF document.
+ *
+ * @param {File} file Uploaded file
+ * @returns {Promise<{
+ *     filename: string,
+ *     content: string,
+ *     charCount: number,
+ *     truncated: boolean,
+ *     error: string | null
+ * }>} Extracted file content and metadata
+ */
+export async function extractFileContent(file) {
+    if (!(file instanceof File)) {
+        throw new TypeError(
+            "extractFileContent expects a valid File instance.",
+        );
+    }
+
+    try {
+        const rawText = isPdfFile(file)
+            ? await extractPdfText(file)
+            : await extractPlainText(file);
+        const { content, truncated } = truncateContent(rawText);
+
+        return {
+            filename: file.name,
+            content,
+            charCount: content.length,
+            truncated,
+            error: null,
+        };
+    } catch (error) {
+        console.error(`Could not extract "${file.name}":`, error);
+
+        return createExtractionErrorResult(file, error);
     }
 }
 
-export { MAX_CHARS_PER_FILE }
+
+export {
+    MAX_CHARS_PER_FILE,
+};

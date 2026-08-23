@@ -1,14 +1,17 @@
 <!-- src/components/chat/Chat.vue -->
 
 <template>
-  <main class="chat-view">
+  <main class="chat-view" <!-- Chat sidebar -->
     <aside class="chat-sidebar" :class="{ collapsed: isSidebarCollapsed }">
+      <!-- Sidebar content -->
       <div class="sidebar-top">
+        <!-- Sidebar title -->
         <div v-if="!isSidebarCollapsed" class="sidebar-title">
           <p class="sidebar-eyebrow">Workspace</p>
           <h2>Quick chats</h2>
         </div>
 
+        <!-- Sidebar toggle button -->
         <button class="sidebar-toggle-btn" type="button"
           :title="isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'" :aria-label="isSidebarCollapsed ? 'Expand chat sidebar' : 'Collapse chat sidebar'
             " @click="toggleSidebar">
@@ -16,7 +19,9 @@
         </button>
       </div>
 
+      <!-- Sidebar content -->
       <template v-if="!isSidebarCollapsed">
+        <!-- New chat button -->
         <button class="btn-primary new-chat-btn" type="button" @click="handleNewChat">
           <span aria-hidden="true">
             <IconPlus :size="12" :stroke-width="2" aria-hidden="true" />
@@ -24,6 +29,7 @@
           New chat
         </button>
 
+        <!-- Temporary chat button -->
         <button class="btn-secondary temporary-chat-btn" type="button" @click="handleTemporaryChat">
           <span aria-hidden="true">
             <IconTemp :size="12" :stroke-width="2" aria-hidden="true" />
@@ -35,11 +41,13 @@
 
         <div class="sidebar-divider"></div>
 
+        <!-- Chat list heading -->
         <div class="chats-heading">
           <span>Recent chats</span>
           <span class="chat-count">{{ visibleChats.length }}</span>
         </div>
 
+        <!-- Chat list -->
         <div class="chat-list">
           <ChatListItem v-for="chat in visibleChats" :key="chat.id" :chat="chat" :is-active="chat.id === activeChatId"
             @select="selectChat(chat.id)" @delete="handleDeleteChat(chat.id)"
@@ -53,6 +61,7 @@
         </div>
       </template>
 
+      <!-- Collapsed sidebar -->
       <template v-else>
         <button class="collapsed-new-chat-btn" type="button" title="New chat" aria-label="Create new chat"
           @click="handleNewChat">
@@ -66,12 +75,16 @@
       </template>
     </aside>
 
+    <!-- Main chat area -->
     <section class="chat-main">
+      <!-- Header -->
       <header class="chat-header">
+        <!-- Chat header content -->
         <div class="chat-header-copy">
           <p class="chat-header-eyebrow">Quick chat</p>
           <h1>{{ activeChat?.title || "Start a conversation" }}</h1>
 
+          <!-- Temporary chat notice -->
           <div v-if="activeChat?.isTemporary" class="temporary-chat-notice" role="status">
             <span class="temporary-chat-notice-icon" aria-hidden="true">◷</span>
 
@@ -94,15 +107,18 @@
           </div>
         </div>
 
+        <!-- Model selection -->
         <select v-if="activeChat" v-model="selectedModel" class="model-select" aria-label="Select chat model">
           <option value="" disabled>Select a model</option>
 
+          <!-- Ollama models -->
           <optgroup label="Ollama" v-if="modelNames.length">
             <option v-for="name in modelNames" :key="`ollama:${name}`" :value="`ollama:${name}`">
               {{ name }}
             </option>
           </optgroup>
 
+          <!-- LM Studio models -->
           <optgroup label="LM Studio" v-if="installedModels.length > 0">
             <option v-for="model in installedModels" :key="`lmstudio:${model.id}`" :value="`lmstudio:${model.id}`">
               {{ model.displayName || model.id }}
@@ -111,6 +127,7 @@
         </select>
       </header>
 
+      <!-- Empty chat state -->
       <div v-if="!activeChat" class="empty-chat-state">
         <div class="empty-chat-icon" aria-hidden="true">◌</div>
 
@@ -129,7 +146,8 @@
         </button>
       </div>
 
-      <ChatThread v-else :chat="activeChat" :model-names="modelNames" :lmstudio-models="installedModels"
+      <!-- ChatThread -->
+      <ChatThread v-else :chat="activeChat" :available-models="availableModels"
         empty-hint="Select a model and write your first message." @message-sent="saveChats" />
     </section>
   </main>
@@ -139,7 +157,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useOllamaApi } from "@/services/ollamaApiService";
-import { useSettingsStore } from "@/stores/settingsStore";
+import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useLmStudioApi } from "@/services/lmsApiService";
 
 import ChatListItem from "@/components/chat/ChatListItem.vue";
@@ -161,6 +179,28 @@ const modelsCounter = ref(0);
 const installedModels = ref([]);
 
 const currentTime = ref(Date.now());
+
+const availableModels = computed(() => [
+  ...modelNames.value.map((name) => ({
+    id: `ollama:${name}`,
+    provider: "ollama",
+    providerLabel: "Ollama",
+    modelId: name,
+    displayName: name,
+    isLoaded: true,
+  })),
+  ...installedModels.value
+    .filter((model) => model?.id)
+    .map((model) => ({
+      id: `lmstudio:${model.id}`,
+      provider: "lmstudio",
+      providerLabel: "LM Studio",
+      modelId: model.id,
+      displayName: model.displayName || model.id,
+      isLoaded: Boolean(model.isLoaded),
+      instanceId: model.instanceId ?? null,
+    })),
+]);
 
 const activeChat = computed(
   () => chats.value.find((c) => c.id === activeChatId.value) || null,
@@ -406,7 +446,7 @@ onMounted(async () => {
 
   const loadLmStudioModels = async () => {
     try {
-      const isOnline = await lmstudio.statusBool();
+      const isOnline = await lmstudio.status();
 
       console.log("LM Studio online:", isOnline);
 
@@ -477,6 +517,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Page layout */
 .chat-view {
   display: flex;
   height: 100%;
@@ -484,13 +525,14 @@ onUnmounted(() => {
   background: var(--color-bg);
 }
 
+/* Chat sidebar */
 .chat-sidebar {
   display: flex;
   width: 272px;
+  min-height: 0;
   flex: 0 0 auto;
   flex-direction: column;
   gap: 0.9rem;
-  min-height: 0;
   padding: 1rem;
   overflow: hidden;
   background: var(--color-surface);
@@ -502,10 +544,11 @@ onUnmounted(() => {
 
 .chat-sidebar.collapsed {
   width: 56px;
-  padding: 1rem 0.55rem;
   align-items: center;
+  padding: 1rem 0.55rem;
 }
 
+/* Sidebar header */
 .sidebar-top {
   display: flex;
   align-items: flex-start;
@@ -570,6 +613,7 @@ onUnmounted(() => {
       var(--color-border));
 }
 
+/* Shared buttons */
 .btn-primary,
 .btn-secondary {
   display: inline-flex;
@@ -578,11 +622,11 @@ onUnmounted(() => {
   gap: 0.4rem;
   min-height: 36px;
   padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-md);
   font-family: inherit;
   font-size: var(--text-xs);
   font-weight: 600;
   cursor: pointer;
+  border-radius: var(--radius-md);
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
@@ -590,7 +634,8 @@ onUnmounted(() => {
     transform 0.16s ease;
 }
 
-.btn-primary:active {
+.btn-primary:active,
+.btn-secondary:active {
   transform: translateY(1px);
 }
 
@@ -605,10 +650,74 @@ onUnmounted(() => {
   border-color: var(--color-primary-hover);
 }
 
+.btn-secondary {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  background: var(--color-surface-2);
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
+}
+
 .new-chat-btn {
   width: 100%;
 }
 
+.temporary-chat-btn {
+  color: var(--color-text-muted);
+}
+
+.temporary-chat-hint {
+  margin: -0.45rem 0 0;
+  color: var(--color-text-faint);
+  font-size: 10px;
+  text-align: center;
+}
+
+/* Collapsed sidebar actions */
+.collapsed-new-chat-btn,
+.collapsed-temporary-chat-btn {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  font-family: inherit;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 9px;
+}
+
+.collapsed-new-chat-btn {
+  color: #fff;
+  font-size: 1.25rem;
+  background: var(--color-primary);
+  border: 0;
+}
+
+.collapsed-new-chat-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.collapsed-temporary-chat-btn {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+.collapsed-temporary-chat-btn:hover {
+  color: var(--color-primary);
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
+}
+
+/* Chat navigation */
 .sidebar-divider {
   height: 1px;
   margin: 0.1rem 0;
@@ -642,14 +751,15 @@ onUnmounted(() => {
 
 .chat-list {
   display: flex;
+  min-height: 0;
   flex: 1;
   flex-direction: column;
   gap: 2px;
-  min-height: 0;
   padding-right: 0.1rem;
   overflow-y: auto;
 }
 
+/* Sidebar empty state */
 .sidebar-empty-state {
   display: grid;
   justify-items: center;
@@ -677,33 +787,14 @@ onUnmounted(() => {
   border-radius: 9px;
 }
 
-.collapsed-new-chat-btn {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  padding: 0;
-  color: #fff;
-  font-family: inherit;
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-  background: var(--color-primary);
-  border: 0;
-  border-radius: 9px;
-}
-
-.collapsed-new-chat-btn:hover {
-  background: var(--color-primary-hover);
-}
-
+/* Main chat area */
 .chat-main {
   display: flex;
+  min-width: 0;
+  min-height: 0;
   flex: 1;
   flex-direction: column;
   gap: 1rem;
-  min-width: 0;
-  min-height: 0;
   padding: clamp(1rem, 3vw, 2rem);
 }
 
@@ -729,6 +820,7 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
+/* Model selector */
 .model-select {
   min-width: 180px;
   max-width: min(38vw, 280px);
@@ -767,13 +859,14 @@ onUnmounted(() => {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
+/* Empty chat state */
 .empty-chat-state {
   display: grid;
-  flex: 1;
-  justify-items: center;
-  align-content: center;
-  gap: 0.65rem;
   min-height: 0;
+  flex: 1;
+  align-content: center;
+  justify-items: center;
+  gap: 0.65rem;
   padding: 2rem;
   text-align: center;
   background: var(--color-surface);
@@ -812,6 +905,7 @@ onUnmounted(() => {
   margin-top: 0.4rem;
 }
 
+/* Temporary chat notice */
 .temporary-chat-notice {
   display: flex;
   align-items: flex-start;
@@ -820,7 +914,9 @@ onUnmounted(() => {
   padding: 0.5rem 0.65rem;
   margin-top: 0.65rem;
   color: var(--color-text-muted);
-  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  background: color-mix(in srgb,
+      var(--color-primary) 8%,
+      var(--color-surface));
   border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   border-radius: var(--radius-md);
 }
@@ -857,11 +953,11 @@ onUnmounted(() => {
 
 .extend-temporary-chat-btn {
   display: inline-flex;
+  min-height: 26px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   gap: 0.2rem;
-  min-height: 26px;
-  flex: 0 0 auto;
   padding: 0.3rem 0.45rem;
   margin-left: auto;
   color: var(--color-primary);
@@ -880,7 +976,9 @@ onUnmounted(() => {
 }
 
 .extend-temporary-chat-btn:hover {
-  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface));
+  background: color-mix(in srgb,
+      var(--color-primary) 9%,
+      var(--color-surface));
   border-color: var(--color-primary);
 }
 
@@ -893,22 +991,19 @@ onUnmounted(() => {
   line-height: 0.8;
 }
 
-.temporary-chat-hint {
-  font-size: 10px;
-}
-
-.temporary-chat-btn {
-  color: var(--color-text-muted);
-}
-
-/* iOS Safari: at least 16px prevents input auto-zoom */
+/* Touch input sizing */
 @media (pointer: coarse) {
-  .search-input {
+
+  .search-input,
+  .model-select {
     font-size: 16px;
   }
 }
 
+/* Mobile layout */
 @media (max-width: 620px) {
+
+  /* Sidebar overlay */
   .chat-view {
     position: relative;
   }
@@ -920,8 +1015,8 @@ onUnmounted(() => {
     bottom: 0;
     left: 0;
     width: min(80vw, 260px);
-    padding: 0.75rem;
     gap: 0.65rem;
+    padding: 0.75rem;
     box-shadow: 12px 0 28px rgb(0 0 0 / 0.12);
   }
 
@@ -931,6 +1026,7 @@ onUnmounted(() => {
     box-shadow: 4px 0 14px rgb(0 0 0 / 0.07);
   }
 
+  /* Sidebar elements */
   .sidebar-toggle-btn {
     width: 24px;
     height: 24px;
@@ -988,6 +1084,7 @@ onUnmounted(() => {
     font-size: 1.05rem;
   }
 
+  /* Main chat content */
   .chat-main {
     gap: 0.65rem;
     padding: 0.75rem 0.75rem 0.75rem 3.4rem;
@@ -1007,14 +1104,16 @@ onUnmounted(() => {
     width: 100%;
     max-width: none;
     padding: 0.45rem 2rem 0.45rem 0.6rem;
-    font-size: 12px;
+    font-size: 16px;
   }
 
+  /* Disable background while the sidebar is expanded */
   .chat-sidebar:not(.collapsed)+.chat-main {
     pointer-events: none;
     filter: brightness(0.82);
   }
 
+  /* Prevent mobile browser input zoom */
   input,
   textarea,
   select {
@@ -1027,6 +1126,7 @@ onUnmounted(() => {
     font-size: 16px;
   }
 
+  /* Empty chat state */
   .empty-chat-state {
     gap: 0.5rem;
     padding: 1.25rem;
@@ -1046,9 +1146,10 @@ onUnmounted(() => {
     font-size: 12px;
   }
 
+  /* Temporary chat notice */
   .temporary-chat-notice {
-    max-width: none;
     gap: 0.4rem;
+    max-width: none;
     padding: 0.5rem 0.55rem;
   }
 

@@ -1,7 +1,8 @@
-<!-- src/components/icons/IconAlertTriangle.vue -->
+<!-- src/components/icons/IconBrandWindows.vue -->
 
 <template>
   <svg
+    xmlns="http://www.w3.org/2000/svg"
     :width="size"
     :height="size"
     viewBox="0 0 24 24"
@@ -10,12 +11,14 @@
     :stroke-width="strokeWidth"
     stroke-linecap="round"
     stroke-linejoin="round"
+    class="icon icon-brand-windows"
+    aria-hidden="true"
   >
-    <path
-      d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
-    />
-    <line x1="12" y1="9" x2="12" y2="13" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M4 5l7 -1v7h-7v-6" />
+    <path d="M13 4l7 -1v8h-7v-7" />
+    <path d="M4 13h7v7l-7 -1v-6" />
+    <path d="M13 13h7v8l-7 -1v-7" />
   </svg>
 </template>
 

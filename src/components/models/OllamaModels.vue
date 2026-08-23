@@ -317,13 +317,17 @@
           Curated models for chat, coding, and embeddings.
         </p>
 
+        <!-- Recommended Models -->
         <div class="recommended-models">
           <div v-for="model in recommendedModels" :key="model.name" class="model-recommend-item">
+            <!-- Model Info -->
             <div class="model-recommend-info">
+              <!-- Model Name -->
               <p class="model-recommend-name">
                 {{ model.label }}
               </p>
 
+              <!-- Model Description -->
               <p class="model-recommend-desc">
                 {{ model.description }} · {{ model.size }} ·
                 <a class="btn-details" :href="model.url" target="_blank" rel="noopener noreferrer">
@@ -332,6 +336,7 @@
                 </a>
               </p>
 
+              <!-- Progress -->
               <div v-if="getRecommendedPullState(model.name)?.state === 'pulling'" class="recommended-progress">
                 <div class="progress-bar">
                   <div class="progress-fill" :style="{
@@ -355,17 +360,19 @@
                 </span>
               </div>
 
+              <!-- Error Message -->
               <p v-else-if="getRecommendedPullState(model.name)?.state === 'error'"
                 class="recommended-error text-error">
                 {{ getRecommendedPullState(model.name).error }}
               </p>
             </div>
 
-            <button v-if="ollamaApi.isModelInstalled(model.name, installedNames)" type="button" class="btn-installed"
-              disabled>
+            <!-- Install Button -->
+            <button v-if="isRecommendedModelInstalled(model.name)" type="button" class="btn-installed" disabled>
               Installed
             </button>
 
+            <!-- Pull Button -->
             <button v-else type="button" class="btn-primary"
               :disabled="!statusBool || getRecommendedPullState(model.name)?.state === 'pulling'"
               @click="handlePullRecommended(model)">
@@ -399,6 +406,7 @@
           Remove a model from your device to free up space.
         </p>
 
+        <!-- Model Selection -->
         <div class="select-row">
           <label for="remove-model-select" class="info-label">Select Model</label>
           <select id="remove-model-select" v-model="selectedModel" class="select" :disabled="!statusBool">
@@ -407,6 +415,7 @@
           </select>
         </div>
 
+        <!-- Remove Button -->
         <div class="refresh-row">
           <button type="button" class="btn-danger" :disabled="!selectedModel || isRemoving" @click="confirmRemoveModel">
             {{ isRemoving ? "Removing…" : "Remove Model" }}
@@ -430,6 +439,7 @@
           Load an installed model into memory so it is ready for inference.
         </p>
 
+        <!-- Model Selection -->
         <div class="select-row">
           <label for="load-model-select" class="info-label">
             Select model
@@ -447,6 +457,7 @@
           </select>
         </div>
 
+        <!-- Load Button -->
         <div class="refresh-row">
           <button type="button" class="btn-primary" :disabled="!selectedModelToLoad || isLoadingModel"
             @click="handleLoadModel">
@@ -471,6 +482,7 @@
           Remove a loaded model from memory. The downloaded model remains on disk.
         </p>
 
+        <!-- Model Selection -->
         <div class="select-row">
           <label for="unload-model-select" class="info-label">
             Select loaded model
@@ -488,6 +500,7 @@
           </select>
         </div>
 
+        <!-- Unload Button -->
         <div class="refresh-row">
           <button type="button" class="btn-danger" :disabled="!selectedModelToUnload || isUnloadingModel"
             @click="handleUnloadModel">
@@ -506,6 +519,7 @@
 
       <!-- Card: Installed Models -->
       <section class="card">
+        <!-- Header -->
         <div class="card-header-row">
           <div>
             <h2>All Models</h2>
@@ -519,6 +533,7 @@
           </span>
         </div>
 
+        <!-- Model Toolbar -->
         <div class="models-toolbar">
           <input v-model="searchQuery" class="input search-input" type="search" placeholder="Search models…" />
 
@@ -529,14 +544,17 @@
           </select>
         </div>
 
+        <!-- No Models -->
         <div v-if="modelsCounter === 0" class="empty-state">
           No models available.
         </div>
 
+        <!-- Empty State -->
         <div v-else-if="filteredModels.length === 0" class="empty-state">
           <p>No models match your search or selected status filter.</p>
         </div>
 
+        <!-- Model Detail List -->
         <div v-else class="model-detail-list">
           <article v-for="model in filteredModels" :key="model.name" class="model-detail-card">
             <header class="model-detail-header">
@@ -673,7 +691,9 @@
           </span>
         </div>
 
+        <!-- Default Settings -->
         <div class="defaults-form">
+          <!-- Temperature -->
           <div class="default-setting">
             <div class="setting-label-row">
               <label for="default-temperature">Temperature</label>
@@ -691,6 +711,7 @@
             </p>
           </div>
 
+          <!-- Context Window -->
           <div class="default-setting">
             <div class="setting-label-row">
               <label for="default-context-window">
@@ -710,6 +731,7 @@
             </p>
           </div>
 
+          <!-- System Prompt -->
           <div class="default-setting">
             <div class="setting-label-row">
               <label for="default-system-prompt">
@@ -737,13 +759,16 @@
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
 
-import IconOllama from "@/components/icons/IconOllama.vue";
 import { useOllamaApi } from "@/services/ollamaApiService";
+import { useSettingsStore } from "@/stores/useSettingsStore";
+
+import IconOllama from "@/components/icons/IconOllama.vue";
 import IconArrowUpRight from "../icons/IconArrowUpRight.vue";
 import IconAlertTriangle from "@/components/icons/IconAlertTriangle.vue";
 import IconRefresh from "@/components/icons/IconRefresh.vue";
 
 const ollamaApi = useOllamaApi();
+const settingsStore = useSettingsStore();
 
 const isInstalled = ref("");
 const isConnected = ref("");
@@ -777,9 +802,9 @@ const customPullStatus = ref(null)
 const defaults = ollamaApi.chatDefaults; // from loadChatDefaults(), defaults has to be implemented before temperature, context-window and system-prompt
 
 const resourceLinks = ollamaApi.getResourceLinks()
-const baseUrl = ref(ollamaApi.getBaseUrl());
+const baseUrl = computed(() => settingsStore.apiUrl);
 const recommendedModels = ref(ollamaApi.getRecommendedModels());
-const newBaseUrl = ref(baseUrl.value); // start value: current Url
+const newBaseUrl = ref(settingsStore.apiUrl);
 const debugEnabled = ref(ollamaApi.isDebugEnabled());
 const temperature = ref(defaults.temperature);
 const contextWindow = ref(defaults.num_ctx);
@@ -806,7 +831,7 @@ async function reloadStatus() {
   errorConnection.value = null
 
   try {
-    statusBool.value = await ollamaApi.statusBool();
+    statusBool.value = await ollamaApi.status();
     isInstalled.value = await ollamaApi.isInstalled();
     isConnected.value = await ollamaApi.isConnected();
     version.value = await ollamaApi.getVersion();
@@ -814,7 +839,7 @@ async function reloadStatus() {
     await ollamaApi.refreshModelsCache() // important: first, retrieve the models from the Ollama server
     await ollamaApi.refreshRunningModelsCache()
 
-    totalSize.value = ollamaApi.getInstalledModelsTotalSize()
+    totalSize.value = await ollamaApi.getInstalledModelsTotalSize()
     modelsCounter.value = await ollamaApi.getAllModelsTotalCount()
     runningModelsCounter.value = await ollamaApi.getRunningModelsTotalCount();
     installedNames.value = await ollamaApi.getAllModelsNames()
@@ -1043,14 +1068,12 @@ async function updateBaseUrl() {
   isUpdatingBaseUrl.value = true
 
   try {
-    ollamaApi.setBaseUrl(nextUrl)
+    settingsStore.apiUrl = nextUrl;
+    newBaseUrl.value = settingsStore.apiUrl;
 
-    baseUrl.value = ollamaApi.getBaseUrl()
-    newBaseUrl.value = baseUrl.value
+    await reloadStatus();
 
-    await reloadStatus()
-
-    baseUrlMessage.value = "Base URL updated successfully."
+    baseUrlMessage.value = "Base URL updated successfully.";
     window.setTimeout(() => {
       baseUrlMessage.value = ""
     }, 5_000)
@@ -1070,14 +1093,12 @@ async function resetBaseUrl() {
   isUpdatingBaseUrl.value = true
 
   try {
-    ollamaApi.resetBaseUrl()
+    settingsStore.apiUrl = "http://localhost:11434";
+    newBaseUrl.value = settingsStore.apiUrl;
 
-    baseUrl.value = ollamaApi.getBaseUrl()
-    newBaseUrl.value = baseUrl.value
+    await reloadStatus();
 
-    await reloadStatus()
-
-    baseUrlMessage.value = "Base URL reset to the default address."
+    baseUrlMessage.value = "Base URL reset to the default address.";
     window.setTimeout(() => {
       baseUrlMessage.value = ""
     }, 5_000)
@@ -1242,11 +1263,22 @@ function formatBytes(bytes, decimals = 2) {
 
 function formatDate(dateString) {
   const date = new Date(dateString);
-  return date.toLocaleString(); // format the date as per the user's locale
+  return date.toLocaleString();
 }
 
 function isModelLoaded(model) {
   return runningModelNames.value.has(model.name)
+}
+
+function isRecommendedModelInstalled(modelName) {
+  const normalizedRecommendedName = ollamaApi.normalizeModelName(modelName);
+
+  return installedNames.value.some((installedName) => {
+    return (
+      ollamaApi.normalizeModelName(installedName) ===
+      normalizedRecommendedName
+    );
+  });
 }
 
 
@@ -1369,12 +1401,21 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Page layout */
 .models-view {
   height: 100%;
-  overflow-y: auto;
   padding: var(--space-8) var(--space-6);
+  overflow-y: auto;
 }
 
+.models-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: var(--max-width);
+}
+
+/* Page header */
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -1413,6 +1454,9 @@ onMounted(async () => {
 }
 
 .page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
   color: var(--color-text);
   font-size: clamp(1.65rem, 3vw, 2.2rem);
@@ -1428,56 +1472,61 @@ onMounted(async () => {
   line-height: 1.5;
 }
 
-.models-content {
+.header-status {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  max-width: var(--max-width);
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
+/* Shared cards */
 .card {
+  padding: var(--space-6);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
 }
 
 .card h2 {
+  margin-bottom: var(--space-3);
   font-size: var(--text-sm);
   font-weight: 600;
-  margin-bottom: var(--space-3);
 }
 
 .card-header-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: var(--space-3);
   margin-bottom: var(--space-2);
 }
 
-.count-badge {
-  font-size: var(--text-xs);
+.card-hint {
+  margin-bottom: var(--space-2);
   color: var(--color-text-muted);
-  background: var(--color-surface-2);
+  font-size: var(--text-xs);
+}
+
+.count-badge {
   padding: 2px 10px;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  background: var(--color-surface-2);
   border-radius: var(--radius-full);
 }
 
-/* Pull form */
-.pull-form {
-  display: flex;
-  gap: var(--space-2);
-}
-
+/* Shared form controls */
 .input {
-  flex: 1;
   min-width: 0;
+  flex: 1;
   padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  font-size: var(--text-sm);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  color: var(--color-text);
   outline: none;
   transition: border-color 0.15s ease;
 }
@@ -1486,14 +1535,39 @@ onMounted(async () => {
   border-color: var(--color-primary);
 }
 
+.select {
+  min-width: 200px;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.input-error-text {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-error);
+  font-size: var(--text-xs);
+}
+
+/* Shared buttons */
+.btn-primary,
+.btn-danger,
+.btn-ghost,
+.btn-debug {
+  cursor: pointer;
+}
+
 .btn-primary {
   padding: var(--space-2) var(--space-4);
-  background: var(--color-primary);
   color: white;
-  border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: 500;
   white-space: nowrap;
+  background: var(--color-primary);
+  border-radius: var(--radius-md);
   transition: background 0.15s ease;
 }
 
@@ -1501,42 +1575,100 @@ onMounted(async () => {
   background: var(--color-primary-hover);
 }
 
-.btn-primary:disabled {
-  opacity: 0.5;
+.btn-primary:disabled,
+.btn-danger:disabled,
+.btn-debug:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
-.progress-info {
-  margin-top: var(--space-3);
+.btn-ghost {
+  padding: 4px var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
-.progress-bar {
-  height: 4px;
-  background: var(--color-border);
-  border-radius: var(--radius-full);
-  overflow: hidden;
+.btn-ghost:hover {
+  color: var(--color-text);
+  background: var(--color-surface-2);
 }
 
-.progress-fill {
-  height: 100%;
-  background: var(--color-primary);
-  transition: width 300ms ease;
+.btn-danger {
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  background: transparent;
+  border: 1px solid oklch(from var(--color-error) l c h / 0.3);
+  border-radius: var(--radius-md);
+  transition: background 0.15s ease;
 }
 
-.progress-text {
+.btn-danger:hover:not(:disabled) {
+  background: oklch(from var(--color-error) l c h / 0.08);
+}
+
+/* Status indicators */
+.status-dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.status-dot.connected {
+  background: #6daa45;
+  box-shadow: 0 0 0 3px oklch(from #6daa45 l c h / 0.15);
+}
+
+.status-dot.disconnected {
+  background: var(--color-error);
+  box-shadow: 0 0 0 3px oklch(from var(--color-error) l c h / 0.15);
+}
+
+/* Offline banner */
+.offline-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: var(--space-4);
+  color: var(--color-warning, #a16207);
+  background: color-mix(in srgb,
+      var(--color-warning, #f59e0b) 12%,
+      var(--color-surface));
+  border: 1px solid color-mix(in srgb,
+      var(--color-warning, #f59e0b) 30%,
+      var(--color-border));
+  border-radius: var(--radius-md);
+}
+
+.offline-banner strong {
   display: block;
-  margin-top: var(--space-2);
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
-/* Ollama info card */
-.card-hint {
-  font-size: var(--text-xs);
+.offline-banner p {
+  margin: 0.25rem 0 0;
   color: var(--color-text-muted);
-  margin-bottom: var(--space-2);
+  font-size: var(--text-xs);
 }
 
+.offline-banner code {
+  padding: 0.05rem 0.3rem;
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+/* Status and server information */
 .link-row {
   display: flex;
   flex-wrap: wrap;
@@ -1545,8 +1677,8 @@ onMounted(async () => {
 }
 
 .link-row a {
-  font-size: var(--text-xs);
   color: var(--color-primary);
+  font-size: var(--text-xs);
   text-decoration: none;
 }
 
@@ -1562,24 +1694,21 @@ onMounted(async () => {
 .info-row {
   display: flex;
   align-items: center;
-  margin-bottom: 0.6rem;
   justify-content: space-between;
   gap: 0.6rem;
   min-width: 0;
   padding: 0.7rem 0.8rem;
+  margin-bottom: 0.6rem;
   background: var(--color-surface-2);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
 }
 
 .info-row:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
-
 
 .info-row:last-child {
   border-bottom: none;
@@ -1596,11 +1725,11 @@ onMounted(async () => {
 
 .info-value {
   display: inline-flex;
+  min-width: 0;
   flex: 0 1 auto;
   align-items: center;
   justify-content: flex-end;
   gap: 0.45rem;
-  min-width: 0;
   overflow: hidden;
   color: var(--color-text);
   text-align: right;
@@ -1609,321 +1738,231 @@ onMounted(async () => {
 }
 
 .info-value.mono {
+  max-width: 240px;
+  overflow: hidden;
+  color: var(--color-text-muted);
   font-family: "JetBrains Mono", "SF Mono", monospace;
   font-size: var(--text-xs);
   font-weight: 500;
-  color: var(--color-text-muted);
-  max-width: 240px;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
+/* API endpoint configuration */
+.endpoint-card,
+.chat-defaults-card {
+  overflow: hidden;
 }
 
-.status-dot.connected {
-  background: #6daa45;
-  box-shadow: 0 0 0 3px oklch(from #6daa45 l c h / 0.15);
-}
-
-.status-dot.disconnected {
-  background: var(--color-error);
-  box-shadow: 0 0 0 3px oklch(from var(--color-error) l c h / 0.15);
-}
-
-.refresh-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: var(--space-4);
-}
-
-.select-row {
-  display: flex;
+.endpoint-status,
+.defaults-saved-badge {
+  display: inline-flex;
+  min-height: 22px;
+  flex: 0 0 auto;
   align-items: center;
-  justify-content: space-between;
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-divider);
+  padding: 2px 8px;
+  color: var(--color-success);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--color-success) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 28%, var(--color-border));
+  border-radius: var(--radius-full);
 }
 
-.select {
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  min-width: 200px;
+.defaults-saved-badge {
+  padding: 3px 8px;
 }
 
-/* Model cards */
-.model-cards {
+.endpoint-current {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: var(--space-3);
-}
-
-.model-card {
+  gap: 5px;
+  padding: var(--space-3);
+  margin-top: var(--space-4);
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--space-4);
-  transition:
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
 }
 
-.model-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+.endpoint-label,
+.endpoint-input-label {
+  color: var(--color-text-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.model-card-title {
-  margin: 0 0 var(--space-2);
-  font-size: var(--text-sm);
-  font-weight: 600;
+.endpoint-value {
+  overflow: hidden;
   color: var(--color-text);
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--color-divider);
-}
-
-.model-card-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--space-3);
-  padding: 4px 0;
+  font-family: "JetBrains Mono", "SF Mono", monospace;
   font-size: var(--text-xs);
-}
-
-.model-card-key {
-  color: var(--color-text-muted);
   font-weight: 500;
-  flex-shrink: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.model-card-value {
-  color: var(--color-text);
-  text-align: right;
-  word-break: break-word;
+.endpoint-form {
+  margin-top: var(--space-4);
 }
 
-/* Installed models list */
-.models-list,
-.model-list {
+.endpoint-input-label {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.endpoint-input-row {
   display: flex;
-  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.model-item {
+.endpoint-input {
+  min-width: 0;
+  flex: 1;
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+}
+
+.endpoint-update-button {
+  flex: 0 0 auto;
+}
+
+.endpoint-help {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-faint);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.endpoint-help code {
+  padding: 1px 4px;
+  color: var(--color-text-muted);
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-size: 0.92em;
+  background: var(--color-surface-2);
+  border-radius: 4px;
+}
+
+.endpoint-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-divider);
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
 }
 
-.model-item:last-child {
-  border-bottom: none;
+.endpoint-feedback {
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  text-align: right;
 }
 
-.model-info {
+/* Debug mode */
+.debug-card {
+  border-color: color-mix(in srgb,
+      var(--color-primary) 22%,
+      var(--color-border));
+}
+
+.debug-card-header,
+.debug-card-body {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
-.model-name {
-  font-size: var(--text-sm);
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.debug-card-body {
+  align-items: center;
+  padding-top: var(--space-3);
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
 }
 
-.model-meta {
-  display: flex;
-  flex-wrap: wrap;
+.debug-description {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.debug-state {
+  display: inline-flex;
+  min-height: 24px;
+  flex: 0 0 auto;
   align-items: center;
   gap: 6px;
-}
-
-.model-tag {
-  padding: 1px 8px;
+  padding: 3px 9px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  font-size: 11px;
-  color: var(--color-text-muted);
 }
 
-.model-size,
-.model-date {
+.debug-state-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-text-faint);
+  border-radius: 50%;
+}
+
+.debug-state.enabled {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 9%, transparent);
+  border-color: color-mix(in srgb,
+      var(--color-success) 30%,
+      var(--color-border));
+}
+
+.debug-state.enabled .debug-state-dot {
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.btn-debug {
+  min-height: 34px;
+  flex: 0 0 auto;
+  padding: 0.45rem 0.7rem;
+  color: var(--color-text);
   font-size: var(--text-xs);
-  color: var(--color-text-muted);
-}
-
-.running-badge {
-  font-size: var(--text-xs);
-}
-
-.running-badge.running {
-  color: #6daa45;
-}
-
-.running-badge.idle {
-  color: var(--color-text-faint);
-}
-
-.model-actions {
-  display: flex;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-
-.btn-ghost,
-.btn-danger {
-  padding: 4px var(--space-3);
+  font-weight: 600;
+  background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--text-xs);
-  background: var(--color-bg);
-  cursor: pointer;
   transition:
+    border-color 0.15s ease,
     background 0.15s ease,
     color 0.15s ease;
 }
 
-.btn-ghost {
-  color: var(--color-text-muted);
+.btn-debug:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: color-mix(in srgb,
+      var(--color-primary) 8%,
+      var(--color-surface-2));
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
-.btn-ghost:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text);
+.btn-debug.active {
+  color: var(--color-success);
+  background: color-mix(in srgb,
+      var(--color-success) 9%,
+      var(--color-surface-2));
+  border-color: color-mix(in srgb,
+      var(--color-success) 35%,
+      var(--color-border));
 }
 
-.btn-danger {
-  color: var(--color-error);
-  border-color: oklch(from var(--color-error) l c h / 0.3);
-}
-
-.btn-danger:hover {
-  background: oklch(from var(--color-error) l c h / 0.08);
-}
-
-.empty-state {
-  padding: var(--space-8) 0;
-  text-align: center;
-  color: var(--color-text-faint);
-  font-size: var(--text-sm);
-}
-
-/* Remove Models */
-.btn-danger {
-  padding: var(--space-2) var(--space-4);
-  background: transparent;
-  color: var(--color-error);
-  border: 1px solid oklch(from var(--color-error) l c h / 0.3);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  white-space: nowrap;
-  transition: background 0.15s ease;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: oklch(from var(--color-error) l c h / 0.08);
-}
-
-.btn-danger:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.input-error-text {
-  color: var(--color-error);
-  font-size: var(--text-xs);
-  margin-top: var(--space-1);
-}
-
-/* Recommended Models */
-.recommended-models {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.model-recommend-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-3);
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.model-recommend-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.model-recommend-name {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.model-recommend-desc {
-  font-size: 11px;
-  color: var(--color-text-faint);
-}
-
-.btn-installed {
-  padding: var(--space-1) var(--space-3);
-  background: var(--color-success, #22c55e);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  opacity: 0.85;
-  cursor: default;
-}
-
-.btn-pulling {
-  padding: var(--space-1) var(--space-3);
-  background: var(--color-primary);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  min-width: 60px;
-  opacity: 0.9;
-}
-
-/* Page header styling */
-.page-header h1 {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-/* Nav icon SVG styling */
-.nav-icon svg {
-  width: 20px;
-  height: 20px;
-  display: block;
-}
-
-/* Pull Model Status Styling */
+/* Model download */
 .pull-section {
   min-width: 0;
 }
@@ -1944,8 +1983,8 @@ onMounted(async () => {
 }
 
 .pull-status {
-  margin-top: var(--space-3);
   padding: var(--space-3);
+  margin-top: var(--space-3);
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -1984,18 +2023,95 @@ onMounted(async () => {
   font-weight: 600;
 }
 
-.pull-message {
+.pull-resume-button {
+  margin-top: var(--space-3);
+}
+
+.progress-info {
+  margin-top: var(--space-3);
+}
+
+.progress-bar {
+  height: 4px;
+  overflow: hidden;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 300ms ease;
+}
+
+.progress-text {
+  display: block;
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.pull-message,
+.remove-message {
   margin: var(--space-3) 0 0;
   font-size: var(--text-xs);
   line-height: 1.45;
 }
 
-.input-error-text {
-  display: block;
-  margin-top: var(--space-1);
+/* Recommended models */
+.recommended-models {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-/* Link styling */
+.model-recommend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.model-recommend-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.model-recommend-name {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.model-recommend-desc {
+  color: var(--color-text-faint);
+  font-size: 11px;
+}
+
+.btn-installed,
+.btn-pulling {
+  min-width: 60px;
+  padding: var(--space-1) var(--space-3);
+  color: white;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-md);
+}
+
+.btn-installed {
+  cursor: default;
+  background: var(--color-success, #22c55e);
+  opacity: 0.85;
+}
+
+.btn-pulling {
+  background: var(--color-primary);
+  opacity: 0.9;
+}
+
 .btn-details {
   display: inline-flex;
   align-items: center;
@@ -2004,14 +2120,14 @@ onMounted(async () => {
   min-height: 30px;
   padding: 0.35rem 0.55rem;
   color: var(--color-text-muted);
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   font-size: var(--text-xs);
   font-weight: 500;
   line-height: 1;
   text-decoration: none;
   white-space: nowrap;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   transition:
     color 0.15s ease,
     background 0.15s ease,
@@ -2020,9 +2136,11 @@ onMounted(async () => {
 
 .btn-details:hover {
   color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
   cursor: pointer;
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  border-color: color-mix(in srgb,
+      var(--color-primary) 30%,
+      var(--color-border));
 }
 
 .btn-details:focus-visible {
@@ -2041,14 +2159,162 @@ onMounted(async () => {
   transform: translate(1px, -1px);
 }
 
-/* Remove Model Section Styling */
-.remove-message {
-  margin: var(--space-2) 0 0;
-  font-size: var(--text-xs);
-  line-height: 1.45;
+/* Model actions */
+.select-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--color-divider);
 }
 
-/* Installed Models Section Styling */
+.refresh-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+/* Legacy model cards */
+.model-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-3);
+}
+
+.model-card {
+  padding: var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.model-card:hover {
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  transform: translateY(-2px);
+}
+
+.model-card-title {
+  padding-bottom: var(--space-2);
+  margin: 0 0 var(--space-2);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.model-card-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 4px 0;
+  font-size: var(--text-xs);
+}
+
+.model-card-key {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.model-card-value {
+  color: var(--color-text);
+  text-align: right;
+  word-break: break-word;
+}
+
+/* Installed model list */
+.models-list,
+.model-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.model-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.model-item:last-child {
+  border-bottom: none;
+}
+
+.model-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.model-name {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.model-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.model-tag {
+  padding: 1px 8px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.model-size,
+.model-date,
+.running-badge {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.running-badge.running {
+  color: #6daa45;
+}
+
+.running-badge.idle {
+  color: var(--color-text-faint);
+}
+
+.model-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-2);
+}
+
+/* Model search and details */
+.models-toolbar {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.search-input {
+  min-width: 0;
+}
+
+.filter-select {
+  flex: 0 0 auto;
+}
+
 .model-detail-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -2087,10 +2353,10 @@ onMounted(async () => {
 
 .model-title-group {
   display: flex;
+  min-width: 0;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  min-width: 0;
 }
 
 .model-detail-name {
@@ -2108,17 +2374,17 @@ onMounted(async () => {
 .model-family-badge,
 .model-size-badge {
   display: inline-flex;
-  align-items: center;
   min-height: 22px;
+  align-items: center;
   padding: 2px 8px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-bg);
   color: var(--color-text-muted);
   font-family: "JetBrains Mono", "SF Mono", monospace;
   font-size: 10px;
   font-weight: 500;
   white-space: nowrap;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
 }
 
 .model-size-badge {
@@ -2165,272 +2431,15 @@ onMounted(async () => {
   font-size: 10px;
 }
 
-/* Set new Base Url Section Styling */
-.endpoint-card {
-  overflow: hidden;
-}
-
-.card-header-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.endpoint-status {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  min-height: 22px;
-  padding: 2px 8px;
-  border: 1px solid color-mix(in srgb,
-      var(--color-success) 28%,
-      var(--color-border));
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb,
-      var(--color-success) 9%,
-      transparent);
-  color: var(--color-success);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.endpoint-current {
-  display: grid;
-  gap: 5px;
-  margin-top: var(--space-4);
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-2);
-}
-
-.endpoint-label,
-.endpoint-input-label {
+/* Empty states */
+.empty-state {
+  padding: var(--space-8) 0;
   color: var(--color-text-faint);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: var(--text-sm);
+  text-align: center;
 }
 
-.endpoint-value {
-  overflow: hidden;
-  color: var(--color-text);
-  font-family: "JetBrains Mono", "SF Mono", monospace;
-  font-size: var(--text-xs);
-  font-weight: 500;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.endpoint-form {
-  margin-top: var(--space-4);
-}
-
-.endpoint-input-label {
-  display: block;
-  margin-bottom: var(--space-2);
-}
-
-.endpoint-input-row {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.endpoint-input {
-  flex: 1;
-  min-width: 0;
-  font-family: "JetBrains Mono", "SF Mono", monospace;
-}
-
-.endpoint-update-button {
-  flex: 0 0 auto;
-}
-
-.endpoint-help {
-  margin: var(--space-2) 0 0;
-  color: var(--color-text-faint);
-  font-size: var(--text-xs);
-  line-height: 1.45;
-}
-
-.endpoint-help code {
-  padding: 1px 4px;
-  border-radius: 4px;
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-  font-family: "JetBrains Mono", "SF Mono", monospace;
-  font-size: 0.92em;
-}
-
-.endpoint-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
-}
-
-.endpoint-feedback {
-  font-size: var(--text-xs);
-  line-height: 1.4;
-  text-align: right;
-}
-
-@media (pointer: coarse) {
-  .endpoint-input {
-    font-size: 16px;
-  }
-}
-
-/* Debug Mode Section Styling */
-.debug-card {
-  border-color: color-mix(in srgb,
-      var(--color-primary) 22%,
-      var(--color-border));
-}
-
-.debug-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.debug-card-body {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
-}
-
-.debug-description {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
-  line-height: 1.5;
-}
-
-.debug-state {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 6px;
-  min-height: 24px;
-  padding: 3px 9px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.debug-state-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-text-faint);
-}
-
-.debug-state.enabled {
-  border-color: color-mix(in srgb,
-      var(--color-success) 30%,
-      var(--color-border));
-  background: color-mix(in srgb,
-      var(--color-success) 9%,
-      transparent);
-  color: var(--color-success);
-}
-
-.debug-state.enabled .debug-state-dot {
-  background: currentColor;
-  box-shadow: 0 0 0 3px color-mix(in srgb,
-      currentColor 16%,
-      transparent);
-}
-
-.btn-debug {
-  flex: 0 0 auto;
-  min-height: 34px;
-  padding: 0.45rem 0.7rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-2);
-  color: var(--color-text);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.btn-debug:hover:not(:disabled) {
-  border-color: color-mix(in srgb,
-      var(--color-primary) 35%,
-      var(--color-border));
-  background: color-mix(in srgb,
-      var(--color-primary) 8%,
-      var(--color-surface-2));
-  color: var(--color-primary);
-}
-
-.btn-debug.active {
-  border-color: color-mix(in srgb,
-      var(--color-success) 35%,
-      var(--color-border));
-  background: color-mix(in srgb,
-      var(--color-success) 9%,
-      var(--color-surface-2));
-  color: var(--color-success);
-}
-
-.btn-debug:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-/* Chat Defaults Section Styling */
-.chat-defaults-card {
-  overflow: hidden;
-}
-
-.card-header-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.defaults-saved-badge {
-  flex: 0 0 auto;
-  padding: 3px 8px;
-  border: 1px solid color-mix(in srgb,
-      var(--color-success) 28%,
-      var(--color-border));
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb,
-      var(--color-success) 9%,
-      transparent);
-  color: var(--color-success);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
+/* Chat defaults */
 .defaults-form {
   display: grid;
   gap: var(--space-4);
@@ -2480,29 +2489,29 @@ onMounted(async () => {
   width: 100%;
   height: 5px;
   margin: var(--space-2) 0;
-  appearance: none;
   cursor: pointer;
-  border-radius: var(--radius-full);
-  background: var(--color-border);
+  appearance: none;
   accent-color: var(--color-primary);
+  background: var(--color-border);
+  border-radius: var(--radius-full);
 }
 
 .temperature-slider::-webkit-slider-thumb {
   width: 16px;
   height: 16px;
   appearance: none;
+  background: var(--color-primary);
   border: 2px solid var(--color-surface);
   border-radius: 50%;
-  background: var(--color-primary);
   box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
 }
 
 .temperature-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
+  background: var(--color-primary);
   border: 2px solid var(--color-surface);
   border-radius: 50%;
-  background: var(--color-primary);
   box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
 }
 
@@ -2527,76 +2536,20 @@ onMounted(async () => {
   line-height: 1.5;
 }
 
-/* Header Status Styling */
-.header-status {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.status-dot.connected {
-  background: #6daa45;
-  box-shadow: 0 0 0 3px oklch(from #6daa45 l c h / 0.15);
-}
-
-.status-dot.disconnected {
-  background: var(--color-error);
-  box-shadow: 0 0 0 3px oklch(from var(--color-error) l c h / 0.15);
-}
-
-/* Offline Banner Styles */
-.offline-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-  padding: 0.85rem 1rem;
-  color: var(--color-warning, #a16207);
-  background: color-mix(in srgb,
-      var(--color-warning, #f59e0b) 12%,
-      var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-warning, #f59e0b) 30%, var(--color-border));
-  border-radius: var(--radius-md);
-  margin-bottom: var(--space-4);
-}
-
-.offline-banner strong {
-  display: block;
-  font-size: var(--text-sm);
-}
-
-.offline-banner p {
-  margin: 0.25rem 0 0;
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
-}
-
-.offline-banner code {
-  padding: 0.05rem 0.3rem;
-  font-family: "Fira Code", ui-monospace, SFMono-Regular, monospace;
-  background: color-mix(in srgb, var(--color-text) 8%, transparent);
-  border-radius: var(--radius-sm);
-}
-
-/* Responsive Styling */
+/* Responsive input sizing */
 @media (pointer: coarse) {
 
+  .endpoint-input,
   .setting-number-input,
   .system-prompt-input {
     font-size: 16px;
   }
 }
 
+/* Mobile layout */
 @media (max-width: 620px) {
+
+  /* Page and header */
   .models-view {
     padding: 0.85rem 0.75rem 1.5rem;
   }
@@ -2628,19 +2581,24 @@ onMounted(async () => {
     font-size: 12px;
   }
 
+  .header-status {
+    display: none;
+  }
+
   .models-content {
     gap: 0.6rem;
     max-width: none;
   }
 
+  /* Cards and controls */
   .card {
     padding: 0.75rem;
     border-radius: var(--radius-md);
   }
 
   .card h2 {
-    font-size: 12px;
     margin-bottom: 0.5rem;
+    font-size: 12px;
   }
 
   .card-header-row {
@@ -2648,29 +2606,18 @@ onMounted(async () => {
   }
 
   .count-badge {
-    font-size: 10px;
     padding: 2px 8px;
+    font-size: 10px;
   }
 
-  .card-hint {
+  .card-hint,
+  .link-row a {
     font-size: 10px;
   }
 
   .link-row {
     gap: 0.5rem;
     margin-bottom: 0.65rem;
-  }
-
-  .link-row a {
-    font-size: 10px;
-  }
-
-  .pull-form {
-    grid-template-columns: 1fr;
-  }
-
-  .pull-form .btn-primary {
-    width: 100%;
   }
 
   .input {
@@ -2685,23 +2632,34 @@ onMounted(async () => {
     font-size: 12px;
   }
 
+  /* Download controls */
+  .pull-form {
+    grid-template-columns: 1fr;
+  }
+
+  .pull-form .btn-primary {
+    width: 100%;
+  }
+
   .progress-info {
     margin-top: 0.5rem;
   }
 
-  .progress-text {
+  .progress-text,
+  .input-error-text {
     font-size: 10px;
   }
 
+  /* Status information */
   .info-row {
     flex-wrap: wrap;
     align-items: flex-start;
-    /* flex-direction: column; */
-    padding: 0.5rem 0;
     gap: 0.3rem;
+    padding: 0.5rem 0;
   }
 
-  .info-label {
+  .info-label,
+  .info-value {
     font-size: 12px;
   }
 
@@ -2709,12 +2667,22 @@ onMounted(async () => {
     justify-content: flex-start;
     max-width: 100%;
     text-align: left;
-    font-size: 12px;
   }
 
   .info-value.mono {
     max-width: none;
     font-size: 10px;
+  }
+
+  /* Model actions */
+  .select-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .select {
+    width: 100%;
+    min-width: 0;
   }
 
   .refresh-row {
@@ -2723,13 +2691,41 @@ onMounted(async () => {
   }
 
   .refresh-row .btn-ghost {
-    flex: 1;
     min-width: 0;
+    flex: 1;
     padding: 0.35rem 0.5rem;
     font-size: 10px;
     text-align: center;
   }
 
+  /* Recommended models */
+  .recommended-models {
+    gap: 0.4rem;
+  }
+
+  .model-recommend-item {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.6rem;
+  }
+
+  .model-recommend-name {
+    font-size: 12px;
+  }
+
+  .model-recommend-desc {
+    font-size: 10px;
+  }
+
+  .model-recommend-item .btn-primary,
+  .model-recommend-item .btn-installed,
+  .model-recommend-item .btn-pulling {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Model cards and details */
   .model-cards {
     grid-template-columns: 1fr;
     gap: 0.5rem;
@@ -2740,8 +2736,8 @@ onMounted(async () => {
   }
 
   .model-card-title {
-    font-size: 12px;
     padding-bottom: 0.4rem;
+    font-size: 12px;
   }
 
   .model-card-row {
@@ -2781,39 +2777,17 @@ onMounted(async () => {
     font-size: 10px;
   }
 
-  .recommended-models {
-    gap: 0.4rem;
-  }
-
-  .model-recommend-item {
+  .models-toolbar {
     flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-    padding: 0.6rem;
   }
 
-  .model-recommend-name {
-    font-size: 12px;
-  }
-
-  .model-recommend-desc {
-    font-size: 10px;
-  }
-
-  .model-recommend-item .btn-primary,
-  .model-recommend-item .btn-installed,
-  .model-recommend-item .btn-pulling {
+  .filter-select {
     width: 100%;
-    text-align: center;
   }
 
   .empty-state {
     padding: 1.5rem 0;
     font-size: 12px;
-  }
-
-  .input-error-text {
-    font-size: 10px;
   }
 
   .model-detail-list {
@@ -2834,7 +2808,7 @@ onMounted(async () => {
     font-size: 12px;
   }
 
-  /* Set new Base Url Section Styling */
+  /* API endpoint */
   .endpoint-input-row {
     flex-direction: column;
   }
@@ -2852,7 +2826,7 @@ onMounted(async () => {
     text-align: left;
   }
 
-  /* Debug Mode Section Styling */
+  /* Debug mode */
   .debug-card-header,
   .debug-card-body {
     align-items: stretch;
@@ -2861,11 +2835,11 @@ onMounted(async () => {
 
   .debug-state,
   .btn-debug {
-    width: 100%;
     justify-content: center;
+    width: 100%;
   }
 
-  /* Chat Defaults Section Styling */
+  /* Chat defaults */
   .card-header-row {
     align-items: stretch;
     flex-direction: column;

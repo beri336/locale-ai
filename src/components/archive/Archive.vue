@@ -2,14 +2,19 @@
 
 <template>
   <main class="archive-view">
+    <!-- Page Header -->
     <header class="page-header">
+      <!-- Header Icon -->
       <div class="page-heading">
         <div class="header-icon" aria-hidden="true">
           <IconArchive />
         </div>
+
+        <!-- Header Text -->
         <div>
           <p class="eyebrow">Storage</p>
           <h1>Archive</h1>
+
           <p class="header-description">
             Chats you've archived across all projects and quick chats.
           </p>
@@ -17,12 +22,12 @@
       </div>
     </header>
 
+    <!-- Archive List -->
     <div v-if="archivedEntries.length" class="archive-list">
-      <div
-        v-for="entry in archivedEntries"
-        :key="`${entry.source}-${entry.chat.id}`"
-        class="archive-item"
-      >
+      <!-- Archive Item -->
+      <div v-for="entry in archivedEntries" :key="`${entry.source}-${entry.chat.id}`" class="archive-item">
+
+        <!-- Archive Item Info -->
         <div class="archive-item-info">
           <span class="archive-item-title">{{ entry.chat.title }}</span>
           <span class="archive-item-meta">
@@ -32,10 +37,14 @@
           </span>
         </div>
 
+        <!-- Archive Item Actions -->
         <div class="archive-item-actions">
+          <!-- Unarchive Button -->
           <button class="btn-secondary" type="button" @click="unarchive(entry)">
             Unarchive
           </button>
+
+          <!-- Go to Chat Button -->
           <button class="btn-secondary" type="button" @click="goToChat(entry)">
             {{ entry.source === "project" ? "Open project" : "Open chat" }}
           </button>
@@ -43,10 +52,12 @@
       </div>
     </div>
 
+    <!-- Empty State -->
     <div v-else class="empty-state">
       <div class="empty-state-icon" aria-hidden="true">
         <IconArchive :size="40" :stroke-width="1.5" />
       </div>
+
       <h2>No archived chats</h2>
       <p>Archived chats from your projects and quick chats will appear here.</p>
     </div>
@@ -56,8 +67,10 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+
 import { useProjectsStore } from "@/stores/useProjectsStore";
-import { IconArchive } from "@tabler/icons-vue";
+import IconArchive from "@/components/icons/IconArchive.vue";
+
 
 const CHAT_STORAGE_KEY = "ollama-chats";
 
@@ -66,25 +79,8 @@ const projectsStore = useProjectsStore();
 
 const globalChats = ref([]);
 
-function loadGlobalChats() {
-  try {
-    const stored = localStorage.getItem(CHAT_STORAGE_KEY);
-    const parsed = stored ? JSON.parse(stored) : [];
-    globalChats.value = Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.error("Failed to load global chats for archive:", error);
-    globalChats.value = [];
-  }
-}
 
-function saveGlobalChats() {
-  try {
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(globalChats.value));
-  } catch (error) {
-    console.error("Failed to save global chats:", error);
-  }
-}
-
+// computed property
 const archivedEntries = computed(() => {
   const projectEntries = projectsStore.getAllArchivedChats().map((entry) => ({
     chat: entry.chat,
@@ -106,6 +102,27 @@ const archivedEntries = computed(() => {
       new Date(a.chat.updatedAt ?? a.chat.createdAt),
   );
 });
+
+
+// functions
+function loadGlobalChats() {
+  try {
+    const stored = localStorage.getItem(CHAT_STORAGE_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    globalChats.value = Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Failed to load global chats for archive:", error);
+    globalChats.value = [];
+  }
+}
+
+function saveGlobalChats() {
+  try {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(globalChats.value));
+  } catch (error) {
+    console.error("Failed to save global chats:", error);
+  }
+}
 
 function unarchive(entry) {
   if (entry.source === "project") {
@@ -131,20 +148,24 @@ function formatDate(isoString) {
   });
 }
 
+
+// mounted lifecycle hook
 onMounted(() => {
   loadGlobalChats();
 });
 </script>
 
 <style scoped>
+/* Page layout */
 .archive-view {
   display: flex;
+  max-width: var(--max-width);
   flex-direction: column;
   gap: 1.5rem;
   padding: clamp(1rem, 3vw, 2rem);
-  max-width: var(--max-width);
 }
 
+/* Page header */
 .page-header {
   display: flex;
   align-items: center;
@@ -193,6 +214,7 @@ onMounted(() => {
   font-size: var(--text-sm);
 }
 
+/* Archived chat list */
 .archive-list {
   display: flex;
   flex-direction: column;
@@ -212,9 +234,9 @@ onMounted(() => {
 
 .archive-item-info {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: 0.2rem;
-  min-width: 0;
 }
 
 .archive-item-title {
@@ -237,6 +259,7 @@ onMounted(() => {
   gap: 0.5rem;
 }
 
+/* Shared action buttons */
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -258,13 +281,12 @@ onMounted(() => {
 
 .btn-secondary:hover {
   background: var(--color-surface-2);
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary) 35%,
-    var(--color-border)
-  );
+  border-color: color-mix(in srgb,
+      var(--color-primary) 35%,
+      var(--color-border));
 }
 
+/* Empty archive state */
 .empty-state {
   display: grid;
   justify-items: center;
@@ -297,18 +319,81 @@ onMounted(() => {
   line-height: 1.55;
 }
 
+/* Mobile layout */
 @media (max-width: 620px) {
+  .archive-view {
+    gap: 1rem;
+    padding: 0.85rem 0.75rem 1.5rem;
+  }
+
+  .header-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+  }
+
+  .eyebrow {
+    font-size: 0.6rem;
+  }
+
+  .page-heading h1 {
+    font-size: 1.4rem;
+  }
+
+  .header-description {
+    margin-top: 0.3rem;
+    font-size: 12px;
+  }
+
+  .archive-list {
+    gap: 0.5rem;
+  }
+
   .archive-item {
-    flex-direction: column;
     align-items: flex-start;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 0.75rem;
+  }
+
+  .archive-item-title {
+    font-size: 12px;
+  }
+
+  .archive-item-meta {
+    font-size: 10px;
+    line-height: 1.45;
   }
 
   .archive-item-actions {
     width: 100%;
+    gap: 0.4rem;
   }
 
   .archive-item-actions .btn-secondary {
+    min-height: 32px;
     flex: 1;
+    padding: 0.4rem 0.55rem;
+    font-size: 11px;
+  }
+
+  .empty-state {
+    gap: 0.5rem;
+    padding: 2rem 1rem;
+  }
+
+  .empty-state-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .empty-state h2 {
+    font-size: 13px;
+  }
+
+  .empty-state p {
+    font-size: 12px;
   }
 }
 </style>

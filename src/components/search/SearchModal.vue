@@ -1,31 +1,31 @@
 <!-- src/components/search/SearchModal.vue -->
 
 <template>
+  <!-- Search Modal -->
   <div v-if="isOpen" class="search-overlay" @click.self="closeSearchModal">
+    <!-- Search Modal Content -->
     <div class="search-modal">
+      <!-- Search Input Row -->
       <div class="search-input-row">
         <span class="search-icon" aria-hidden="true">
           <IconSearch :size="16" :stroke-width="1.8" />
         </span>
-        <input
-          ref="searchInput"
-          :value="searchQuery"
-          class="search-input"
-          placeholder="Search chats…"
-          @input="setSearchQuery($event.target.value)"
-          @keydown.esc="closeSearchModal"
-        />
+
+        <!-- Search Input -->
+        <input ref="searchInput" :value="searchQuery" class="search-input" placeholder="Search chats…"
+          @input="setSearchQuery($event.target.value)" @keydown.esc="closeSearchModal" />
+
         <kbd class="esc-hint">Esc</kbd>
       </div>
 
+      <!-- Search Results -->
       <div class="search-results">
-        <div
-          v-for="result in results"
-          :key="`${result.source}-${result.id}`"
-          class="search-result-item"
-          @click="goToChat(result)"
-        >
+        <!-- Search Result Items -->
+        <div v-for="result in results" :key="`${result.source}-${result.id}`" class="search-result-item"
+          @click="goToChat(result)">
+          <!-- Search Result Item -->
           <div class="result-content">
+            <!-- Result Heading -->
             <div class="result-heading">
               <span class="result-title">{{ result.title }}</span>
 
@@ -34,6 +34,7 @@
               </span>
             </div>
 
+            <!-- Result Snippet -->
             <p v-if="result.snippet" class="result-snippet">
               <span v-if="result.matchLabel" class="match-label">
                 {{ result.matchLabel }}:
@@ -42,11 +43,13 @@
             </p>
           </div>
 
+          <!-- Result Badge -->
           <span class="result-badge" :class="result.source">
             {{ result.source === "project" ? result.projectName : "Chat" }}
           </span>
         </div>
 
+        <!-- Empty Results -->
         <div v-if="results.length === 0" class="empty-results">
           <p>No chats found.</p>
         </div>
@@ -58,9 +61,11 @@
 <script setup>
 import { watch, nextTick, ref } from "vue";
 import { useRouter } from "vue-router";
+
 import { useSearchModal } from "@/composables/useSearchModal";
 import { useChatSearch } from "@/composables/useChatSearch";
 import IconSearch from "@/components/icons/IconSearch.vue";
+
 
 const router = useRouter();
 
@@ -69,6 +74,8 @@ const { searchQuery, setSearchQuery, results } = useChatSearch();
 
 const searchInput = ref(null);
 
+
+// wacthers
 watch(isOpen, async (open) => {
   if (open) {
     setSearchQuery("");
@@ -77,6 +84,8 @@ watch(isOpen, async (open) => {
   }
 });
 
+
+// functions
 function goToChat(result) {
   if (result.source === "project") {
     router.push(`/projects/${result.projectId}?chat=${result.chatId}`);
@@ -89,30 +98,33 @@ function goToChat(result) {
 </script>
 
 <style scoped>
+/* Search overlay */
 .search-overlay {
   position: fixed;
+  z-index: 200;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding-top: 12vh;
-  z-index: 200;
+  background: rgb(0 0 0 / 0.5);
 }
 
+/* Search modal */
 .search-modal {
+  display: flex;
   width: 560px;
   max-width: 90vw;
   max-height: 60vh;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.25);
 }
 
+/* Search input */
 .search-input-row {
   display: flex;
   align-items: center;
@@ -128,76 +140,41 @@ function goToChat(result) {
 
 .search-input {
   flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: var(--text-md);
   color: var(--color-text);
+  font-size: var(--text-md);
+  background: transparent;
+  border: 0;
+  outline: none;
 }
 
 .esc-hint {
-  font-size: 11px;
+  flex-shrink: 0;
+  padding: 2px 6px;
   color: var(--color-text-faint);
+  font-size: 11px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 2px 6px;
-  flex-shrink: 0;
 }
 
+/* Search results */
 .search-results {
-  overflow-y: auto;
   padding: var(--space-2);
+  overflow-y: auto;
 }
 
 .search-result-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
   padding: var(--space-3);
-  border-radius: var(--radius-md);
   cursor: pointer;
+  border-radius: var(--radius-md);
   transition: background 0.15s ease;
 }
 
 .search-result-item:hover {
   background: var(--color-surface-2);
-}
-
-.result-title {
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.result-badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
-  margin-left: var(--space-3);
-}
-
-.result-badge.global {
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-}
-
-.result-badge.project {
-  background: var(--color-primary);
-  color: white;
-}
-
-.empty-results {
-  padding: var(--space-6);
-  text-align: center;
-  color: var(--color-text-faint);
-  font-size: var(--text-sm);
-}
-
-.search-result-item {
-  gap: var(--space-3);
 }
 
 .result-content {
@@ -207,9 +184,17 @@ function goToChat(result) {
 
 .result-heading {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: var(--space-2);
-  min-width: 0;
+}
+
+.result-title {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .result-model {
@@ -232,18 +217,46 @@ function goToChat(result) {
   color: var(--color-text-faint);
 }
 
-/* iOS Safari: at least 16px prevents input auto-zoom */
+/* Result source badges */
+.result-badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  margin-left: var(--space-3);
+  font-size: 11px;
+  border-radius: var(--radius-full);
+}
+
+.result-badge.global {
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+}
+
+.result-badge.project {
+  color: #fff;
+  background: var(--color-primary);
+}
+
+/* Empty search state */
+.empty-results {
+  padding: var(--space-6);
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+/* Touch input sizing */
 @media (pointer: coarse) {
   .search-input {
     font-size: 16px;
   }
 }
 
+/* Mobile layout */
 @media (max-width: 620px) {
   .search-overlay {
-    padding-top: 6vh;
     align-items: stretch;
     justify-content: stretch;
+    padding-top: 6vh;
   }
 
   .search-modal {
@@ -280,10 +293,7 @@ function goToChat(result) {
     font-size: 12px;
   }
 
-  .result-model {
-    font-size: 10px;
-  }
-
+  .result-model,
   .result-snippet {
     font-size: 10px;
   }
