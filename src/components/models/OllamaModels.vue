@@ -30,6 +30,8 @@
       </div>
     </header>
 
+    <LocalAiNotice />
+
     <div class="models-content">
       <!-- Offline Banner -->
       <div v-if="!statusBool" class="offline-banner" role="alert">
@@ -766,6 +768,8 @@ import IconOllama from "@/components/icons/IconOllama.vue";
 import IconArrowUpRight from "../icons/IconArrowUpRight.vue";
 import IconAlertTriangle from "@/components/icons/IconAlertTriangle.vue";
 import IconRefresh from "@/components/icons/IconRefresh.vue";
+
+import LocalAiNotice from "@/components/ui/LocalAiNotice.vue";
 
 const ollamaApi = useOllamaApi();
 const settingsStore = useSettingsStore();

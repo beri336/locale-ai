@@ -20,6 +20,8 @@
       </div>
     </header>
 
+    <LocalAiNotice />
+
     <!-- Translator layout -->
     <div class="translator-layout">
       <!-- Input panel -->
@@ -140,6 +142,8 @@ import { renderMarkdown } from "@/utils/markdown";
 import { copyToClipboard } from "@/utils/clipboard";
 
 import IconPseudocode from "@/components/icons/IconPseudocode.vue";
+
+import LocalAiNotice from "@/components/ui/LocalAiNotice.vue";
 
 import {
   PSEUDOCODE_SYSTEM_PROMPT,

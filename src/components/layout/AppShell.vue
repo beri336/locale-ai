@@ -229,7 +229,7 @@
         <div class="sheet-divider"></div>
 
         <!-- Theme Toggle -->
-        <button class="sheet-theme-btn" type="button" @click="themeStore.toggle()">
+        <button class="sheet-theme-btn" type="button" @click="themeStore.toggleTheme()">
           <span class="sheet-item-icon" aria-hidden="true">
             <IconMoon v-if="themeStore.theme === 'light'" :size="16" :stroke-width="2" />
 
@@ -593,7 +593,6 @@ watch(isMobileMenuOpen, (isOpen) => {
 
 /* Mobile navigation */
 @media (max-width: 767px) {
-
   /* Mobile layout */
   .shell {
     display: block;

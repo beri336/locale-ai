@@ -28,6 +28,8 @@
       </button>
     </header>
 
+    <LocalAiNotice />
+
     <!-- Tag filter -->
     <div v-if="allTags.length" class="filter-section">
       <!-- Filter header -->
@@ -207,6 +209,8 @@ import IconFolder from "@/components/icons/IconFolder.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
 import IconX from "@/components/icons/IconX.vue";
+
+import LocalAiNotice from "@/components/ui/LocalAiNotice.vue";
 
 const router = useRouter();
 const projectsStore = useProjectsStore();

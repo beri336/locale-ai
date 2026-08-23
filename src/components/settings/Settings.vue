@@ -22,6 +22,8 @@
       </div>
     </header>
 
+    <LocalAiNotice />
+
     <!-- Settings Content -->
     <div class="settings-content">
       <!-- Connection Ollama -->
@@ -614,6 +616,8 @@ import { useOllamaApi } from "@/services/ollamaApiService";
 
 import IconSettings from "@/components/icons/IconSettings.vue";
 import IconArrowUpRight from "@/components/icons/IconArrowUpRight.vue";
+
+import LocalAiNotice from "@/components/ui/LocalAiNotice.vue";
 
 import {
   exportAppBackup,

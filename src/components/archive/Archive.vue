@@ -22,6 +22,8 @@
       </div>
     </header>
 
+    <LocalAiNotice />
+
     <!-- Archive List -->
     <div v-if="archivedEntries.length" class="archive-list">
       <!-- Archive Item -->
@@ -70,6 +72,8 @@ import { useRouter } from "vue-router";
 
 import { useProjectsStore } from "@/stores/useProjectsStore";
 import IconArchive from "@/components/icons/IconArchive.vue";
+
+import LocalAiNotice from "@/components/ui/LocalAiNotice.vue";
 
 
 const CHAT_STORAGE_KEY = "ollama-chats";

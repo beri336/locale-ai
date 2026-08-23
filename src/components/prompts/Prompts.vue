@@ -26,6 +26,8 @@
       </button>
     </header>
 
+    <LocalAiNotice />
+
     <!-- Provider connection and active generation model -->
     <section class="generation-toolbar" aria-label="Local model connection and selection">
       <!-- Provider statuses -->
@@ -332,6 +334,8 @@ import IconCheck from "@/components/icons/IconCheck.vue";
 import IconSparkles from "@/components/icons/IconSparkles.vue";
 import IconLoader from "@/components/icons/IconLoader.vue";
 import IconPrompt from "@/components/icons/IconPrompt.vue";
+
+import LocalAiNotice from "@/components/ui/LocalAiNotice.vue";
 
 
 const ollama = useOllamaApi();

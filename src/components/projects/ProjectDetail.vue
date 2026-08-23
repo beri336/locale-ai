@@ -23,6 +23,8 @@
 
       <!-- Project -->
       <template v-if="!isSidebarCollapsed">
+        <LocalAiNotice />
+
         <!-- Project Summary -->
         <div class="project-summary">
           <div class="project-summary-icon" aria-hidden="true">
@@ -172,6 +174,8 @@ import IconPlus from "@/components/icons/IconPlus.vue";
 import IconSparkles from "@/components/icons/IconSparkles.vue";
 import IconFolder from "@/components/icons/IconFolder.vue";
 import IconChat from "@/components/icons/IconChat.vue";
+
+import LocalAiNotice from "@/components/ui/LocalAiNotice.vue";
 
 
 const route = useRoute();
@@ -912,6 +916,7 @@ onMounted(async () => {
 
 /* Mobile layout */
 @media (max-width: 620px) {
+
   /* Sidebar overlay */
   .project-detail {
     position: relative;

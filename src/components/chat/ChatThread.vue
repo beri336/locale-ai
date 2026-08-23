@@ -193,6 +193,7 @@
           <p>{{ unavailableModelMessage }}</p>
         </div>
       </div>
+      <LocalAiNotice />
 
       <!-- Chat input row -->
       <div class="chat-input-row">
@@ -240,6 +241,8 @@ import IconCopy from "@/components/icons/IconCopy.vue";
 import IconDownload from "@/components/icons/IconDownload.vue";
 import IconEdit from "@/components/icons/IconEdit.vue";
 import IconRefresh from "@/components/icons/IconRefresh.vue";
+
+import LocalAiNotice from "@/components/ui/LocalAiNotice.vue";
 
 import "@/assets/styles/markdown.css";
 

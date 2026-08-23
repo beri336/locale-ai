@@ -29,6 +29,8 @@
             </div>
         </header>
 
+        <LocalAiNotice />
+
         <div class="models-content">
             <!-- Offline Banner -->
             <div v-if="!statusBool" class="offline-banner" role="alert">
@@ -748,6 +750,8 @@ import IconPackageOff from "@/components/icons/IconPackageOff.vue";
 import IconPlayerPlay from "@/components/icons/IconPlayerPlay.vue";
 import IconPlayerStop from "@/components/icons/IconPlayerStop.vue";
 import IconCheck from "@/components/icons/IconCheck.vue";
+
+import LocalAiNotice from "@/components/ui/LocalAiNotice.vue";
 
 
 const lmStudioApi = useLmStudioApi();

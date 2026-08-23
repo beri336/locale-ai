@@ -22,6 +22,8 @@
 
       <!-- Sidebar content -->
       <template v-if="!isSidebarCollapsed">
+        <LocalAiNotice />
+
         <!-- New chat button -->
         <button class="btn-primary new-chat-btn" type="button" @click="handleNewChat">
           <span aria-hidden="true">
@@ -165,6 +167,8 @@ import ChatListItem from "@/components/chat/ChatListItem.vue";
 import ChatThread from "@/components/chat/ChatThread.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
 import IconTemp from "@/components/icons/IconTemp.vue";
+
+import LocalAiNotice from "@/components/ui/LocalAiNotice.vue";
 
 const ollamaApi = useOllamaApi();
 const lmstudio = useLmStudioApi();
