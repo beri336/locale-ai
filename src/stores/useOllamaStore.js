@@ -6,6 +6,7 @@
 /// and streaming chat sessions.
 
 import { isValidOllamaModelName } from "@/utils/validation";
+import { aiConfig } from "@/config/ai";
 
 const DEFAULT_BASE_URL = "http://localhost:11434";
 
@@ -375,6 +376,10 @@ export class OllamaApi {
         { signal: parentSignal, ...options } = {},
         timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
     ) {
+        if (!aiConfig.localAiEnabled) {
+            throw new Error("Local AI is disabled in this build.");
+        }
+
         const timeoutController = new AbortController();
         const timeoutId = window.setTimeout(
             () => timeoutController.abort(),
@@ -447,6 +452,11 @@ export class OllamaApi {
      * @returns {Promise<boolean>} True when Ollama is reachable
      */
     async status() {
+        if (!aiConfig.localAiEnabled) {
+            this.debugLog("Local AI disabled in this build; skipping status check.");
+            return false;
+        }
+
         try {
             const response = await this.fetchWithTimeout(
                 `${this.baseUrl}/`,

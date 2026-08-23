@@ -5,6 +5,7 @@
 /// installed and running model caches, downloads and chat sessions with SSE streaming.
 
 import { isValidLmStudioModelId } from "@/utils/validation";
+import { aiConfig } from "@/config/ai";
 
 const DEFAULT_BASE_URL = "http://localhost:1234";
 const BASE_URL_STORAGE_KEY = "lmstudio-api-url";
@@ -333,6 +334,10 @@ export class LmStudioApi {
         { signal: parentSignal, ...options } = {},
         timeoutMs = REQUEST_TIMEOUT_MS,
     ) {
+        if (!aiConfig.localAiEnabled) {
+            throw new Error("Local AI is disabled in this build.");
+        }
+
         const timeoutController = new AbortController();
         const timeoutId = window.setTimeout(
             () => timeoutController.abort(),
@@ -385,6 +390,11 @@ export class LmStudioApi {
      * @returns {Promise<boolean>} True when the server returned a successful response
      */
     async status() {
+        if (!aiConfig.localAiEnabled) {
+            this.debugLog("Local AI disabled in this build; skipping status check.");
+            return false;
+        }
+
         try {
             const response = await this.fetchWithTimeout(
                 `${this.getBaseUrl()}${API_PATHS.MODELS}`,
@@ -793,13 +803,6 @@ export class LmStudioApi {
             };
         }
     }
-
-
-
-
-
-
-
 
     /**
      * Unloads a running model instance from LM Studio.
@@ -1368,24 +1371,6 @@ export class LmStudioApi {
             };
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     /**
      * Creates an in-memory chat session that uses LM Studio's server-side
