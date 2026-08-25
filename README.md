@@ -144,9 +144,12 @@ Locale AI is designed to work locally:
 
 Copyright © 2026 beri336. All rights reserved.
 
-This repository is publicly available solely for portfolio and evaluation purposes.
-Use, copying, modification, redistribution, or commercial use of this project is
-not permitted without prior written permission.
+This repository is publicly available for personal use and personal
+modification only. Copying, redistribution, publishing derivative
+repositories and commercial use of this project are not permitted
+without prior written permission. Attribution to the original author
+and repository must be preserved in all copies and modified versions,
+including private ones.
 
 See [LICENSE](./LICENSE) for the full terms.
 

@@ -1,16 +1,23 @@
 Copyright (c) 2026 beri336
 
-All rights reserved.
+Permission is granted to view, download and use this repository and its
+contents (including source code, documentation, designs, assets and
+configuration files) for personal, non-commercial purposes, including
+personal modification and personal use of modified versions.
 
-This repository and its contents, including without limitation source code,
-documentation, designs, assets, and configuration files, are proprietary and
-provided solely for viewing and evaluation as part of a personal portfolio.
+The following is NOT permitted without prior written permission from the
+copyright holder:
+- Copying, redistributing, publishing, or sublicensing this repository
+  or any part of it, whether modified or unmodified
+- Creating and distributing derivative works or forks based on this
+  repository (publicly or to third parties)
+- Selling this repository or any part of it, or using it for any
+  commercial purpose
+- Removing, altering, obscuring, or misrepresenting this copyright
+  notice, the original author's name, or the origin of this repository,
+  in any copy or modified version, including private or personal copies
 
-No permission is granted to use, copy, modify, merge, publish, distribute,
-sublicense, sell, or create derivative works from any part of this repository,
-whether for commercial or non-commercial purposes, without prior written
-permission from the copyright holder.
-
-No license is granted by implication, estoppel, or otherwise.
+This license does not grant any rights not expressly stated above. All
+other rights are reserved by the copyright holder.
 
 For permission requests, please open an issue in this repository.
